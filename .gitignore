@@ -3,6 +3,9 @@ node_modules/
 dist/
 .angular/
 .DS_Store
+*.tsbuildinfo
+coverage/
+.turbo/
 
 # Secrets and local env (nunca commitear)
 .env
@@ -22,6 +25,17 @@ supabase/.branches/
 .idea/
 .vscode/
 
+# Playwright / Vitest artifacts
+playwright-report/
+test-results/
+blob-report/
+
 # Native (generated / local)
 android/app/build/
+android/.gradle/
+android/local.properties
+android/captures/
 ios/App/Pods/
+ios/App/DerivedData/
+*.keystore
+*.jks

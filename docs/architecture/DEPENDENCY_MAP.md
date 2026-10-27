@@ -1,6 +1,6 @@
 # Dependency Map
 
-**Plan:** [../refactoring/REFACTOR_PLAN.md](../refactoring/REFACTOR_PLAN.md) · **Modules:** [MODULE_MAP.md](./MODULE_MAP.md)
+**Plan:** [../refactoring/REFACTOR_PLAN.md](../refactoring/REFACTOR_PLAN.md) · **Modules:** [MODULE_MAP.md](./MODULE_MAP.md) · **Cleanup:** [../refactoring/B12_CLEANUP.md](../refactoring/B12_CLEANUP.md)
 
 ## Allowed direction (target)
 

@@ -21,9 +21,9 @@
 | Infrastructure | `core/infrastructure/*` | **Done (B1)** |
 | Shared models | `core/models/models.ts` (enums from `database.types`) | **B10 done** |
 | DB / Supabase types | `core/data/database.types.ts` (BOOTSTRAP-aligned) | **B10 done** — [../refactoring/B10_TYPES.md](../refactoring/B10_TYPES.md) |
-| Branding / dead code | README, `package.json`, orphans | **B12** |
-| Integration / E2E | Playwright smoke only | **B13** |
-| Agent docs / Cursor rules | Partial under `docs/` | **B14** |
+| Branding / docs cleanup | README, npm name, ignore, e2e paths | **B12 done** — [../refactoring/B12_CLEANUP.md](../refactoring/B12_CLEANUP.md) |
+| Integration / E2E | Vitest 159 + Playwright smoke/auth-shell | **B13 done** — [../testing/TEST_MATRIX.md](../testing/TEST_MATRIX.md) |
+| Agent docs / Cursor rules | `AGENTS.md`, `.cursor/rules`, `.cursor/agents` | **B14 done** — [../agents/AGENT_MAP.md](../agents/AGENT_MAP.md) |
 
 ## Actual trees (post B7.5)
 
@@ -61,7 +61,8 @@ tables/
 
 - Relocate attended/observation wrappers only if authorized (see tables.md)
 - Optional: plan/catalog dialog children (deferred in B11 — coupled to shell lists)
-- B12 cleanup / branding
+- Optional later: rename `dist/discoteca` + Capacitor `webDir` + UI brand (needs auth)
+- Optional future: UI rebrand, `dist/discoteca` rename, SQL consolidation (need auth)
 
 ## Public surfaces agents should prefer
 

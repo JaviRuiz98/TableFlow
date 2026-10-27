@@ -41,7 +41,7 @@ TableFlow is a PWA / Capacitor app (Angular 20 + Ionic 8) for nightclub floor op
 
 ## Refactor remaining (do not skip)
 
-**B9–B11 DONE** → **B12** cleanup → **B13** integration/E2E → **B14** docs/rules/agents.
+**B0–B14 DONE** on `main` (agents/rules ready). Further phases only with new authorization.
 
 See [REFACTOR_PLAN.md](../refactoring/REFACTOR_PLAN.md) for proposed `floor-plans` / `floor-editor` trees **before** any file moves.
 
@@ -55,6 +55,8 @@ See [REFACTOR_PLAN.md](../refactoring/REFACTOR_PLAN.md) for proposed `floor-plan
 
 Prefer: this overview → `MODULE_MAP` / `DEPENDENCY_MAP` → **one** `docs/modules/<domain>.md`. Avoid loading all module docs at once (B14 formalizes Cursor rules).
 
-## Branding note
+## Branding note (post B12)
 
-UI / README / `package.json` may still say “Sala Chocolatte” / `discoteca`. Cosmetic debt addressed in **B12**, not as drive-by edits.
+- **Product / docs / npm package:** TableFlow (`package.json` name `tableflow`).
+- **UI / Capacitor launcher / store strings:** still «Sala Chocolatte» / `com.salachocolatte.app` until visual/native rebrand is authorized.
+- **Build artifact path:** Angular project key + `dist/discoteca` kept for Capacitor/`ngsw` compatibility (documented debt).

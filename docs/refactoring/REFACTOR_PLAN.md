@@ -18,7 +18,7 @@
 | Co-location debt | Editor + panel still under `features/floor-plans/` |
 | Misplaced services | `geometry`, `table-validation`, `table-deletion` still in `core/services/` |
 | Types debt | `database.types.ts` uses `any` on table rows |
-| Branding debt | README / `package.json` still Discoteca / CreadorSala |
+| Branding debt | Docs/npm TableFlow (B12); UI/Capacitor still Sala Chocolatte |
 | Docs debt | Module docs incomplete for final agent-scoped loading |
 
 ---
@@ -184,19 +184,20 @@ Rules: create folders only with real files; keep HTML/SCSS/UX stable; no RPC cha
 - User-admin dialogs → `WorkspaceUserAdminComponent`; shell utils for visibility/transient/catalog
 - Plan/catalog modals kept in shell (list coupling) — see [B11_WORKSPACE.md](./B11_WORKSPACE.md)
 
-### B12 — Cleanup
+### B12 — Cleanup ✅
 
-- Dead code, obsolete docs, Discoteca/CreadorSala references in README/`package.json` (branding only when listed here)
-- Delete only after dependency scan
+- README/NATIVE_APP TableFlow; npm name `tableflow`; e2e/playwright paths fixed; `.gitignore` hardened
+- UI/Capacitor/`dist/discoteca` preserved — see [B12_CLEANUP.md](./B12_CLEANUP.md)
 
-### B13 — Testing
+### B13 — Testing ✅
 
-- Integration + E2E expansion; mocked/local only; no destructive remote Supabase
+- Vitest 159; Playwright smoke + auth-shell with mutation block; fixtures in `src/testing/`
+- See [B13_TESTING.md](./B13_TESTING.md) · [../testing/TEST_STRATEGY.md](../testing/TEST_STRATEGY.md)
 
-### B14 — Docs & agents
+### B14 — Docs & agents ✅
 
-- Finalize `docs/modules/*`, Cursor scoped rules, `AGENT_ARCHITECTURE.md`
-- Agents load **one module doc + DEPENDENCY_MAP**, not the whole repo
+- `AGENTS.md` + `.cursor/rules/*.mdc` + `.cursor/agents/tableflow-*.md`
+- See [B14_AGENTS.md](./B14_AGENTS.md) · [../agents/AGENT_MAP.md](../agents/AGENT_MAP.md)
 
 ---
 
@@ -249,7 +250,7 @@ User confirms before each step:
 - [ ] B9 tables
 - [x] B10 types
 - [x] B11 workspace further split
-- [ ] B12 cleanup / branding refs
-- [ ] B13 integration/E2E
-- [ ] B14 docs/rules/agents
+- [x] B12 cleanup / branding refs
+- [x] B13 integration/E2E
+- [x] B14 docs/rules/agents
 - [ ] Still: no remote schema/RPC changes; no commits without ask

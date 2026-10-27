@@ -29,6 +29,7 @@
 | tables (B9) | **DONE** — [B9_TABLES.md](./B9_TABLES.md) · [../modules/tables.md](../modules/tables.md) |
 | types hardening (B10) | **DONE** — [B10_TYPES.md](./B10_TYPES.md) (BOOTSTRAP-aligned `database.types`; no live gen) |
 | workspace further (B11) | **DONE** — [B11_WORKSPACE.md](./B11_WORKSPACE.md) · [../modules/workspace.md](../modules/workspace.md) |
-| cleanup (B12) | **Next** (await authorization) |
-| integration/E2E (B13) | Pending |
-| docs/rules/agents (B14) | Pending |
+| cleanup (B12) | **DONE** — [B12_CLEANUP.md](./B12_CLEANUP.md) |
+| integration/E2E (B13) | **DONE** — [B13_TESTING.md](./B13_TESTING.md) · [../testing/TEST_MATRIX.md](../testing/TEST_MATRIX.md) |
+| docs/rules/agents (B14) | **DONE** — [B14_AGENTS.md](./B14_AGENTS.md) · [../agents/AGENT_MAP.md](../agents/AGENT_MAP.md) |
+| agents polish (B14.1) | **DONE** — descriptions + products/workspace boundary · [B14_AGENTS.md](./B14_AGENTS.md#b141--agent-description--boundary-polish) |

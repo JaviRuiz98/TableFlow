@@ -1,70 +1,61 @@
-# Sala Chocolatte como app nativa
+# TableFlow — empaquetado nativo (Capacitor)
 
-El proyecto está preparado con Capacitor para generar aplicaciones Android e iOS usando el mismo código Angular/Ionic.
+El mismo código Angular/Ionic se empaqueta para Android e iOS con Capacitor.
+
+> **Branding nativo:** `appName` / cadenas Android-iOS siguen siendo «Sala Chocolatte» y `appId` `com.salachocolatte.app` hasta autorización de rebranding visual/nativo. El producto de software es TableFlow; el `webDir` de build permanece `dist/discoteca/browser` (clave Angular legacy).
 
 ## Requisitos
 
 - Node.js 22
-- Android: Android Studio + SDK de Android + JDK compatible con la versión de Android Gradle Plugin instalada por Capacitor
-- iOS: macOS + Xcode (solo puede compilarse iOS en un Mac)
+- Android: Android Studio + SDK + JDK compatible con el AGP de Capacitor
+- iOS: macOS + Xcode
 
 ## Primera instalación
 
-1. Copia `.env` a la raíz del proyecto con `SUPABASE_URL` y `SUPABASE_ANON_KEY`.
-2. Instala dependencias:
-   `npm install`
-3. Compila la web:
-   `npm run build`
+1. Configura `.env` con `SUPABASE_URL` y `SUPABASE_ANON_KEY` (públicos).
+2. `npm ci`
+3. `npm run build`
 
-### Android
+### Android (una vez)
 
-Ejecuta una sola vez:
+```bash
+npm run android:add
+npm run native:assets
+npm run native:sync
+npm run android:open
+```
 
-`npm run android:add`
+### iOS (una vez, macOS)
 
-Después genera iconos/splash y sincroniza:
+```bash
+npm run ios:add
+npm run native:assets
+npm run native:sync
+npm run ios:open
+```
 
-`npm run native:assets`
-`npm run native:sync`
+## Flujo habitual
 
-Abre Android Studio:
+Tras cambios Angular, **no** recrees `android/` / `ios/`:
 
-`npm run android:open`
+```bash
+npm run native:build
+```
 
-### iOS
+## Identidad nativa (conservada)
 
-En macOS, ejecuta una sola vez:
+| Campo | Valor actual | Notas |
+|-------|--------------|-------|
+| App name | Sala Chocolatte | UI store / launcher |
+| App ID | `com.salachocolatte.app` | No cambiar sin autorización |
+| Web output | `dist/discoteca/browser` | Coincide con `angular.json` → `outputPath` |
 
-`npm run ios:add`
+Iconos: `resources/icon.svg` / `resources/icon.png` vía `npm run native:assets`.
 
-Después:
+## Actualización completa
 
-`npm run native:assets`
-`npm run native:sync`
-`npm run ios:open`
+```bash
+npm run native:update
+```
 
-## Flujo habitual después de modificar Angular
-
-No vuelvas a crear las carpetas `android` o `ios`. Basta con:
-
-`npm run native:build`
-
-Esto ejecuta el build de Angular y sincroniza la carpeta web con los proyectos nativos.
-
-## Identidad nativa
-
-- Nombre: Sala Chocolatte
-- App ID: `com.salachocolatte.app`
-- Web output: `dist/discoteca/browser`
-
-El archivo `resources/icon.svg` sirve como fuente del icono. `@capacitor/assets` genera los tamaños nativos cuando existen las plataformas Android/iOS.
-
-## Actualizar iconos y cambios nativos
-
-Después de añadir Android/iOS por primera vez, ejecuta:
-
-`npm run native:update`
-
-Este comando compila Angular, sincroniza Capacitor y regenera los iconos nativos desde `resources/icon.png` / `resources/icon.svg`.
-
-Para que iOS muestre el icono de Sala Chocolatte en la pantalla de inicio, ejecuta `npm run native:assets` después de haber creado la carpeta `ios/`, y vuelve a compilar desde Xcode. En Android se aplica igual después de crear `android/`.
+Compila Angular, sincroniza Capacitor y regenera iconos/splash.

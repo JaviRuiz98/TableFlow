@@ -66,6 +66,8 @@ Consumers: `PlanEditorComponent`, `TableProductPanelComponent`, `WorkspaceCompon
 
 - `order-state.service.spec.ts`
 - `open-order-quantity-maps.spec.ts`
+- `order.service.spec.ts` (B13 mocked Supabase)
+- Cross: `workspace-orders-integration.spec.ts`
 
 ## 9. Modification restrictions
 

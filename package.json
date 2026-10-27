@@ -1,7 +1,8 @@
 {
-  "name": "discoteca",
+  "name": "tableflow",
   "version": "0.1.0",
   "private": true,
+  "description": "TableFlow — gestión de planos, mesas y pedidos (Angular/Ionic/Supabase)",
   "scripts": {
     "start": "ng serve",
     "build": "ng build --configuration production",

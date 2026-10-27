@@ -1,6 +1,8 @@
-# Mejoras móviles
+# Mejoras móviles (TableFlow)
 
-- Icono nativo: `resources/icon.png` (1024x1024) y `resources/icon.svg`, con el mismo diseño que el favicon de Sala Chocolatte.
+Notas operativas de UX nativa/móvil. La marca del launcher puede seguir siendo «Sala Chocolatte» hasta rebranding autorizado.
+
+- Icono nativo: `resources/icon.png` (1024x1024) y `resources/icon.svg`, alineados con el favicon de la app.
 - Vista inicial del plano: calcula el zoom mínimo necesario para intentar mostrar el plano completo en el área disponible.
 - Botón de zoom `−`: queda deshabilitado y gris al alcanzar el mínimo.
 - Botón de zoom `+`: queda deshabilitado al alcanzar el máximo.
