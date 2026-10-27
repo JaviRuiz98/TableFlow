@@ -2,24 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { SupabaseService } from '../../core/infrastructure';
 import { FloorPlanService } from './floor-plan.service';
-
-type QueryResult = { data: unknown; error: unknown };
-
-function createQueryBuilder(result: QueryResult) {
-  const builder: Record<string, unknown> = {};
-  const self = () => builder;
-  builder['select'] = vi.fn(self);
-  builder['insert'] = vi.fn(self);
-  builder['update'] = vi.fn(self);
-  builder['delete'] = vi.fn(self);
-  builder['eq'] = vi.fn(self);
-  builder['order'] = vi.fn(self);
-  builder['limit'] = vi.fn(self);
-  builder['single'] = vi.fn(() => Promise.resolve(result));
-  builder['then'] = (resolve: (value: QueryResult) => unknown, reject?: (reason: unknown) => unknown) =>
-    Promise.resolve(result).then(resolve, reject);
-  return builder;
-}
+import { fixturePlan, fixtureTable, fixtureWall } from '../../../testing/fixtures';
+import { createQueryBuilder } from '../../../testing/supabase-query-mock';
 
 describe('FloorPlanService', () => {
   let service: FloorPlanService;
@@ -104,5 +88,45 @@ describe('FloorPlanService', () => {
   it('propagates Supabase errors from remove', async () => {
     fromMock.mockReturnValue(createQueryBuilder({ data: null, error: new Error('denied') }));
     await expect(service.remove('p1')).rejects.toThrow('denied');
+  });
+
+  it('load maps elements/tables and splits RESERVED', async () => {
+    const reserved = { ...fixtureTable, id: 'r1', type: 'RESERVED' as const, number: 9 };
+    fromMock
+      .mockReturnValueOnce(createQueryBuilder({ data: [fixtureWall], error: null }))
+      .mockReturnValueOnce(createQueryBuilder({ data: [fixtureTable, reserved], error: null }));
+
+    const snap = await service.load(fixturePlan.id);
+    expect(snap.elements[0]?.id).toBe(fixtureWall.id);
+    expect(snap.tables.map((t) => t.id)).toEqual([fixtureTable.id]);
+    expect(snap.reserved?.map((t) => t.id)).toEqual(['r1']);
+  });
+
+  it('setTableAttended and setTableObservation call RPCs without remote writes in test', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    await service.setTableAttended('t1', false);
+    await service.setTableObservation('t1', 'VIP');
+    expect(rpcMock).toHaveBeenCalledWith('set_table_attended', {
+      p_table_id: 't1',
+      p_attended: false,
+    });
+    expect(rpcMock).toHaveBeenCalledWith('set_table_observation', {
+      p_table_id: 't1',
+      p_observation: 'VIP',
+    });
+  });
+
+  it('createOperationalTarget inserts next number with attended true', async () => {
+    fromMock
+      .mockReturnValueOnce(createQueryBuilder({ data: [{ number: 3 }], error: null }))
+      .mockReturnValueOnce(
+        createQueryBuilder({
+          data: { ...fixtureTable, number: 4, attended: true },
+          error: null,
+        }),
+      );
+    const created = await service.createOperationalTarget(fixturePlan.id, 'TABLE');
+    expect(created.number).toBe(4);
+    expect(created.attended).toBe(true);
   });
 });
