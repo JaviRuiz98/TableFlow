@@ -30,21 +30,21 @@ import {
 } from 'ionicons/icons';
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { AuthService } from '../../core/auth/auth.service';
-import { SupabaseService } from '../../core/infrastructure';
-import { FloorPlanService } from '../floor-plans';
-import { OrderService } from '../orders';
-import { OrderNotificationService } from '../notifications';
-import type { ClubTable, FloorPlan } from '../../core/models/models';
-import { PlanEditorComponent, TableProductPanelComponent } from '../floor-editor';
-import { NEW_OBSERVATION_ALERT, NEW_ORDER_ALERT } from './workspace-alerts.util';
+import { AuthService } from '../../../core/auth/auth.service';
+import { SupabaseService } from '../../../core/infrastructure';
+import { FloorPlanService } from '../../floor-plans';
+import { OrderService } from '../../orders';
+import { OrderNotificationService } from '../../notifications';
+import type { ClubTable, FloorPlan } from '../../../core/models/models';
+import { PlanEditorComponent, TableProductPanelComponent } from '../../floor-editor';
+import { NEW_OBSERVATION_ALERT, NEW_ORDER_ALERT } from '../workspace-user-alert-modal/workspace-alerts.util';
 import { initialWorkspacePresentation } from './workspace-init.util';
 import { emptyWorkspaceTransientUi } from './workspace-transient.util';
 import { workspaceShellVisibility } from './workspace-shell-visibility.util';
-import { WorkspaceUserAdminComponent } from './workspace-user-admin.component';
-import { WorkspacePlanAdminDialogsComponent } from './components/workspace-plan-admin-dialogs/workspace-plan-admin-dialogs.component';
-import { WorkspaceCatalogPanelComponent } from './components/workspace-catalog-panel/workspace-catalog-panel.component';
-import { WorkspaceUserAlertModalComponent } from './components/workspace-user-alert-modal/workspace-user-alert-modal.component';
+import { WorkspaceUserAdminComponent } from '../workspace-user-admin/workspace-user-admin.component';
+import { WorkspacePlanAdminDialogsComponent } from '../workspace-plan-admin-dialogs/workspace-plan-admin-dialogs.component';
+import { WorkspaceCatalogPanelComponent } from '../workspace-catalog-panel/workspace-catalog-panel.component';
+import { WorkspaceUserAlertModalComponent } from '../workspace-user-alert-modal/workspace-user-alert-modal.component';
 
 @Component({
   selector: 'app-workspace',

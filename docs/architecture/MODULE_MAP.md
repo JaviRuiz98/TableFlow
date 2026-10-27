@@ -33,10 +33,10 @@
 ```text
 floor-plans/
   index.ts
-  floor-plan.service.ts (+ spec)
-  plan-duplication.service.ts (+ spec)
-  floor-plan-snapshot.util.ts (+ spec)
-  floor-plan-element.mapper.ts (+ spec)   # B10 jsonb points → domain
+  floor-plan/              # FloorPlanService + spec
+  plan-duplication/
+  floor-plan-snapshot/
+  floor-plan-element/      # mapper (B10)
 ```
 
 ### `features/floor-editor/` (graphic + panel)
@@ -44,11 +44,10 @@ floor-plans/
 ```text
 floor-editor/
   index.ts
-  plan-editor.component.{ts,html,scss}   # Stage owner (~648 TS, approved exception)
-  plan-editor-{renderer,viewport,drawing,delete.facade,host}.ts
-  table-product-panel.component.{ts,html,scss}
-  components/{editor-toolbar,plan-editor-dialogs,order-attention-dialog}/
-  geometry/ canvas/ tools/ history/   # B8.2–B8.5
+  plan-editor/          # Stage owner + helpers (~648 TS exception)
+  table-product-panel/
+  editor-toolbar/ plan-editor-dialogs/ order-attention-dialog/
+  geometry/ canvas/ tools/ history/
 ```
 
 ### `features/tables/` (B9)

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import type { ClubTable } from '../../core/models/models';
+import type { ClubTable } from '../../../core/models/models';
 import { TableValidationService } from './table-validation.service';
 
 describe('TableValidationService', () => {

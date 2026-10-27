@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonButton } from '@ionic/angular/standalone';
-import type { ClubTable } from '../../../../core/models/models';
-import type { EditorTool } from '../../tools';
+import type { ClubTable } from '../../../core/models/models';
+import type { EditorTool } from '../tools';
 
 /**
  * Editor / operativo toolbar chrome. Parent owns tool state and Stage actions.

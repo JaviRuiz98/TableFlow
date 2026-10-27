@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { ErrorMessageService } from '../../core/infrastructure';
-import { UserAdminService } from '../users';
+import { ErrorMessageService } from '../../../core/infrastructure';
+import { UserAdminService } from '../../users';
 import { WorkspaceUserAdminComponent } from './workspace-user-admin.component';
 
 describe('WorkspaceUserAdminComponent', () => {

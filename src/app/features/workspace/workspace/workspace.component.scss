@@ -1,4 +1,4 @@
-@use './workspace-dialog.styles.scss';
+@use '../styles/workspace-dialog.styles.scss';
 
 ion-button { --border-radius:10px; --box-shadow:none; font-weight:700; text-transform:none; }
     .topbar { width:100%; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:24px; padding:0 22px; }

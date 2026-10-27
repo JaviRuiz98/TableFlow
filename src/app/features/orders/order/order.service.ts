@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import type { Json } from '../../core/data/database.types';
-import { SupabaseService } from '../../core/infrastructure';
-import type { Order, OrderItemWithProduct } from '../../core/models/models';
+import type { Json } from '../../../core/data/database.types';
+import { SupabaseService } from '../../../core/infrastructure';
+import type { Order, OrderItemWithProduct } from '../../../core/models/models';
 import {
   buildOpenOrderQuantityMaps,
   type OpenOrderQuantityRow,
-} from './open-order-quantity-maps';
+} from '../open-order-quantity-maps/open-order-quantity-maps';
 
 export interface ProductAssignmentItem {
   product_id: string;

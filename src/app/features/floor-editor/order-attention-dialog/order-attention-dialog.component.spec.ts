@@ -1,11 +1,11 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { AuthService } from '../../../../core/auth/auth.service';
-import type { ClubTable } from '../../../../core/models/models';
-import { FloorPlanService } from '../../../floor-plans';
-import { OrderService } from '../../../orders';
-import { ProductService } from '../../../products';
+import { AuthService } from '../../../core/auth/auth.service';
+import type { ClubTable } from '../../../core/models/models';
+import { FloorPlanService } from '../../floor-plans';
+import { OrderService } from '../../orders';
+import { ProductService } from '../../products';
 import { OrderAttentionDialogComponent } from './order-attention-dialog.component';
 
 const table = (partial: Partial<ClubTable> & Pick<ClubTable, 'id' | 'number' | 'type'>): ClubTable =>

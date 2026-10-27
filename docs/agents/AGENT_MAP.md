@@ -10,7 +10,7 @@
 | `/tableflow-tables` | Tables helpers | `features/tables` | [tables.md](../modules/tables.md) | table-*.spec |
 | `/tableflow-orders` | Orders | `features/orders` | [orders.md](../modules/orders.md) | order*.spec |
 | `/tableflow-products` | Catalog **data** (not workspace UI) | `features/products` | [products.md](../modules/products.md) | product.service.spec |
-| `/tableflow-users` | Users admin | `features/users` + user-admin UI | [users.md](../modules/users.md) | user-admin*.spec |
+| `/tableflow-users` | Users admin | `features/users` + `workspace/workspace-user-admin/` | [users.md](../modules/users.md) | user-admin*.spec |
 | `/tableflow-notifications` | Realtime alerts | `features/notifications` | [notifications.md](../modules/notifications.md) | order-notification*.spec |
 | `/tableflow-test-runner` | QA tooling | specs, e2e, configs | [TEST_STRATEGY](../testing/TEST_STRATEGY.md) | npm test/e2e/lint/build |
 | `/tableflow-db-contracts` | Types/SQL docs | `core/data`, `core/models`, `supabase` | [B10_TYPES](../refactoring/B10_TYPES.md) | database.types / reservation contract |

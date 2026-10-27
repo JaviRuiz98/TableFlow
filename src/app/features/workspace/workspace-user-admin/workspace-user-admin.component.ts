@@ -10,10 +10,10 @@ import {
   IonSelect,
   IonSelectOption,
 } from '@ionic/angular/standalone';
-import { normalizeUsername } from '../../core/auth/auth-identity';
-import { ErrorMessageService } from '../../core/infrastructure';
-import type { Role } from '../../core/models/models';
-import { UserAdminService } from '../users';
+import { normalizeUsername } from '../../../core/auth/auth-identity';
+import { ErrorMessageService } from '../../../core/infrastructure';
+import type { Role } from '../../../core/models/models';
+import { UserAdminService } from '../../users';
 import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form.util';
 
 /**

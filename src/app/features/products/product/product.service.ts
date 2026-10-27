@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { SupabaseService } from '../../core/infrastructure';
-import type { Product, ProductCategory } from '../../core/models/models';
+import { SupabaseService } from '../../../core/infrastructure';
+import type { Product, ProductCategory } from '../../../core/models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {

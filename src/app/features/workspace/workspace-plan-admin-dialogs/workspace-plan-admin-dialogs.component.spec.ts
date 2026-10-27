@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { AuthService } from '../../../../core/auth/auth.service';
-import type { FloorPlan } from '../../../../core/models/models';
-import { FloorPlanService, PlanDuplicationService } from '../../../floor-plans';
+import { AuthService } from '../../../core/auth/auth.service';
+import type { FloorPlan } from '../../../core/models/models';
+import { FloorPlanService, PlanDuplicationService } from '../../floor-plans';
 import { WorkspacePlanAdminDialogsComponent } from './workspace-plan-admin-dialogs.component';
 
 const samplePlan: FloorPlan = {

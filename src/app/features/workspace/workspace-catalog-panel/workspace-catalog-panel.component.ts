@@ -2,10 +2,10 @@ import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonIcon, IonInput, IonModal } from '@ionic/angular/standalone';
-import { AuthService } from '../../../../core/auth/auth.service';
-import type { Product, ProductCategory } from '../../../../core/models/models';
-import { ProductService } from '../../../products';
-import { applyCatalogDelete, catalogDeleteBlockedMessage } from '../../workspace-catalog.util';
+import { AuthService } from '../../../core/auth/auth.service';
+import type { Product, ProductCategory } from '../../../core/models/models';
+import { ProductService } from '../../products';
+import { applyCatalogDelete, catalogDeleteBlockedMessage } from './workspace-catalog.util';
 
 /**
  * ADMIN productos tab: category/product list + edit/delete dialogs.

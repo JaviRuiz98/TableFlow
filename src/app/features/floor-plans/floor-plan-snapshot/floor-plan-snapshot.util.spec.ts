@@ -1,4 +1,4 @@
-import type { ClubTable, FloorPlanElement, FloorSnapshot } from '../../core/models/models';
+import type { ClubTable, FloorPlanElement, FloorSnapshot } from '../../../core/models/models';
 import {
   buildDuplicatedSnapshot,
   buildReplaceSnapshotPayload,

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import type { FloorPlan, FloorSnapshot } from '../../core/models/models';
-import { FloorPlanService } from './floor-plan.service';
+import type { FloorPlan, FloorSnapshot } from '../../../core/models/models';
+import { FloorPlanService } from '../floor-plan/floor-plan.service';
 import { PlanDuplicationService } from './plan-duplication.service';
 
 describe('PlanDuplicationService', () => {

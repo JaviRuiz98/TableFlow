@@ -27,22 +27,29 @@ UI shell after login: tabs, plan list, operativa composition, product catalog UI
 - create-user Edge → `users` (via user-admin child)
 - Raw Supabase → `core/infrastructure`
 
-## Main files
+## Layout (folder-per-unit)
 
-| File | Role |
-|------|------|
-| `workspace.component.*` | Shell coordinator (tabs, operativa, Realtime, toast) |
-| `workspace-user-admin.component.*` | User access + create-user dialogs (B11) |
-| `components/workspace-plan-admin-dialogs/` | Create/copy/rename/delete plan dialogs (C2) |
-| `components/workspace-catalog-panel/` | Productos tab + catalog dialogs (C2) |
-| `components/workspace-user-alert-modal/` | USER order/observation alert modal (C2) |
-| `workspace-dialog.styles.scss` | Shared modal styles |
-| `workspace-init.util.ts` | Role-based initial presentation |
-| `workspace-shell-visibility.util.ts` | ADMIN/USER control gates |
-| `workspace-transient.util.ts` | Overlay reset + copy-plan name |
-| `workspace-catalog.util.ts` | Catalog delete apply/messages |
-| `workspace-user-form.util.ts` | New-user validation |
-| `workspace-alerts.util.ts` | USER alert copy |
+```text
+workspace/
+  index.ts
+  styles/workspace-dialog.styles.scss
+  workspace/                         # shell + shell utils/specs
+  workspace-user-admin/              # component + user-form util
+  workspace-plan-admin-dialogs/
+  workspace-catalog-panel/           # component + catalog util
+  workspace-user-alert-modal/        # component + alerts util
+```
+
+## Main folders
+
+| Folder | Role |
+|--------|------|
+| `workspace/` | Shell coordinator (tabs, operativa, Realtime, toast) + init/visibility/transient utils |
+| `workspace-user-admin/` | User access + create-user dialogs + form util (B11) |
+| `workspace-plan-admin-dialogs/` | Create/copy/rename/delete plan dialogs (C2) |
+| `workspace-catalog-panel/` | Productos tab + catalog dialogs + catalog util (C2) |
+| `workspace-user-alert-modal/` | USER alert modal + alert copy util (C2) |
+| `styles/` | Shared modal SCSS |
 | `index.ts` | Exports `WorkspaceComponent` |
 
 ## State ownership

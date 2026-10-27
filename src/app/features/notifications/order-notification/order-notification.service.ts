@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { SupabaseService } from '../../core/infrastructure';
+import { SupabaseService } from '../../../core/infrastructure';
 
 @Injectable({ providedIn: 'root' })
 export class OrderNotificationService {

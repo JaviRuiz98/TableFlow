@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ErrorMessageService, SupabaseService } from '../../core/infrastructure';
-import type { Role } from '../../core/models/models';
+import { ErrorMessageService, SupabaseService } from '../../../core/infrastructure';
+import type { Role } from '../../../core/models/models';
 
 export interface CreateUserRequest {
   full_name: string;

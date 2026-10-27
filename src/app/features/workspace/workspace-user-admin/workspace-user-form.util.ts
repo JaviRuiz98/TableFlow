@@ -1,5 +1,5 @@
-import { isValidUsername } from '../../core/auth/auth-identity';
-import type { Role } from '../../core/models/models';
+import { isValidUsername } from '../../../core/auth/auth-identity';
+import type { Role } from '../../../core/models/models';
 
 export interface NewUserFormState {
   fullName: string;

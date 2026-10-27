@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { OrderService } from '../orders';
-import { OrderNotificationService } from '../notifications';
-import { SupabaseService } from '../../core/infrastructure';
-import { buildOpenOrderQuantityMaps } from '../orders/open-order-quantity-maps';
-import { fixtureTable } from '../../../testing/fixtures';
+import { OrderService } from '../../orders';
+import { OrderNotificationService } from '../../notifications';
+import { SupabaseService } from '../../../core/infrastructure';
+import { buildOpenOrderQuantityMaps } from '../../orders';
+import { fixtureTable } from '../../../../testing/fixtures';
 
 /**
  * Cross-module wiring: workspace-style order badges + USER alert subscription.

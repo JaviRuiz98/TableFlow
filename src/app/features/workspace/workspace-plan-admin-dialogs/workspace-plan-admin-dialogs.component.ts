@@ -2,10 +2,10 @@ import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonIcon, IonInput, IonModal } from '@ionic/angular/standalone';
-import { AuthService } from '../../../../core/auth/auth.service';
-import type { FloorPlan } from '../../../../core/models/models';
-import { FloorPlanService, PlanDuplicationService } from '../../../floor-plans';
-import { defaultCopyPlanName } from '../../workspace-transient.util';
+import { AuthService } from '../../../core/auth/auth.service';
+import type { FloorPlan } from '../../../core/models/models';
+import { FloorPlanService, PlanDuplicationService } from '../../floor-plans';
+import { defaultCopyPlanName } from '../workspace/workspace-transient.util';
 
 /**
  * Owns create/copy/rename/delete plan dialog state.

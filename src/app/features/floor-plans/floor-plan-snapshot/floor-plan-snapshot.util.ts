@@ -1,4 +1,4 @@
-import type { ClubTable, FloorPlanElement, FloorSnapshot } from '../../core/models/models';
+import type { ClubTable, FloorPlanElement, FloorSnapshot } from '../../../core/models/models';
 
 /** Split unified `tables` rows the same way FloorPlanService.load does. */
 export function splitTablesByType(allTables: ClubTable[]): Pick<FloorSnapshot, 'tables' | 'reserved'> {

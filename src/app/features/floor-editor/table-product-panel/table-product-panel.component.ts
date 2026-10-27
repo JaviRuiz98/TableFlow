@@ -3,12 +3,12 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonSelect, IonSelectOption, IonSpinner } from '@ionic/angular/standalone';
 
-import { FloorPlanService } from '../floor-plans';
-import { ProductService } from '../products';
-import { OrderService } from '../orders';
-import { AuthService } from '../../core/auth/auth.service';
+import { FloorPlanService } from '../../floor-plans';
+import { ProductService } from '../../products';
+import { OrderService } from '../../orders';
+import { AuthService } from '../../../core/auth/auth.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import type { ClubTable, FloorPlan, OrderItemWithProduct, Product, TableType } from '../../core/models/models';
+import type { ClubTable, FloorPlan, OrderItemWithProduct, Product, TableType } from '../../../core/models/models';
 
 type AssignmentTarget = ClubTable & { displayName: string; kindLabel: string };
 type ListedItem = OrderItemWithProduct;

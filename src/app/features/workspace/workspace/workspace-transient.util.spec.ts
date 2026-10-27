@@ -1,5 +1,5 @@
 import { emptyWorkspaceTransientUi, defaultCopyPlanName } from './workspace-transient.util';
-import { NEW_ORDER_ALERT } from './workspace-alerts.util';
+import { NEW_ORDER_ALERT } from '../workspace-user-alert-modal/workspace-alerts.util';
 
 describe('workspace-transient.util', () => {
   it('emptyWorkspaceTransientUi closes all overlays and clears forms', () => {

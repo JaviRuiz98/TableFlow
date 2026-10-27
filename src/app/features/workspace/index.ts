@@ -1,1 +1,1 @@
-export { WorkspaceComponent } from './workspace.component';
+export { WorkspaceComponent } from './workspace/workspace.component';

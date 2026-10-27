@@ -1,12 +1,12 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { AuthService } from '../../core/auth/auth.service';
-import { GeometryService } from './geometry';
-import { TableDeletionService } from '../tables';
-import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../../core/models/models';
-import { FloorPlanService } from '../floor-plans';
-import { OrderService } from '../orders';
+import { AuthService } from '../../../core/auth/auth.service';
+import { GeometryService } from '../geometry';
+import { TableDeletionService } from '../../tables';
+import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../../../core/models/models';
+import { FloorPlanService } from '../../floor-plans';
+import { OrderService } from '../../orders';
 import { PlanEditorComponent } from './plan-editor.component';
 
 const plan = (partial: Partial<FloorPlan> = {}): FloorPlan => ({

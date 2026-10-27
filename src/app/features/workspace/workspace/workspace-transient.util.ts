@@ -1,6 +1,6 @@
-import type { Role } from '../../core/models/models';
-import type { Product, ProductCategory, FloorPlan } from '../../core/models/models';
-import { NEW_ORDER_ALERT } from './workspace-alerts.util';
+import type { Role } from '../../../core/models/models';
+import type { Product, ProductCategory, FloorPlan } from '../../../core/models/models';
+import { NEW_ORDER_ALERT } from '../workspace-user-alert-modal/workspace-alerts.util';
 
 /** Snapshot of overlay/form fields cleared on init and logout. */
 export interface WorkspaceTransientUi {

@@ -10,7 +10,7 @@ import {
   computePinchViewport,
   computeZoomAroundPoint,
   contentExtent,
-} from './canvas';
+} from '../canvas';
 import type { PlanEditorHost } from './plan-editor-host';
 
 export class PlanEditorViewport {

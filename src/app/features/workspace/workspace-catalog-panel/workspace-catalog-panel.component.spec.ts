@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { AuthService } from '../../../../core/auth/auth.service';
-import type { Product, ProductCategory } from '../../../../core/models/models';
-import { ProductService } from '../../../products';
+import { AuthService } from '../../../core/auth/auth.service';
+import type { Product, ProductCategory } from '../../../core/models/models';
+import { ProductService } from '../../products';
 import { WorkspaceCatalogPanelComponent } from './workspace-catalog-panel.component';
 
 const sampleCategory: ProductCategory = {

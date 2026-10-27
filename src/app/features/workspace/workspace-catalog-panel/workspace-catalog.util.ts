@@ -1,4 +1,4 @@
-import type { Product, ProductCategory } from '../../core/models/models';
+import type { Product, ProductCategory } from '../../../core/models/models';
 
 export type CatalogDeleteTarget =
   | { kind: 'product'; product: Product }

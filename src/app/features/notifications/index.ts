@@ -1,1 +1,1 @@
-export { OrderNotificationService } from './order-notification.service';
+export { OrderNotificationService } from './order-notification/order-notification.service';

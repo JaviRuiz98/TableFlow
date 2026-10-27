@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { SupabaseService } from '../../core/infrastructure';
+import { SupabaseService } from '../../../core/infrastructure';
 import { OrderNotificationService } from './order-notification.service';
 
 type Handler = (payload: {

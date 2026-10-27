@@ -1,4 +1,4 @@
-import type { FloorPlan } from '../../core/models/models';
+import type { FloorPlan } from '../../../core/models/models';
 
 export type WorkspaceTab = 'planos' | 'operativo' | 'productos';
 export type EditorMode = 'editor' | 'operativo';

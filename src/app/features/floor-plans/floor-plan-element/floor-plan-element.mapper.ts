@@ -1,5 +1,5 @@
-import type { Json, Tables } from '../../core/data/database.types';
-import type { FloorPlanElement } from '../../core/models/models';
+import type { Json, Tables } from '../../../core/data/database.types';
+import type { FloorPlanElement } from '../../../core/models/models';
 
 type ElementRow = Tables<'floor_plan_elements'>;
 

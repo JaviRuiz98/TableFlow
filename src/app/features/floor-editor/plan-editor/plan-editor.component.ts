@@ -28,15 +28,15 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Konva from 'konva';
-import { FloorPlanService } from '../floor-plans';
-import { GeometryService, type Point } from './geometry';
+import { FloorPlanService } from '../../floor-plans';
+import { GeometryService, type Point } from '../geometry';
 import {
   VIEWPORT,
   applyStageSizeIfChanged,
   screenToModelPoint,
   stageSizeFromElement,
   teardownStageResources,
-} from './canvas';
+} from '../canvas';
 import {
   type EditorTool,
   buildTextElement,
@@ -45,25 +45,25 @@ import {
   planToolTransition,
   shouldUpdateTextFontSize,
   toolLabel as editorToolLabel,
-} from './tools';
+} from '../tools';
 import {
   materializeRestoredSnapshot,
   pushEditorHistory,
   redoEditorHistoryIndex,
   undoEditorHistoryIndex,
-} from './history';
-import { AuthService } from '../../core/auth/auth.service';
-import { OrderService } from '../orders';
-import { TableDeletionService } from '../tables';
+} from '../history';
+import { AuthService } from '../../../core/auth/auth.service';
+import { OrderService } from '../../orders';
+import { TableDeletionService } from '../../tables';
 import type {
   ClubTable,
   FloorPlan,
   FloorPlanElement,
   FloorSnapshot,
-} from '../../core/models/models';
-import { EditorToolbarComponent } from './components/editor-toolbar/editor-toolbar.component';
-import { OrderAttentionDialogComponent } from './components/order-attention-dialog/order-attention-dialog.component';
-import { PlanEditorDialogsComponent } from './components/plan-editor-dialogs/plan-editor-dialogs.component';
+} from '../../../core/models/models';
+import { EditorToolbarComponent } from '../editor-toolbar/editor-toolbar.component';
+import { OrderAttentionDialogComponent } from '../order-attention-dialog/order-attention-dialog.component';
+import { PlanEditorDialogsComponent } from '../plan-editor-dialogs/plan-editor-dialogs.component';
 import type { PlanEditorHost } from './plan-editor-host';
 import { PlanEditorRenderer } from './plan-editor-renderer';
 import { PlanEditorViewport } from './plan-editor-viewport';

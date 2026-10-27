@@ -12,16 +12,16 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonModal } from '@ionic/angular/standalone';
-import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import type {
   ClubTable,
   OrderItemCategoryGroup,
   OrderItemWithProduct,
   Product,
-} from '../../../../core/models/models';
-import { FloorPlanService } from '../../../floor-plans';
-import { OrderService } from '../../../orders';
-import { ProductService } from '../../../products';
+} from '../../../core/models/models';
+import { FloorPlanService } from '../../floor-plans';
+import { OrderService } from '../../orders';
+import { ProductService } from '../../products';
 
 type ProductOrderGroup = { id: string; name: string; products: Product[] };
 

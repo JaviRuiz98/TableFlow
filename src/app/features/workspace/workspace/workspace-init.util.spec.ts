@@ -1,5 +1,5 @@
 import { initialWorkspacePresentation } from './workspace-init.util';
-import type { FloorPlan } from '../../core/models/models';
+import type { FloorPlan } from '../../../core/models/models';
 
 const plan = (id: string): FloorPlan => ({
   id,

@@ -6,7 +6,7 @@ description: Use for TableFlow user administration — verifyAccess RPC and crea
 # Users
 
 **Doc:** `docs/modules/users.md`  
-**Paths:** `src/app/features/users/**`, `src/app/features/workspace/workspace-user-admin.*`
+**Paths:** `src/app/features/users/**`, `src/app/features/workspace/workspace-user-admin/**`
 
 ## Context order
 

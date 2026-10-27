@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { OrderItemStatus } from '../../core/models/models';
+import type { OrderItemStatus } from '../../../core/models/models';
 @Injectable({ providedIn: 'root' })
 export class OrderStateService {
   canTransition(from: OrderItemStatus, to: OrderItemStatus): boolean {

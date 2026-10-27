@@ -4,9 +4,9 @@
  * and mutates model/selection through the host.
  */
 import Konva from 'konva';
-import { getLineEndpoints, moveLine, updateLineEndpoint } from './geometry';
-import { elementsDraggable } from './tools';
-import type { ClubTable, FloorPlanElement } from '../../core/models/models';
+import { getLineEndpoints, moveLine, updateLineEndpoint } from '../geometry';
+import { elementsDraggable } from '../tools';
+import type { ClubTable, FloorPlanElement } from '../../../core/models/models';
 import type { PlanEditorHost } from './plan-editor-host';
 
 export class PlanEditorRenderer {

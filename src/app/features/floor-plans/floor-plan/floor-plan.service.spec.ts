@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { SupabaseService } from '../../core/infrastructure';
+import { SupabaseService } from '../../../core/infrastructure';
 import { FloorPlanService } from './floor-plan.service';
-import { fixturePlan, fixtureTable, fixtureWall } from '../../../testing/fixtures';
-import { createQueryBuilder } from '../../../testing/supabase-query-mock';
+import { fixturePlan, fixtureTable, fixtureWall } from '../../../../testing/fixtures';
+import { createQueryBuilder } from '../../../../testing/supabase-query-mock';
 
 describe('FloorPlanService', () => {
   let service: FloorPlanService;

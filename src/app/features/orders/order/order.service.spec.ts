@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { SupabaseService } from '../../core/infrastructure';
+import { SupabaseService } from '../../../core/infrastructure';
 import { OrderService } from './order.service';
 import {
   fixtureOrder,
   fixtureOrderItem,
   fixtureProduct,
   fixtureTable,
-} from '../../../testing/fixtures';
-import { createQueryBuilder } from '../../../testing/supabase-query-mock';
+} from '../../../../testing/fixtures';
+import { createQueryBuilder } from '../../../../testing/supabase-query-mock';
 
 describe('OrderService (mocked Supabase)', () => {
   let service: OrderService;

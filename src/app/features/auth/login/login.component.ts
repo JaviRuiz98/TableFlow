@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { IonContent, IonInput, IonInputPasswordToggle, IonButton, IonText, IonSpinner, IonIcon } from '@ionic/angular/standalone';
 import { lockClosedOutline, logInOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-login',

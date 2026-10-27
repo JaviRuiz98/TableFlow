@@ -1,5 +1,5 @@
 import { applyCatalogDelete, catalogDeleteBlockedMessage } from './workspace-catalog.util';
-import type { Product, ProductCategory } from '../../core/models/models';
+import type { Product, ProductCategory } from '../../../core/models/models';
 
 const category: ProductCategory = {
   id: 'c1',

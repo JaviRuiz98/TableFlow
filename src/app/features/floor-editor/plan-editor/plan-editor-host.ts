@@ -4,9 +4,9 @@
  */
 import type { ChangeDetectorRef, ElementRef } from '@angular/core';
 import type Konva from 'konva';
-import type { Point } from './geometry';
-import type { EditorTool } from './tools';
-import type { ClubTable, FloorPlan, FloorPlanElement } from '../../core/models/models';
+import type { Point } from '../geometry';
+import type { EditorTool } from '../tools';
+import type { ClubTable, FloorPlan, FloorPlanElement } from '../../../core/models/models';
 
 export interface PlanEditorHost {
   // Stage / layers (created only by PlanEditor)

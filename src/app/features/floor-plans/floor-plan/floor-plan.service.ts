@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import type { Json } from '../../core/data/database.types';
-import { SupabaseService } from '../../core/infrastructure';
-import type { ClubTable, FloorPlan, FloorSnapshot } from '../../core/models/models';
-import { mapFloorPlanElementRow } from './floor-plan-element.mapper';
-import { buildReplaceSnapshotPayload, splitTablesByType } from './floor-plan-snapshot.util';
+import type { Json } from '../../../core/data/database.types';
+import { SupabaseService } from '../../../core/infrastructure';
+import type { ClubTable, FloorPlan, FloorSnapshot } from '../../../core/models/models';
+import { mapFloorPlanElementRow } from '../floor-plan-element/floor-plan-element.mapper';
+import { buildReplaceSnapshotPayload, splitTablesByType } from '../floor-plan-snapshot/floor-plan-snapshot.util';
 
 @Injectable({
   providedIn: 'root',

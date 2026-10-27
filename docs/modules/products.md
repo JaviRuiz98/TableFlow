@@ -18,9 +18,9 @@ Catalog of product categories and active products for ADMIN management and order
 
 | File | Role |
 |------|------|
-| `product.service.ts` | Data access (private `SupabaseService`) |
+| `product/product.service.ts` | Data access (private `SupabaseService`) |
+| `product/product.service.spec.ts` | Mocked Supabase unit tests |
 | `index.ts` | Public barrel |
-| `product.service.spec.ts` | Mocked Supabase unit tests |
 
 ## Public API (`ProductService`)
 

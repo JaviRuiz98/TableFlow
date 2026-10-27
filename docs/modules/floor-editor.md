@@ -8,23 +8,17 @@
 
 Konva plan editor + operational product panel. Persistence lives in `features/floor-plans/`.
 
-## Layout (C1)
+## Layout (folder-per-unit)
 
 ```text
 floor-editor/
   index.ts                      # PlanEditor + TableProductPanel
-  plan-editor.component.*       # Stage coordinator (sole owner)
-  plan-editor-renderer.ts       # Konva node paint helpers (non-Angular)
-  plan-editor-viewport.ts       # zoom/fit/pinch helpers (non-Angular)
-  plan-editor-drawing.ts        # draft conversion helpers
-  plan-editor-delete.facade.ts  # password/served delete orchestration
-  plan-editor-host.ts           # host typing for helpers
-  table-product-panel.component.*
+  plan-editor/                  # Stage coordinator + helpers + history spec
+  table-product-panel/
+  editor-toolbar/
+  plan-editor-dialogs/
+  order-attention-dialog/
   geometry/  canvas/  tools/  history/
-  components/
-    editor-toolbar/
-    plan-editor-dialogs/
-    order-attention-dialog/
 ```
 
 ## Responsibilities

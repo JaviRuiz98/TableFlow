@@ -2,7 +2,7 @@
  * Password-gated table/reserved deletion UX for PlanEditor.
  * Calls TableDeletionService; local model updates stay on the host.
  */
-import type { TableDeletionService } from '../tables';
+import type { TableDeletionService } from '../../tables';
 import type { PlanEditorHost } from './plan-editor-host';
 
 export class PlanEditorDeleteFacade {

@@ -3,12 +3,12 @@
  * Stage / main layer remain owned by PlanEditor.
  */
 import Konva from 'konva';
-import type { GeometryService } from './geometry';
+import type { GeometryService } from '../geometry';
 import {
   buildWallElementsFromSegments,
   pointerDownAction,
   shouldAppendDrawingPoint,
-} from './tools';
+} from '../tools';
 import type { PlanEditorHost } from './plan-editor-host';
 
 export class PlanEditorDrawing {

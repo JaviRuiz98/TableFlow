@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import type { FloorPlan, FloorSnapshot } from '../../core/models/models';
-import { FloorPlanService } from './floor-plan.service';
-import { buildDuplicatedSnapshot } from './floor-plan-snapshot.util';
+import type { FloorPlan, FloorSnapshot } from '../../../core/models/models';
+import { FloorPlanService } from '../floor-plan/floor-plan.service';
+import { buildDuplicatedSnapshot } from '../floor-plan-snapshot/floor-plan-snapshot.util';
 
 @Injectable({ providedIn: 'root' })
 export class PlanDuplicationService {

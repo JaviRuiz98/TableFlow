@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { ClubTable } from '../../core/models/models';
+import type { ClubTable } from '../../../core/models/models';
 
 /** Pure table/reserved validation helpers (no I/O). */
 @Injectable({ providedIn: 'root' })

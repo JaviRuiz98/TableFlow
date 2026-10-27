@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { ErrorMessageService, SupabaseService } from '../../core/infrastructure';
+import { ErrorMessageService, SupabaseService } from '../../../core/infrastructure';
 import { UserAdminService } from './user-admin.service';
 
 describe('UserAdminService', () => {

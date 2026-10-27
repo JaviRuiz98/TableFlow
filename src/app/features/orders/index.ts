@@ -1,4 +1,4 @@
-export { OrderService } from './order.service';
-export type { ProductAssignmentItem } from './order.service';
-export { OrderStateService } from './order-state.service';
-export { buildOpenOrderQuantityMaps } from './open-order-quantity-maps';
+export { OrderService } from './order/order.service';
+export type { ProductAssignmentItem } from './order/order.service';
+export { OrderStateService } from './order-state/order-state.service';
+export { buildOpenOrderQuantityMaps } from './open-order-quantity-maps/open-order-quantity-maps';

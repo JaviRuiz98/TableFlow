@@ -1,5 +1,5 @@
 import { mapFloorPlanElementPoints, mapFloorPlanElementRow } from './floor-plan-element.mapper';
-import type { Tables } from '../../core/data/database.types';
+import type { Tables } from '../../../core/data/database.types';
 
 describe('mapFloorPlanElementPoints', () => {
   it('keeps null and maps numeric arrays', () => {
