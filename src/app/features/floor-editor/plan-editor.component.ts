@@ -1,3 +1,17 @@
+/**
+ * PlanEditor — floor-editor coordinator (B8).
+ *
+ * Owns: Konva Stage/layers/listeners, active editor model, history arrays, order UI.
+ * Delegates: geometry/, canvas/ viewport math, tools/ policy+builders, history/ stack ops.
+ *
+ * Public contracts (Workspace):
+ * - @Input plan, mode, hideSurface
+ * - @Output pendingChanged
+ * - saveDesign(showConfirmation?)
+ * - openOperationalTarget(target)
+ *
+ * Do not create a second Stage elsewhere. Tables deletion/validation → B9 (`features/tables`).
+ */
 import {
   ChangeDetectorRef,
   Component,
@@ -14,26 +28,63 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonButton, IonInput, IonInputPasswordToggle, IonLabel, IonModal, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { IonButton, IonInput, IonInputPasswordToggle, IonModal } from '@ionic/angular/standalone';
 import Konva from 'konva';
-import { FloorPlanService } from './floor-plan.service';
-import { GeometryService, Point } from '../../core/services/geometry.service';
+import { FloorPlanService } from '../floor-plans';
+import {
+  GeometryService,
+  getLineEndpoints,
+  moveLine,
+  updateLineEndpoint,
+  type Point,
+} from './geometry';
+import {
+  VIEWPORT,
+  applyStageSizeIfChanged,
+  clampZoom,
+  clientPointsRelativeToRect,
+  computeFitInitialView,
+  computePinchViewport,
+  computeZoomAroundPoint,
+  contentExtent,
+  screenToModelPoint,
+  stageSizeFromElement,
+  teardownStageResources,
+} from './canvas';
+import {
+  type EditorTool,
+  buildTextElement,
+  buildWallElementsFromSegments,
+  canEditPlanGeometry,
+  elementsDraggable,
+  normalizeTextFontSize,
+  planToolTransition,
+  pointerDownAction,
+  shouldAppendDrawingPoint,
+  shouldUpdateTextFontSize,
+  toolLabel as editorToolLabel,
+} from './tools';
+import {
+  materializeRestoredSnapshot,
+  pushEditorHistory,
+  redoEditorHistoryIndex,
+  undoEditorHistoryIndex,
+} from './history';
 import { AuthService } from '../../core/auth/auth.service';
 import { OrderService } from '../orders';
 import { ProductService } from '../products';
 import { TableDeletionService } from '../../core/services/table-deletion.service';
 import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot, Product } from '../../core/models/models';
 
-type EditorTool = 'select' | 'draw' | 'pan' | 'text';
-
 @Component({
   selector: 'app-plan-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonInput, IonInputPasswordToggle, IonLabel, IonModal, IonSelect, IonSelectOption],
+  imports: [CommonModule, FormsModule, IonButton, IonInput, IonInputPasswordToggle, IonModal],
   templateUrl: './plan-editor.component.html',
   styleUrl: './plan-editor.component.scss',
 })
 export class PlanEditorComponent implements OnChanges, OnDestroy {
+  // --- Workspace-facing I/O ---
   @Input({ required: true })
   plan!: FloorPlan;
   @Input()
@@ -44,13 +95,15 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
   pendingChanged = new EventEmitter<number>();
   @ViewChild('container', { static: true })
   container!: ElementRef<HTMLDivElement>;
+
+  // --- Konva stage (single owner) ---
   private stage!: Konva.Stage;
   private resizeObserver: ResizeObserver | null = null;
   private resizeFrame: number | null = null;
-  private readonly absoluteMinZoom = 0.08;
-  private readonly defaultMinZoom = 0.35;
-  private readonly maxZoom = 2.5;
-  minZoom = this.defaultMinZoom;
+  private readonly absoluteMinZoom: number = VIEWPORT.absoluteMinZoom;
+  private readonly defaultMinZoom: number = VIEWPORT.defaultMinZoom;
+  private readonly maxZoom: number = VIEWPORT.maxZoom;
+  minZoom: number = this.defaultMinZoom;
   private initialViewPending = true;
   private pinchLastDistance = 0;
   private pinchLastCenter: { x: number; y: number } | null = null;
@@ -177,7 +230,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
   observationSaving = false;
   observationMessage = '';
   showOrderDialog = false;
-  private realtimeChannel: any;
+  private realtimeChannel: { unsubscribe: () => void } | null = null;
   pendingMap = new Map<string, number>();
   showSaveDialog = false;
   private _panMode = false;
@@ -194,7 +247,11 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     return this.isAdmin;
   }
   get canEditGeometry(): boolean {
-    return this.isAdmin && this.mode === 'editor' && !this.plan?.is_locked;
+    return canEditPlanGeometry({
+      isAdmin: this.isAdmin,
+      mode: this.mode,
+      isLocked: !!this.plan?.is_locked,
+    });
   }
 
   get canZoomOut(): boolean {
@@ -208,16 +265,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
   }
 
   get toolLabel(): string {
-    if (this.tool === 'draw') {
-      return 'Dibujar paredes';
-    }
-    if (this.tool === 'text') {
-      return 'Añadir texto';
-    }
-    if (this.tool === 'pan') {
-      return 'Mover plano';
-    }
-    return 'Seleccionar';
+    return editorToolLabel(this.tool);
   }
   constructor(
     private floors: FloorPlanService,
@@ -228,56 +276,12 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     private tableDeletion: TableDeletionService,
     private cdr: ChangeDetectorRef,
   ) {}
+
+  // --- Lifecycle: load plan + stage ---
   async ngOnChanges(changes: SimpleChanges) {
     if (changes['plan']?.currentValue) {
       await this.load();
     }
-  }
-  private getLineEndpoints(e: FloorPlanElement): {
-    start: Point;
-    end: Point;
-  } | null {
-    if (!e.points || e.points.length < 4) {
-      return null;
-    }
-    return {
-      start: {
-        x: e.points[0],
-        y: e.points[1],
-      },
-      end: {
-        x: e.points[e.points.length - 2],
-        y: e.points[e.points.length - 1],
-      },
-    };
-  }
-  private updateLineEndpoint(e: FloorPlanElement, endpoint: 'start' | 'end', point: Point) {
-    if (!e.points || e.points.length < 4) {
-      return;
-    }
-    if (endpoint === 'start') {
-      e.points[0] = point.x;
-      e.points[1] = point.y;
-    } else {
-      e.points[e.points.length - 2] = point.x;
-      e.points[e.points.length - 1] = point.y;
-    }
-    e.x = e.points[0];
-    e.y = e.points[1];
-    const endpoints = this.getLineEndpoints(e);
-    if (endpoints) {
-      e.width = endpoints.end.x - endpoints.start.x;
-      e.height = endpoints.end.y - endpoints.start.y;
-    }
-    e.updated_at = new Date().toISOString();
-  }
-  private moveLine(e: FloorPlanElement, dx: number, dy: number) {
-    if (e.points && e.points.length >= 2) {
-      e.points = e.points.map((value, index) => value + (index % 2 === 0 ? dx : dy));
-    }
-    e.x += dx;
-    e.y += dy;
-    e.updated_at = new Date().toISOString();
   }
   private async load() {
     this.initialViewPending = true;
@@ -309,9 +313,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     }
     await this.refreshPendingMap();
     this.initStage();
-    if (this.realtimeChannel) {
-      this.realtimeChannel.unsubscribe();
-    }
+    this.realtimeChannel?.unsubscribe();
     this.realtimeChannel = this.orders.subscribe(() => {
       void this.syncRealtimeState();
     }, `plan-editor-orders-${this.plan.id}`);
@@ -321,8 +323,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
       this.stage.destroy();
     }
     const el = this.container.nativeElement;
-    const width = Math.max(el.clientWidth, 1);
-    const height = Math.max(el.clientHeight, 500);
+    const { width, height } = stageSizeFromElement(el);
     this.stage = new Konva.Stage({
       container: el,
       width,
@@ -336,7 +337,10 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     this.observeStageSize(el);
     this.stage.on('wheel', (e) => {
       e.evt.preventDefault();
-      this.zoomAtPointer(e.evt as WheelEvent, e.evt.deltaY < 0 ? 0.1 : -0.1);
+      this.zoomAtPointer(
+        e.evt as WheelEvent,
+        e.evt.deltaY < 0 ? VIEWPORT.wheelZoomStep : -VIEWPORT.wheelZoomStep,
+      );
     });
     this.installTouchNavigation();
     this.render();
@@ -354,11 +358,8 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
       if (this.resizeFrame !== null) cancelAnimationFrame(this.resizeFrame);
       this.resizeFrame = requestAnimationFrame(() => {
         this.resizeFrame = null;
-        const nextWidth = Math.max(el.clientWidth, 1);
-        const nextHeight = Math.max(el.clientHeight, 500);
-        if (this.stage.width() === nextWidth && this.stage.height() === nextHeight) return;
-        this.stage.size({ width: nextWidth, height: nextHeight });
-        this.stage.batchDraw();
+        if (!this.stage) return;
+        applyStageSizeIfChanged(this.stage, el.clientWidth, el.clientHeight);
       });
     };
 
@@ -367,6 +368,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     resizeStage();
   }
 
+  // --- Konva render / selection handlers (stay here: tightly coupled to stage + model) ---
   private render() {
     if (!this.layer) {
       return;
@@ -385,7 +387,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
           fontSize: e.font_size ?? 22,
           fontStyle: 'bold',
           padding: 6,
-          draggable: this.canEditGeometry && this.tool === 'select',
+          draggable: elementsDraggable(this.canEditGeometry, this.tool),
           name: e.id,
           shadowColor: 'rgba(0,0,0,.12)',
           shadowBlur: selected ? 6 : 0,
@@ -427,12 +429,12 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
         strokeWidth: selected ? 16 : String(e.kind) === 'wall' ? 12 : 6,
         lineCap: 'round',
         lineJoin: 'round',
-        draggable: this.canEditGeometry && this.tool === 'select',
+        draggable: elementsDraggable(this.canEditGeometry, this.tool),
         name: e.id,
       });
       line.on('click tap', (event) => {
         event.cancelBubble = true;
-        if (!this.canEditGeometry || this.tool !== 'select') {
+        if (!elementsDraggable(this.canEditGeometry, this.tool)) {
           return;
         }
         this.selectedElementId = e.id;
@@ -454,7 +456,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
         if (dx === 0 && dy === 0) {
           return;
         }
-        this.moveLine(e, dx, dy);
+        moveLine(e, dx, dy);
         line.position({
           x: 0,
           y: 0,
@@ -463,8 +465,8 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
         this.render();
       });
       this.layer.add(line);
-      if (selected && this.canEditGeometry && this.tool === 'select') {
-        const endpoints = this.getLineEndpoints(e);
+      if (selected && elementsDraggable(this.canEditGeometry, this.tool)) {
+        const endpoints = getLineEndpoints(e);
         if (endpoints) {
           const startCircle = new Konva.Circle({
             x: endpoints.start.x,
@@ -491,7 +493,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
             if (!point) {
               return;
             }
-            this.updateLineEndpoint(e, 'start', point);
+            updateLineEndpoint(e, 'start', point);
             line.points(e.points ?? []);
             startCircle.position({
               x: point.x,
@@ -503,7 +505,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
             event.cancelBubble = true;
             const point = this.getStagePointerPoint(event.evt);
             if (point) {
-              this.updateLineEndpoint(e, 'start', point);
+              updateLineEndpoint(e, 'start', point);
             }
             this.activeEndpoint = null;
             this.endpointShape = null;
@@ -535,7 +537,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
             if (!point) {
               return;
             }
-            this.updateLineEndpoint(e, 'end', point);
+            updateLineEndpoint(e, 'end', point);
             line.points(e.points ?? []);
             endCircle.position({
               x: point.x,
@@ -547,7 +549,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
             event.cancelBubble = true;
             const point = this.getStagePointerPoint(event.evt);
             if (point) {
-              this.updateLineEndpoint(e, 'end', point);
+              updateLineEndpoint(e, 'end', point);
             }
             this.activeEndpoint = null;
             this.endpointShape = null;
@@ -596,7 +598,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     const hasProducts = (this.orderCountMap.get(t.id) ?? 0) > 0;
     const common = {
       rotation: t.rotation,
-      draggable: this.canEditGeometry && this.tool === 'select',
+      draggable: elementsDraggable(this.canEditGeometry, this.tool),
       name: t.id,
       fill: this.tableColor(t, hasProducts),
       stroke: active ? '#704936' : '#000000',
@@ -682,7 +684,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
       fill: this.tableColor(r, hasProducts, '#704936'),
       stroke: active ? '#3d2417' : '#704936',
       strokeWidth: active ? 5 : 3,
-      draggable: this.canEditGeometry && this.tool === 'select',
+      draggable: elementsDraggable(this.canEditGeometry, this.tool),
       name: r.id,
       shadowColor: 'rgba(0,0,0,.15)',
       shadowBlur: active ? 8 : 3,
@@ -756,6 +758,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     this.activeEndpoint = null;
     this.render();
   }
+  /** Workspace → open operativo order dialog for a table/reserved. */
   async openOperationalTarget(target: ClubTable): Promise<void> {
     await this.openOrderDialog(target);
   }
@@ -1097,39 +1100,40 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     // Evita que un overlay de pedidos sobreviva al abandonar el editor/sesión.
     this.showOrderDialog = false;
     this.selectedOrderTarget = null;
-    if (this.realtimeChannel) {
-      this.realtimeChannel.unsubscribe();
-    }
-    this.resizeObserver?.disconnect();
+    this.realtimeChannel?.unsubscribe();
+    this.realtimeChannel = null;
+    teardownStageResources({
+      stage: this.stage,
+      resizeObserver: this.resizeObserver,
+      resizeFrame: this.resizeFrame,
+    });
     this.resizeObserver = null;
-    if (this.resizeFrame !== null) {
-      cancelAnimationFrame(this.resizeFrame);
-      this.resizeFrame = null;
-    }
-    if (this.stage) {
-      this.stage.destroy();
-    }
+    this.resizeFrame = null;
   }
+
+  // --- Tools / drawing (policies in tools/; Konva draft stays here) ---
   setTool(tool: EditorTool) {
-    if ((tool === 'draw' || tool === 'text') && !this.canEditGeometry) return;
-    this.tool = tool;
-    this.panMode = tool === 'pan';
+    const transition = planToolTransition(tool, this.canEditGeometry);
+    if (!transition.applied) return;
+    this.tool = transition.tool;
+    this.panMode = transition.panMode;
     this.activeEndpoint = null;
     if (this.stage) {
       this.stage.draggable(this.panMode);
     }
-    if (tool !== 'select') {
+    if (transition.clearSelection) {
       this.selectedElementId = null;
       this.selectedTable = null;
       this.selectedReserved = null;
     }
-    if (tool !== 'draw') {
+    if (transition.clearDrawing) {
       this.clearDrawing();
     }
     this.render();
   }
   pointerDown(ev: PointerEvent) {
-    if (this.mode === 'editor' && this.tool === 'text') {
+    const action = pointerDownAction(this.mode, this.tool);
+    if (action === 'text') {
       const point = this.getCanvasPoint(ev);
       if (!point) {
         return;
@@ -1139,7 +1143,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
       this.showTextDialog = true;
       return;
     }
-    if (this.mode !== 'editor' || this.tool !== 'draw') {
+    if (action !== 'draw') {
       return;
     }
     const p = this.getCanvasPoint(ev);
@@ -1158,7 +1162,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
       return;
     }
     const last = this.drawing[this.drawing.length - 1];
-    if (last && Math.hypot(p.x - last.x, p.y - last.y) < 4) {
+    if (!shouldAppendDrawingPoint(last, p)) {
       return;
     }
     this.drawing.push({
@@ -1179,22 +1183,12 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     }
     const segments = this.geometry.toSegments(this.drawing);
     const now = new Date().toISOString();
-    const newElements: FloorPlanElement[] = segments.map((s) => ({
-      id: crypto.randomUUID(),
-      floor_plan_id: this.plan.id,
-      kind: 'wall',
-      x: s.x,
-      y: s.y,
-      width: s.width,
-      height: s.height,
-      rotation: s.rotation,
-      points: s.points,
-      label: null,
-      font_size: null,
-      z_index: this.elements.length,
-      created_at: now,
-      updated_at: now,
-    }));
+    const newElements = buildWallElementsFromSegments({
+      segments,
+      planId: this.plan.id,
+      zIndexStart: this.elements.length,
+      now,
+    });
     this.elements = [...this.elements, ...newElements];
     this.clearDrawing();
     this.pushHistory();
@@ -1236,11 +1230,9 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     const element = this.selectedTextElement;
     if (!element || !this.canEditGeometry) return;
 
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return;
-
-    const next = Math.max(8, Math.min(120, Math.round(parsed)));
-    if ((element.font_size ?? 22) === next) return;
+    const next = normalizeTextFontSize(value);
+    if (next === null) return;
+    if (!shouldUpdateTextFontSize(element.font_size, next)) return;
 
     element.font_size = next;
     element.updated_at = new Date().toISOString();
@@ -1259,22 +1251,13 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
       return;
     }
     const now = new Date().toISOString();
-    const textElement = {
-      id: crypto.randomUUID(),
-      floor_plan_id: this.plan.id,
-      kind: 'text',
-      x: this.textPosition.x,
-      y: this.textPosition.y,
-      width: 0,
-      height: 0,
-      rotation: 0,
-      points: null,
+    const textElement = buildTextElement({
+      planId: this.plan.id,
+      position: this.textPosition,
       label: text,
-      font_size: 22,
-      z_index: this.elements.length,
-      created_at: now,
-      updated_at: now,
-    } as unknown as FloorPlanElement;
+      zIndex: this.elements.length,
+      now,
+    });
     this.elements = [...this.elements, textElement];
     this.selectedElementId = textElement.id;
     this.selectedTable = null;
@@ -1290,28 +1273,19 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     }
     const segments = this.geometry.toSegments(this.drawing);
     const now = new Date().toISOString();
-    const newElements: FloorPlanElement[] = segments.map((s) => ({
-      id: crypto.randomUUID(),
-      floor_plan_id: this.plan.id,
-      kind: 'wall',
-      x: s.x,
-      y: s.y,
-      width: s.width,
-      height: s.height,
-      rotation: s.rotation,
-      points: s.points,
-      label: null,
-      font_size: null,
-      z_index: this.elements.length,
-      created_at: now,
-      updated_at: now,
-    }));
+    const newElements = buildWallElementsFromSegments({
+      segments,
+      planId: this.plan.id,
+      zIndexStart: this.elements.length,
+      now,
+    });
     this.elements = [...this.elements, ...newElements];
     this.clearDrawing();
     this.pushHistory();
     this.render();
     this.setTool('select');
   }
+  /** Workspace → persist current snapshot via FloorPlanService (ADMIN). */
   async saveDesign(showConfirmation = true): Promise<boolean> {
     if (!this.isAdmin) return false;
     try {
@@ -1398,11 +1372,12 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
   togglePan() {
     this.setTool(this.tool === 'pan' ? 'select' : 'pan');
   }
+  // --- Viewport (math in canvas/; Stage mutations here) ---
   zoom(delta: number) {
     if (!this.stage) return;
     const oldScale = this.stage.scaleX();
-    const nextScale = this.clampZoom(oldScale + delta);
-    if (Math.abs(nextScale - oldScale) < 0.0001) return;
+    const nextScale = clampZoom(oldScale + delta, this.minZoom, this.maxZoom);
+    if (Math.abs(nextScale - oldScale) < VIEWPORT.scaleEpsilon) return;
 
     const center = { x: this.stage.width() / 2, y: this.stage.height() / 2 };
     this.zoomAroundPoint(center, nextScale);
@@ -1412,29 +1387,25 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
   private zoomAtPointer(event: WheelEvent, delta: number) {
     if (!this.stage) return;
     const oldScale = this.stage.scaleX();
-    const newScale = this.clampZoom(oldScale + delta);
-    if (Math.abs(newScale - oldScale) < 0.0001) return;
+    const newScale = clampZoom(oldScale + delta, this.minZoom, this.maxZoom);
+    if (Math.abs(newScale - oldScale) < VIEWPORT.scaleEpsilon) return;
     const pointer = this.stage.getPointerPosition() ?? { x: this.stage.width() / 2, y: this.stage.height() / 2 };
     this.zoomAroundPoint(pointer, newScale);
     this.cdr.detectChanges();
   }
 
-  private clampZoom(value: number): number {
-    return Math.min(this.maxZoom, Math.max(this.minZoom, value));
-  }
-
   private zoomAroundPoint(point: { x: number; y: number }, newScale: number) {
     if (!this.stage) return;
     const oldScale = this.stage.scaleX() || 1;
-    const modelPoint = {
-      x: (point.x - this.stage.x()) / oldScale,
-      y: (point.y - this.stage.y()) / oldScale,
-    };
-    this.stage.scale({ x: newScale, y: newScale });
-    this.stage.position({
-      x: point.x - modelPoint.x * newScale,
-      y: point.y - modelPoint.y * newScale,
-    });
+    const { scale, position } = computeZoomAroundPoint(
+      point,
+      this.stage.x(),
+      this.stage.y(),
+      oldScale,
+      newScale,
+    );
+    this.stage.scale({ x: scale, y: scale });
+    this.stage.position(position);
     this.stage.batchDraw();
   }
 
@@ -1442,41 +1413,21 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     if (!this.stage || !this.initialViewPending) return;
     this.initialViewPending = false;
 
-    const planWidth = Math.max(Number(this.plan?.width) || 0, this.contentExtent('x'), 1);
-    const planHeight = Math.max(Number(this.plan?.height) || 0, this.contentExtent('y'), 1);
-    const padding = 24;
-    const availableWidth = Math.max(1, this.stage.width() - padding * 2);
-    const availableHeight = Math.max(1, this.stage.height() - padding * 2);
-    const fitScale = Math.min(availableWidth / planWidth, availableHeight / planHeight);
-
-    this.minZoom = Math.max(this.absoluteMinZoom, Math.min(this.defaultMinZoom, fitScale));
-    this.stage.scale({ x: this.minZoom, y: this.minZoom });
-    this.stage.position({
-      x: (this.stage.width() - planWidth * this.minZoom) / 2,
-      y: (this.stage.height() - planHeight * this.minZoom) / 2,
+    const fit = computeFitInitialView({
+      planWidth: Number(this.plan?.width) || 0,
+      planHeight: Number(this.plan?.height) || 0,
+      extentX: contentExtent('x', this.tables, this.reserved, this.elements),
+      extentY: contentExtent('y', this.tables, this.reserved, this.elements),
+      stageWidth: this.stage.width(),
+      stageHeight: this.stage.height(),
+      absoluteMinZoom: this.absoluteMinZoom,
+      defaultMinZoom: this.defaultMinZoom,
     });
+    this.minZoom = fit.minZoom;
+    this.stage.scale({ x: fit.scale, y: fit.scale });
+    this.stage.position(fit.position);
     this.stage.batchDraw();
     this.cdr.detectChanges();
-  }
-
-  private contentExtent(axis: 'x' | 'y'): number {
-    let max = 0;
-    const update = (value: number) => {
-      if (Number.isFinite(value)) max = Math.max(max, value);
-    };
-
-    for (const item of [...this.tables, ...this.reserved]) {
-      update(axis === 'x' ? item.x + item.width : item.y + item.height);
-    }
-    for (const element of this.elements) {
-      update(axis === 'x' ? element.x + (element.width || 0) : element.y + (element.height || 0));
-      if (element.points?.length) {
-        for (let i = axis === 'x' ? 0 : 1; i < element.points.length; i += 2) {
-          update(element.points[i]);
-        }
-      }
-    }
-    return max;
   }
 
   private installTouchNavigation() {
@@ -1489,23 +1440,29 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
       this.stage.stopDrag();
 
       const rect = this.container.nativeElement.getBoundingClientRect();
-      const p1 = { x: touches[0].clientX - rect.left, y: touches[0].clientY - rect.top };
-      const p2 = { x: touches[1].clientX - rect.left, y: touches[1].clientY - rect.top };
-      const center = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
-      const distance = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const { center, distance } = clientPointsRelativeToRect(
+        { x: touches[0].clientX, y: touches[0].clientY },
+        { x: touches[1].clientX, y: touches[1].clientY },
+        rect,
+      );
 
       if (this.pinchLastDistance > 0 && this.pinchLastCenter) {
         const oldScale = this.stage.scaleX() || 1;
-        const nextScale = this.clampZoom(oldScale * (distance / this.pinchLastDistance));
-        const modelPoint = {
-          x: (this.pinchLastCenter.x - this.stage.x()) / oldScale,
-          y: (this.pinchLastCenter.y - this.stage.y()) / oldScale,
-        };
-        this.stage.scale({ x: nextScale, y: nextScale });
-        this.stage.position({
-          x: center.x - modelPoint.x * nextScale,
-          y: center.y - modelPoint.y * nextScale,
-        });
+        const nextScale = clampZoom(
+          oldScale * (distance / this.pinchLastDistance),
+          this.minZoom,
+          this.maxZoom,
+        );
+        const { scale, position } = computePinchViewport(
+          this.pinchLastCenter,
+          center,
+          this.stage.x(),
+          this.stage.y(),
+          oldScale,
+          nextScale,
+        );
+        this.stage.scale({ x: scale, y: scale });
+        this.stage.position(position);
         this.stage.batchDraw();
       }
 
@@ -1521,32 +1478,21 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     });
   }
 
+  // --- History (stack ops in history/; arrays + render owned here) ---
   pushHistory() {
-    const snapshot: FloorSnapshot = {
-      elements: structuredClone(this.elements),
-      tables: structuredClone(this.tables),
-      reserved: structuredClone(this.reserved),
-    };
-    this.history = this.history.slice(0, this.historyIndex + 1);
-    this.history.push(snapshot);
-    if (this.history.length > 30) {
-      this.history.shift();
-    }
-    this.historyIndex = this.history.length - 1;
+    // Single owner: PlanEditor holds entries/index; history/ only computes next stack.
+    const next = pushEditorHistory(
+      { entries: this.history, index: this.historyIndex },
+      { elements: this.elements, tables: this.tables, reserved: this.reserved },
+    );
+    this.history = next.entries;
+    this.historyIndex = next.index;
   }
   restore(s: FloorSnapshot) {
-    this.elements = structuredClone(s.elements);
-    this.tables = structuredClone(s.tables);
-    this.reserved = structuredClone(s.reserved ?? []);
-    const legacyReserved = this.tables.filter((t) => t.type === 'RESERVED');
-    if (legacyReserved.length) {
-      this.tables = this.tables.filter((t) => t.type !== 'RESERVED');
-      for (const legacy of legacyReserved) {
-        if (!this.reserved.some((r) => r.id === legacy.id)) {
-          this.reserved.push(legacy);
-        }
-      }
-    }
+    const content = materializeRestoredSnapshot(s);
+    this.elements = content.elements;
+    this.tables = content.tables;
+    this.reserved = content.reserved;
     this.selectedElementId = null;
     this.selectedTable = null;
     this.selectedReserved = null;
@@ -1556,17 +1502,19 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     this.render();
   }
   undo() {
-    if (this.historyIndex <= 0) {
+    const nextIndex = undoEditorHistoryIndex(this.historyIndex);
+    if (nextIndex === null) {
       return;
     }
-    this.historyIndex--;
+    this.historyIndex = nextIndex;
     this.restore(this.history[this.historyIndex]);
   }
   redo() {
-    if (this.historyIndex >= this.history.length - 1) {
+    const nextIndex = redoEditorHistoryIndex(this.historyIndex, this.history.length);
+    if (nextIndex === null) {
       return;
     }
-    this.historyIndex++;
+    this.historyIndex = nextIndex;
     this.restore(this.history[this.historyIndex]);
   }
   async addOrderItem() {
@@ -1677,9 +1625,8 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     if (!pointer) {
       return null;
     }
-    const transform = this.stage.getAbsoluteTransform().copy();
-    transform.invert();
-    return transform.point(pointer);
+    // Equivalent to inverting stage absolute transform for uniform scale + translation.
+    return screenToModelPoint(pointer, this.stage.x(), this.stage.y(), this.stage.scaleX() || 1);
   }
   private getCanvasPoint(ev: PointerEvent): Point | null {
     return this.getStagePointerPoint(ev);

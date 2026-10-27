@@ -14,11 +14,11 @@ Persist and manage floor plans, snapshots (elements + tables/reserved), lock fla
 - Duplicate plan (geometry only; reset attended/observation; new ids)
 - Lock (`is_locked`), attended/observation RPCs, create operational TABLE/RESERVED row
 
-## Not this module (defer to later agents)
+## Not this module
 
-- Konva render / interaction → `plan-editor.component.*` (future `floor-editor`)
-- Order assignment UI → `orders` / panel
-- Physical table deletion password → `table-deletion.service` (still `core/services`)
+- Konva / tools / panel UI → `features/floor-editor/` (B7.5+)
+- Order assignment UI → `orders` + `table-product-panel` in floor-editor
+- Physical table deletion password → `table-deletion.service` (still `core/services`; B9)
 
 ## Main files
 
@@ -27,8 +27,6 @@ Persist and manage floor plans, snapshots (elements + tables/reserved), lock fla
 | `floor-plan.service.ts` | Data access (private Supabase) |
 | `plan-duplication.service.ts` | Duplicate orchestration |
 | `floor-plan-snapshot.util.ts` | Pure split/payload/clone helpers |
-| `plan-editor.component.*` | Graphic editor (co-located; do not merge into service) |
-| `table-product-panel.component.*` | Operational panel |
 | `index.ts` | Public barrel for services/utils |
 
 ## Public API (`FloorPlanService`)

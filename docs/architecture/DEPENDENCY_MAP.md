@@ -1,39 +1,56 @@
 # Dependency Map
 
+**Plan:** [../refactoring/REFACTOR_PLAN.md](../refactoring/REFACTOR_PLAN.md) · **Modules:** [MODULE_MAP.md](./MODULE_MAP.md)
+
 ## Allowed direction (target)
 
 ```text
-features/*  →  core/* , shared/*
-shared/*    →  core/models , core/infrastructure (avoid feature imports)
-core/*      →  other core only (no features)
-data-access →  infrastructure + models
+features/floor-editor  →  features/floor-plans , features/tables (after B9) , features/orders ,
+                          features/products , core/*
+features/workspace     →  features/* (coordination) , core/*
+features/tables        →  core/infrastructure , core/models  (not floor-editor)
+features/floor-plans   →  core/infrastructure , core/models  (NOT floor-editor)
+features/orders|products|users|notifications → core/* ; avoid editor UI
+shared/*               →  core/models , core/infrastructure
+core/*                 →  other core only (no features)
 ```
 
-## Forbidden (to prevent cycles)
+## Forbidden (cycles / layering)
 
-- `core` importing `features`
-- `features/orders` importing `features/floor-editor` UI
-- `shared` importing any `features/*`
+| Edge | Why |
+|------|-----|
+| `core` → `features` | Breaks layering |
+| `floor-plans` → `floor-editor` | Persistence must not depend on UI |
+| `orders` / `products` / `notifications` → `floor-editor` | Domain I/O ≠ canvas |
+| `tables` → `floor-editor` | Tables helpers used by editor, not the reverse owner |
+| `shared` → `features/*` | Shared stays feature-agnostic |
+| UI components → raw `SupabaseClient` | Use infrastructure + feature services |
 
-## Current reality (debt)
+## Current reality (post B7.5)
 
 | From | To | Status |
 |------|----|--------|
-| `PlanEditorComponent` | `OrderService` / `ProductService` public APIs | **OK (B2/B3)** |
-| `WorkspaceComponent` | Feature modules + `core/auth` + infrastructure | **OK (B7)** — shell coordinator; no private Supabase peek |
-| `TableProductPanel` | FloorPlan / Product / Order / Auth | OK |
-| Catalog consumers | `features/products` | **OK (B3)** |
-| Workspace user admin | `features/users` | **OK (B4)** — separate from `core/auth` |
-| Workspace alerts | `features/notifications` | **OK (B5)** — distinct from `OrderService.subscribe` |
-| Workspace / editor | `features/floor-plans` services | **OK (B6)** — editor UI still co-located |
+| `features/floor-editor` (`PlanEditor`, panel) | `floor-plans`, `orders`, `products`, `core/auth`, `./geometry|canvas|tools|history`, `TableDeletionService` (core until B9) | **OK (B8 complete)** |
+| `floor-editor/geometry` | `core/models` only (no Konva) | **OK** |
+| `floor-editor/canvas` | models + geometry `Point`; Konva types only in lifecycle util | **OK** — no Stage ownership |
+| `floor-editor/tools` | models + geometry types | **OK** — no Konva |
+| `floor-editor/history` | `core/models` only | **OK** — PlanEditor owns arrays |
+| `floor-plans` → `floor-editor` | — | **Forbidden (verified absent)** |
+| `WorkspaceComponent` | `floor-editor` barrel + other feature modules + auth + infrastructure | **OK** |
 | `PlanDuplicationService` | `FloorPlanService` | OK |
-| Domain services / auth / workspace | `core/infrastructure` (`SupabaseService`, `ErrorMessageService`) | OK (B1) |
+| table-validation / table-deletion | Still `core/services` | **Debt** → B9 |
+| Domain services / auth / workspace | `core/infrastructure` | OK (B1) |
+| `floor-plans` → `floor-editor` | — | **Must remain absent** |
 
-## External packages (feature touchpoints)
+## External packages
 
-| Package | Consumers |
-|---------|-----------|
-| `@supabase/supabase-js` | infrastructure + services |
-| `konva` | floor-editor only |
+| Package | Consumers (target) |
+|---------|-------------------|
+| `@supabase/supabase-js` | `core/infrastructure` + feature services only |
+| `konva` | `features/floor-editor` only |
 | `@ionic/angular/standalone` | feature templates |
-| `@capacitor/*` | native shell / config (not deep in features today) |
+| `@capacitor/*` | native shell / config |
+
+## Agent rule of thumb
+
+Before adding an import: check this file → prefer public barrel of the **owning** module → never invent a shared global store for editor/workspace state.

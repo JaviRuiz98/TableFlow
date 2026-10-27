@@ -1,109 +1,227 @@
-# TableFlow — Refactor Plan (ETAPA A → authorization gate)
+# TableFlow — Refactor Plan
 
 **Principle:** structural quality only. Behaviour, UX, styles, routes, RLS/RPC/Realtime contracts unchanged.
 
-**Gate:** ETAPA B authorized 2026-10-27 — work exclusively on **`main`** (no new branches). No commits/pushes without further authorization.
+**Branch:** work exclusively on **`main`**. No commits/pushes without explicit authorization.  
+**Recovery:** [RECOVERY_POINT.md](./RECOVERY_POINT.md) (`e546e97` + WIP preserved).
 
-**Recovery:** [RECOVERY_POINT.md](./RECOVERY_POINT.md) (`e546e97` + WIP preserved on `main` working tree).
-
----
-
-## Git policy (authorized)
-
-- Branch: **`main` only**
-- Preserve all prior WIP (TableFlow env, bootstrap SQL, docs, auth domain)
-- No commits / pushes / deploys without explicit authorization
+**Related maps:** [SYSTEM_OVERVIEW](../architecture/SYSTEM_OVERVIEW.md) · [MODULE_MAP](../architecture/MODULE_MAP.md) · [DEPENDENCY_MAP](../architecture/DEPENDENCY_MAP.md)
 
 ---
 
-## Target modular layout (adapted to reality)
+## Status snapshot (post external review)
 
-Do **not** invent empty `reservations/` UI or `administration/` packages without code to put there.
+| Item | Reality |
+|------|---------|
+| Done | B0 tooling → B7 workspace shell (services modularized; shell relocated) |
+| Hotspots | `PlanEditorComponent` ~1687 LOC (mixed domains); `WorkspaceComponent` ~700 LOC |
+| Co-location debt | Editor + panel still under `features/floor-plans/` |
+| Misplaced services | `geometry`, `table-validation`, `table-deletion` still in `core/services/` |
+| Types debt | `database.types.ts` uses `any` on table rows |
+| Branding debt | README / `package.json` still Discoteca / CreadorSala |
+| Docs debt | Module docs incomplete for final agent-scoped loading |
+
+---
+
+## Hard constraints (every step)
+
+- `main` only; no remote DB writes; no RPC/RLS/Realtime contract changes
+- No functional, business-rule, design, or navigation changes
+- Do not delete files without proving zero dependents
+- Keep existing tests; extend when extracting behaviour
+- After each intervention: `npm test` · `npm run lint` · `npm run build`
+- Docs: short, per-module, agent-friendly (minimize context)
+
+---
+
+## Remaining sequence (authorized order)
+
+| Step | Name | Intent | Risk |
+|------|------|--------|------|
+| **B7.5** | Physical folder reorg | Move files into target folders; **zero logic change** (imports/paths only) | Low–Med |
+| **B8** | PlanEditor modularization | Progressive split: geometry, canvas, tools, history, state — same UX | Highest |
+| **B9** | `tables` module | Delimit validation/deletion (+ related table helpers) out of `core/services` | Medium |
+| **B10** | Types hardening | Replace `any` in generated/schema types from real TableFlow schema | Medium |
+| **B11** | Workspace further modularization | Extract clear domain UI/coordination without visual change | High |
+| **B12** | Dead code & legacy cleanup | Verified removals; branding/doc obsolescence | Medium |
+| **B13** | Integration / E2E / regression | Expand tests; no destructive remote Supabase | Medium |
+| **B14** | Final docs + Cursor rules + agents | Module briefs + scoped rules + agent map | Low |
+
+**Stop after each Bn** until explicit approval. Do not auto-advance.
+
+Each step: analyse → characterization tests if needed → change → test/lint/build → brief `B*_*.md` + progress update.
+
+---
+
+## Target layout (final)
 
 ```text
 src/app/
   core/
-    auth/                 # keep
-    guards/               # keep
-    config/               # optional: env helpers only if needed
-    models/               # shared domain types (stable public surface)
-    infrastructure/
-      supabase.service.ts
-      error-message.service.ts
-  shared/                 # ONLY proven reusable UI bits extracted later
+    auth/
+    guards/
+    models/                 # shared domain types (stable)
+    infrastructure/         # SupabaseService, ErrorMessageService
+    # core/services/ emptied as B8–B9 relocate geometry/tables helpers
+  shared/                   # only proven reusable UI (extract later if needed)
   features/
-    authentication/       # login + thin wrappers
-    workspace-shell/      # current WorkspaceComponent orchestration (reduce over time)
-    floor-plans/          # plan list/CRUD coordination
-    floor-editor/         # PlanEditor split: canvas / orders-ui / observations
-    tables/               # table/reserved domain services used by editor
-    products/             # catalog
-    orders/               # OrderService + order-state helpers
-    notifications/        # OrderNotificationService
-    users/                # UserAdminService + dialogs if extracted
-  data-access/            # optional alias layer OR keep as features/*/data-access
+    auth/                   # login (rename to authentication/ only if authorized)
+    workspace/              # shell coordinator (further split in B11)
+    floor-plans/            # plan CRUD / snapshot / duplication ONLY
+    floor-editor/           # Konva editor + panel + editor-local helpers
+    tables/                 # table/reserved validation, deletion, related helpers (B9)
+    products/
+    orders/
+    notifications/
+    users/
 ```
 
-**Reservations:** document as **schema-only domain** until UI exists; no fake feature folder required in Etapa B.
+**Reservations:** schema-only until UI exists — no empty feature folder required.
 
 ---
 
-## Module-by-module Etapa B sequence
+## Proposed final structure: `floor-plans` vs `floor-editor`
 
-| Order | Module | Risk | Exit criteria |
-|------:|--------|------|---------------|
-| 0 | Tooling baseline | Low | `jsdom` installed; lint ignores `dist/node_modules`; `npm test` green for existing specs |
-| 1 | `core/infrastructure` | Low | Move supabase + error services; update imports; build+test |
-| 2 | `orders` data-access | Medium | All RPC/table access for orders via OrderService (remove UI leaks); characterization tests |
-| 3 | `products` | Low | Relocate ProductService; no API change |
-| 4 | `users` | Low | Relocate UserAdminService |
-| 5 | `notifications` | Medium | Relocate; preserve channel semantics |
-| 6 | `floor-plans` service | Medium | Split attended/observation RPCs vs plan CRUD **only if** tests cover both |
-| 7 | `workspace-shell` | High | Extract subcomponents **without** HTML/CSS visual change (move files; same templates/styles) |
-| 8 | `floor-editor` | Highest | Extract pure helpers + child components with identical templates/bindings |
-| 9 | Types hardening | Medium | Tighten `database.types` / OrderItem typing without runtime change |
-| 10 | Etapa C docs/rules | — | Module docs + Cursor rules + agent map |
-| 11 | Etapa D cleanup | — | Delete only class **A** after re-scan |
+> **Do not move files until B7.5 is authorized.** This is the agreed target before any relocation.
 
-Each step: analyse → characterization tests if missing → refactor → `npm test` → `npm run build` → update `REFACTOR_PROGRESS.md`.
+### `features/floor-plans/` — plan persistence domain
+
+Owns floor-plan data access and pure snapshot helpers. **No Konva. No editor UI.**
+
+```text
+features/floor-plans/
+  index.ts                      # public barrel (services + utils only)
+  floor-plan.service.ts
+  floor-plan.service.spec.ts
+  plan-duplication.service.ts
+  plan-duplication.service.spec.ts
+  floor-plan-snapshot.util.ts
+  floor-plan-snapshot.util.spec.ts
+```
+
+**Public API (unchanged semantics):** plan list/create/update/remove, load/save snapshot, lock, attended/observation RPCs used by shell/editor, operational target create, duplication.
+
+**Does not own:** canvas, tools, undo/history UI, geometry math, table-product panel markup.
+
+### `features/floor-editor/` — graphic editor domain
+
+Owns presentation of the plan canvas and operational panel. Starts as **physical move** (B7.5), then **internal modularization** (B8).
+
+```text
+features/floor-editor/
+  index.ts                      # export PlanEditorComponent (+ panel if public)
+  plan-editor.component.ts      # thin coordinator after B8
+  plan-editor.component.html    # keep visual contract
+  plan-editor.component.scss
+  table-product-panel.component.ts
+  table-product-panel.component.html
+  table-product-panel.component.scss
+
+  # Introduced progressively in B8 (names may refine; responsibilities fixed):
+  geometry/                     # GeometryService (+ specs) from core/services
+  canvas/                       # Konva stage/layer/node helpers
+  tools/                        # editor tools / modes
+  history/                      # undo-redo / design history helpers
+  state/                        # editor presentation state (not global app store)
+```
+
+**Allowed deps:** `floor-plans` (persistence), `orders`, `products`, `tables` (after B9), `core/auth`, `core/models`, `core/infrastructure`.  
+**Forbidden:** `floor-plans` importing `floor-editor`; `orders` importing editor UI.
+
+### Boundary summary
+
+| Concern | Home |
+|---------|------|
+| CRUD plan + snapshot RPC | `floor-plans` |
+| Duplicate plan | `floor-plans` |
+| Konva render / interaction | `floor-editor` |
+| Tools / modes | `floor-editor` |
+| Geometry helpers | `floor-editor/geometry` (via B7.5/B8) |
+| Undo / design history | `floor-editor/history` |
+| Table product / orders panel UI | `floor-editor` (panel component) |
+| Table validation / password delete | `tables` (B9; may stay in `core/services` until then) |
 
 ---
 
-## Characterization tests to add before touching PlanEditor / Workspace
+## Step notes (planning only)
 
-Minimum (local, mocked Supabase — **no remote writes**):
+### B7.5 — Physical reorg
 
-1. Order item grouping pending vs attended (pure functions extracted first if needed).
-2. `OrderNotificationService` payload filters (PENDING + observation change).
-3. `auth-identity` normalize/validate username (already pure).
-4. `GeometryService` (exists).
-5. Floor snapshot mapping (ids preserved) if extracted from editor.
+- Move `plan-editor.*` + `table-product-panel.*` → `features/floor-editor/`
+- Optionally co-move `geometry.service.*` next to editor **or** leave until B8 (prefer move in B7.5 if zero logic change)
+- Update imports (`workspace`, barrels, specs); **no method body changes**
+- Keep `floor-plans/index.ts` free of editor exports
+
+### B8 — PlanEditor modularization (subphases)
+
+Detailed audit: [B8_FLOOR_EDITOR.md](./B8_FLOOR_EDITOR.md)
+
+| Subphase | Focus | Status |
+|----------|--------|--------|
+| **B8.1** | Audit + characterization tests (no extraction) | **DONE** |
+| **B8.2** | Geometry + pure line helpers → `floor-editor/geometry/` | **DONE** |
+| **B8.3** | Canvas / viewport / coordinates → `canvas/` | **DONE** |
+| **B8.4** | Tools & pointer interactions → `tools/` | **DONE** |
+| **B8.5** | History → `history/` (no global store; optional `state/` skipped) | **DONE** |
+| **B8.6** | Thin coordinator integration / B8 closeout | **DONE** |
+
+Rules: create folders only with real files; keep HTML/SCSS/UX stable; no RPC changes; stop after each subphase.
+
+### B9 — `tables`
+
+- Relocate `table-validation` + `table-deletion` (+ specs)
+- Document which attended/observation calls stay on `FloorPlanService` vs thin `tables` wrappers (no RPC contract change)
+
+### B10 — Types
+
+- Regenerate or hand-align `database.types.ts` from TableFlow schema; remove table-level `any` where safe
+- No runtime behaviour change; fix compile fallout only
+
+### B11 — Workspace
+
+- Further extract dialogs/catalog/plan-list **only** with clear boundaries and identical UI
+- Do not introduce new global state managers
+
+### B12 — Cleanup
+
+- Dead code, obsolete docs, Discoteca/CreadorSala references in README/`package.json` (branding only when listed here)
+- Delete only after dependency scan
+
+### B13 — Testing
+
+- Integration + E2E expansion; mocked/local only; no destructive remote Supabase
+
+### B14 — Docs & agents
+
+- Finalize `docs/modules/*`, Cursor scoped rules, `AGENT_ARCHITECTURE.md`
+- Agents load **one module doc + DEPENDENCY_MAP**, not the whole repo
 
 ---
 
-## Documentation deliverables (Etapa C — planned)
+## Characterization before PlanEditor / deep Workspace work
 
-| Path | Purpose |
-|------|---------|
-| `docs/architecture/SYSTEM_OVERVIEW.md` | Global context for any agent |
-| `docs/architecture/MODULE_MAP.md` | Domains ↔ folders |
-| `docs/architecture/DEPENDENCY_MAP.md` | Allowed imports |
-| `docs/architecture/DATA_FLOW.md` | Auth → UI → RPC → Realtime |
-| `docs/architecture/SUPABASE_INTEGRATION.md` | Tables/RPC/channels |
-| `docs/architecture/ARCHITECTURAL_DECISIONS.md` | ADRs |
-| `docs/modules/*.md` | Per-domain agent briefing |
-| `docs/agents/AGENT_ARCHITECTURE.md` | Future specialized agents |
-| `.cursor/rules/*.mdc` | Global short + scoped domain rules |
+Minimum (mocked Supabase — **no remote writes**):
 
-Etapa A seeds drafts of overview + module/dependency maps (see sibling files).
+1. Snapshot id preservation / split helpers (exists under floor-plans)
+2. Geometry pure behaviour (exists)
+3. Notification filters (exists)
+4. Workspace init / role presentation (exists)
+5. Before B8 extractions: undo/history and saveDesign orchestration guards if not already covered
 
 ---
 
-## Cursor rules strategy (design only)
+## Documentation strategy (agent context)
 
-- **Global** (`alwaysApply: true`): zero functional change; TableFlow Supabase only; no Sala Chocolatte writes; no secret keys in frontend; run tests after module changes.
-- **Scoped globs** per domain (`features/floor-editor/**`, `features/orders/**`, …) — load only that module’s doc.
-- Avoid one mega-rule that dumps entire repo context.
+| Path | Load when |
+|------|-----------|
+| `docs/architecture/SYSTEM_OVERVIEW.md` | Any new agent / onboarding |
+| `docs/architecture/MODULE_MAP.md` | Locating folders |
+| `docs/architecture/DEPENDENCY_MAP.md` | Before adding imports |
+| `docs/modules/<domain>.md` | Working inside that domain only |
+| `docs/refactoring/B*_*.md` | Historical step notes (optional) |
+| `.cursor/rules/*.mdc` (B14) | Global short + glob-scoped domain |
+
+Avoid mega-docs that force full-repo context.
 
 ---
 
@@ -111,21 +229,25 @@ Etapa A seeds drafts of overview + module/dependency maps (see sibling files).
 
 | Risk | Mitigation |
 |------|------------|
-| Visual regressions while “moving” components | Keep template/scss byte-stable; move TS first |
-| Realtime double-subscribe | Document channel lifecycle; test unsubscribe |
-| Import cycles after splits | DEPENDENCY_MAP forbidden edges |
-| Broken lint flooding noise | Fix eslint ignores before trusting lint gate |
-| Accidental remote writes in E2E | Keep E2E read-only / local mocks until authorized |
-| Over-modularization | Prefer few clear folders; no empty abstractions |
+| Visual regression while splitting editor | Keep template/scss stable; move TS first |
+| Accidental logic change in B7.5 | Diff review: imports/paths only |
+| Import cycles floor-plans ↔ floor-editor | DEPENDENCY_MAP forbidden edges; barrels scoped |
+| Realtime double-subscribe | Preserve channel names/lifecycle; existing notification tests |
+| Over-extraction of Workspace | Only clear domain boundaries in B11 |
+| Types regen breaks casts | Incremental; keep runtime identical |
 
 ---
 
-## Authorization checklist for Etapa B
+## Authorization checklist (remaining)
 
-User must confirm:
+User confirms before each step:
 
-- [ ] Branch strategy (`refactor/modular-architecture` from which tip)
-- [ ] Allow installing `jsdom` (devDependency) as tooling baseline
-- [ ] Allow eslint config ignore fixes (no behaviour change)
-- [ ] Start with module order 0 → 1 → …
-- [ ] Confirm no remote Supabase schema/RPC changes
+- [ ] B7.5 physical reorg (approve folder tree above)
+- [ ] B8 PlanEditor modularization
+- [ ] B9 tables
+- [ ] B10 types
+- [ ] B11 workspace further split
+- [ ] B12 cleanup / branding refs
+- [ ] B13 integration/E2E
+- [ ] B14 docs/rules/agents
+- [ ] Still: no remote schema/RPC changes; no commits without ask
