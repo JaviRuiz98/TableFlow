@@ -8,6 +8,6 @@ alwaysApply: false
 
 - Doc: `docs/modules/workspace.md`
 - Agent: `/tableflow-workspace`
-- Own: shell tabs, plan/catalog dialogs owned by shell, user-admin child wiring
+- Own: shell tabs; plan/catalog/alert children under `components/`; user-admin child wiring
 - No visual/HTML/CSS changes without authorization; preserve ADMIN vs USER tab gates
-- Tests: `workspace.component.spec.ts`, workspace `*.util.spec.ts`, user-admin component spec
+- Tests: `workspace.component.spec.ts`, child component specs, workspace `*.util.spec.ts`, user-admin spec

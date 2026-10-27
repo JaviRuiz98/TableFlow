@@ -1,0 +1,89 @@
+<ion-modal [isOpen]="createPlanDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeCreatePlanDialog()">
+  <ng-template>
+    <div class="plan-dialog">
+      <div class="dialog-header">
+        <div>
+          <span class="dialog-eyebrow">NUEVO PLANO</span>
+          <h2>Crear plano</h2>
+          <p>Añade un nombre para identificar este plano.</p>
+        </div>
+        <button type="button" class="dialog-close" (click)="closeCreatePlanDialog()"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <div class="dialog-body">
+        <ion-input
+          label="Nombre del plano"
+          labelPlacement="stacked"
+          fill="outline"
+          placeholder="Ej. Sala principal"
+          [(ngModel)]="newPlanName"
+          (keydown.enter)="createPlan()"
+        ></ion-input>
+      </div>
+      <div class="dialog-actions">
+        <ion-button fill="outline" class="secondary-button" (click)="closeCreatePlanDialog()">Cancelar</ion-button
+        ><ion-button class="primary-button" [disabled]="!newPlanName.trim()" (click)="createPlan()">Crear plano</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<ion-modal [isOpen]="copyPlanDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeCopyDialog()">
+  <ng-template>
+    <div class="plan-dialog confirm-dialog">
+      <div class="dialog-header">
+        <div>
+          <span class="dialog-eyebrow">COPIAR PLANO</span>
+          <h2>Copiar «{{ planToCopy()?.name }}»</h2>
+          <p>Se creará un plano idéntico e independiente. Indica el nombre de la nueva copia.</p>
+        </div>
+      </div>
+      <div class="dialog-body">
+        <ion-input label="Nombre de la copia" labelPlacement="stacked" fill="outline" [(ngModel)]="copyPlanName" (keydown.enter)="confirmDuplicate()"></ion-input>
+      </div>
+      <div class="dialog-actions">
+        <ion-button fill="outline" class="secondary-button" (click)="closeCopyDialog()">No</ion-button>
+        <ion-button class="primary-button" [disabled]="!copyPlanName.trim()" (click)="confirmDuplicate()">Sí, copiar</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<ion-modal [isOpen]="renamePlanDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeRenamePlanDialog()">
+  <ng-template>
+    <div class="plan-dialog">
+      <div class="dialog-header">
+        <div>
+          <span class="dialog-eyebrow">EDITAR PLANO</span>
+          <h2>Cambiar nombre</h2>
+          <p>Modifica el nombre con el que aparecerá este plano.</p>
+        </div>
+      </div>
+      <div class="dialog-body">
+        <ion-input label="Nombre del plano" labelPlacement="stacked" fill="outline" [(ngModel)]="renamePlanName" (keydown.enter)="confirmRenamePlan()"></ion-input>
+      </div>
+      <div class="dialog-actions">
+        <ion-button fill="outline" class="secondary-button" (click)="closeRenamePlanDialog()">Cancelar</ion-button>
+        <ion-button class="primary-button" [disabled]="!renamePlanName.trim()" (click)="confirmRenamePlan()">Guardar</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<ion-modal [isOpen]="deletePlanDialog()" [backdropDismiss]="false" class="create-plan-modal danger-plan-modal" (didDismiss)="closeDeletePlanDialog()">
+  <ng-template>
+    <div class="plan-dialog danger-dialog">
+      <div class="danger-symbol">!</div>
+      <div class="dialog-header alert-header">
+        <div>
+          <span class="dialog-eyebrow">ELIMINAR PLANO</span>
+          <h2>¿Eliminar «{{ planToDelete()?.name }}»?</h2>
+          <p>Esta acción eliminará el plano de forma definitiva.</p>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <ion-button fill="outline" class="secondary-button" (click)="closeDeletePlanDialog()">No</ion-button>
+        <ion-button color="danger" (click)="confirmRemovePlan()">Sí, eliminar</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

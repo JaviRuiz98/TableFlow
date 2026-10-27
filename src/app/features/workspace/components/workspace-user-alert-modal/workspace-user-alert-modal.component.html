@@ -1,0 +1,17 @@
+<ion-modal [isOpen]="open" [backdropDismiss]="false" class="create-plan-modal order-alert-modal">
+  <ng-template>
+    <div class="plan-dialog order-alert-card">
+      <div class="alert-symbol">!</div>
+      <div class="dialog-header alert-header">
+        <div>
+          <span class="dialog-eyebrow">{{ eyebrow }}</span>
+          <h2>{{ title }}</h2>
+          <p>{{ message }}</p>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <ion-button class="primary-button" expand="block" (click)="acknowledged.emit()">Continuar</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

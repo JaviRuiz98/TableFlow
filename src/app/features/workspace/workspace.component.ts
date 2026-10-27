@@ -12,10 +12,8 @@ import {
   IonSegmentButton,
   IonLabel,
   IonToast,
-  IonInput,
   IonSelect,
   IonSelectOption,
-  IonModal,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -34,18 +32,19 @@ import {
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { AuthService } from '../../core/auth/auth.service';
 import { SupabaseService } from '../../core/infrastructure';
-import { FloorPlanService, PlanDuplicationService } from '../floor-plans';
-import { ProductService } from '../products';
+import { FloorPlanService } from '../floor-plans';
 import { OrderService } from '../orders';
 import { OrderNotificationService } from '../notifications';
-import type { ClubTable, FloorPlan, Product, ProductCategory } from '../../core/models/models';
+import type { ClubTable, FloorPlan } from '../../core/models/models';
 import { PlanEditorComponent, TableProductPanelComponent } from '../floor-editor';
 import { NEW_OBSERVATION_ALERT, NEW_ORDER_ALERT } from './workspace-alerts.util';
 import { initialWorkspacePresentation } from './workspace-init.util';
-import { applyCatalogDelete, catalogDeleteBlockedMessage } from './workspace-catalog.util';
-import { defaultCopyPlanName, emptyWorkspaceTransientUi } from './workspace-transient.util';
+import { emptyWorkspaceTransientUi } from './workspace-transient.util';
 import { workspaceShellVisibility } from './workspace-shell-visibility.util';
 import { WorkspaceUserAdminComponent } from './workspace-user-admin.component';
+import { WorkspacePlanAdminDialogsComponent } from './components/workspace-plan-admin-dialogs/workspace-plan-admin-dialogs.component';
+import { WorkspaceCatalogPanelComponent } from './components/workspace-catalog-panel/workspace-catalog-panel.component';
+import { WorkspaceUserAlertModalComponent } from './components/workspace-user-alert-modal/workspace-user-alert-modal.component';
 
 @Component({
   selector: 'app-workspace',
@@ -62,13 +61,14 @@ import { WorkspaceUserAdminComponent } from './workspace-user-admin.component';
     IonSegmentButton,
     IonLabel,
     IonToast,
-    IonInput,
     IonSelect,
     IonSelectOption,
-    IonModal,
     PlanEditorComponent,
     TableProductPanelComponent,
     WorkspaceUserAdminComponent,
+    WorkspacePlanAdminDialogsComponent,
+    WorkspaceCatalogPanelComponent,
+    WorkspaceUserAlertModalComponent,
   ],
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
@@ -77,47 +77,22 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   @ViewChild(PlanEditorComponent) private planEditor?: PlanEditorComponent;
   /** Template ref so tests can stub the child without matching the concrete class. */
   @ViewChild('userAdmin') private userAdminPanel?: WorkspaceUserAdminComponent;
+  @ViewChild('planAdmin') private planAdminDialogs?: WorkspacePlanAdminDialogsComponent;
+  @ViewChild('catalogPanel') private catalogPanel?: WorkspaceCatalogPanelComponent;
 
   activeTab = signal<'planos' | 'operativo' | 'productos'>('planos');
   editorMode = signal<'editor' | 'operativo'>('editor');
   showMap = signal(true);
   plans = signal<FloorPlan[]>([]);
   selectedPlan = signal<FloorPlan | null>(null);
-  categories = signal<ProductCategory[]>([]);
-  products = signal<Product[]>([]);
   pendingCount = signal(0);
   toast = signal('');
   configured = true;
-  newCategory = '';
-  newProductName: Record<string, string> = {};
-  createPlanDialog = signal(false);
-  newPlanName = '';
-
-  copyPlanDialog = signal(false);
-  planToCopy = signal<FloorPlan | null>(null);
-  copyPlanName = '';
-  renamePlanDialog = signal(false);
-  planToRename = signal<FloorPlan | null>(null);
-  renamePlanName = '';
-  deletePlanDialog = signal(false);
-  planToDelete = signal<FloorPlan | null>(null);
   newOrderAlert = signal(false);
   userAlertTitle = signal(NEW_ORDER_ALERT.title);
   userAlertEyebrow = signal(NEW_ORDER_ALERT.eyebrow);
   userAlertMessage = signal(NEW_ORDER_ALERT.message);
 
-  editCategoryDialog = signal(false);
-  categoryToEdit = signal<ProductCategory | null>(null);
-  editCategoryName = '';
-  editProductDialog = signal(false);
-  productToEdit = signal<Product | null>(null);
-  editProductName = '';
-  catalogDeleteDialog = signal(false);
-  catalogDeleteBlocked = signal(false);
-  catalogDeleteChecking = signal(false);
-  catalogDeleteError = signal('');
-  categoryToDelete = signal<ProductCategory | null>(null);
-  productToDelete = signal<Product | null>(null);
   private channel: RealtimeChannel | null = null;
   private userOrderChannel: RealtimeChannel | null = null;
 
@@ -127,42 +102,20 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
    */
   private resetTransientUi(): void {
     const ui = emptyWorkspaceTransientUi();
-    this.createPlanDialog.set(ui.createPlanDialog);
-    this.copyPlanDialog.set(ui.copyPlanDialog);
-    this.renamePlanDialog.set(ui.renamePlanDialog);
-    this.deletePlanDialog.set(ui.deletePlanDialog);
     this.newOrderAlert.set(ui.newOrderAlert);
     this.userAlertTitle.set(ui.userAlertTitle);
     this.userAlertEyebrow.set(ui.userAlertEyebrow);
     this.userAlertMessage.set(ui.userAlertMessage);
-    this.editCategoryDialog.set(ui.editCategoryDialog);
-    this.editProductDialog.set(ui.editProductDialog);
-    this.catalogDeleteDialog.set(ui.catalogDeleteDialog);
-    this.catalogDeleteBlocked.set(ui.catalogDeleteBlocked);
-    this.catalogDeleteChecking.set(ui.catalogDeleteChecking);
-    this.catalogDeleteError.set(ui.catalogDeleteError);
-    this.categoryToEdit.set(ui.categoryToEdit);
-    this.productToEdit.set(ui.productToEdit);
-    this.categoryToDelete.set(ui.categoryToDelete);
-    this.productToDelete.set(ui.productToDelete);
-    this.editCategoryName = ui.editCategoryName;
-    this.editProductName = ui.editProductName;
     this.toast.set(ui.toast);
-    this.newPlanName = ui.newPlanName;
-    this.planToCopy.set(ui.planToCopy);
-    this.copyPlanName = ui.copyPlanName;
-    this.planToRename.set(ui.planToRename);
-    this.renamePlanName = ui.renamePlanName;
-    this.planToDelete.set(ui.planToDelete);
+    this.planAdminDialogs?.reset();
+    this.catalogPanel?.reset();
     this.userAdminPanel?.reset();
   }
 
   constructor(
     private auth: AuthService,
     private floors: FloorPlanService,
-    private product: ProductService,
     private orders: OrderService,
-    private duplication: PlanDuplicationService,
     private notifications: OrderNotificationService,
     private supabase: SupabaseService,
     private router: Router,
@@ -199,8 +152,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     this.resetTransientUi();
     try {
       this.plans.set(await this.floors.list());
-      this.categories.set(await this.product.categories());
-      this.products.set(await this.product.products());
       const presentation = initialWorkspacePresentation(this.isAdmin, this.plans());
       this.activeTab.set(presentation.activeTab);
       this.editorMode.set(presentation.editorMode);
@@ -267,12 +218,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   }
 
   openCreatePlanDialog(): void {
-    this.newPlanName = '';
-    this.createPlanDialog.set(true);
-  }
-  closeCreatePlanDialog(): void {
-    this.createPlanDialog.set(false);
-    this.newPlanName = '';
+    this.planAdminDialogs?.openCreate();
   }
 
   openUserAccessDialog(): void {
@@ -283,30 +229,34 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     this.userAdminPanel?.openAccess();
   }
 
-  onUserAdminToast(message: string): void {
+  onChildToast(message: string): void {
     this.toast.set(message);
   }
 
-  async createPlan(): Promise<void> {
-    if (!this.isAdmin) return;
-    const name = this.newPlanName.trim();
-    const session = this.auth.session();
-    if (!name || !session) {
-      this.toast.set('No hay una sesión activa');
+  /** Alias used by characterization specs / user-admin wiring. */
+  onUserAdminToast(message: string): void {
+    this.onChildToast(message);
+  }
+
+  onPlansUpdated(plans: FloorPlan[]): void {
+    this.plans.set(plans);
+    const selected = this.selectedPlan();
+    if (!selected) return;
+    const match = plans.find((item) => item.id === selected.id);
+    if (!match) {
+      this.selectedPlan.set(null);
       return;
     }
-    try {
-      const plan = await this.floors.create(name, 2000, 1200, session.user.id);
-      this.plans.update((current) => [...current, plan]);
-      this.selectedPlan.set(plan);
-      this.editorMode.set('editor');
-      this.showMap.set(true);
-      this.activeTab.set('operativo');
-      this.closeCreatePlanDialog();
-      this.toast.set('Plano creado correctamente');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo crear el plano');
+    if (match.name !== selected.name) {
+      this.selectedPlan.set({ ...selected, name: match.name });
     }
+  }
+
+  onPlanCreated(plan: FloorPlan): void {
+    this.selectedPlan.set(plan);
+    this.editorMode.set('editor');
+    this.showMap.set(true);
+    this.activeTab.set('operativo');
   }
 
   openPlan(plan: FloorPlan): void {
@@ -328,270 +278,21 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   }
 
   askDuplicate(plan: FloorPlan): void {
-    if (!this.isAdmin) return;
-    this.planToCopy.set(plan);
-    this.copyPlanName = defaultCopyPlanName(plan.name);
-    this.copyPlanDialog.set(true);
-  }
-
-  closeCopyDialog(): void {
-    this.copyPlanDialog.set(false);
-    this.planToCopy.set(null);
-    this.copyPlanName = '';
-  }
-
-  async confirmDuplicate(): Promise<void> {
-    const plan = this.planToCopy();
-    const session = this.auth.session();
-    const name = this.copyPlanName.trim();
-    if (!this.isAdmin || !plan || !session || !name) return;
-    try {
-      const copy = await this.duplication.duplicate(plan, session.user.id, name);
-      this.plans.update((current) => [...current, copy].sort((a, b) => a.name.localeCompare(b.name)));
-      this.closeCopyDialog();
-      this.toast.set('Plano copiado correctamente');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo copiar el plano');
-    }
+    this.planAdminDialogs?.askDuplicate(plan);
   }
 
   openRenamePlanDialog(plan: FloorPlan): void {
-    if (!this.isAdmin) return;
-    this.planToRename.set(plan);
-    this.renamePlanName = plan.name;
-    this.renamePlanDialog.set(true);
+    this.planAdminDialogs?.openRename(plan);
   }
 
-  closeRenamePlanDialog(): void {
-    this.renamePlanDialog.set(false);
-    this.planToRename.set(null);
-    this.renamePlanName = '';
-  }
-
-  async confirmRenamePlan(): Promise<void> {
-    const plan = this.planToRename();
-    const name = this.renamePlanName.trim();
-    if (!this.isAdmin || !plan || !name) return;
-    try {
-      await this.floors.update(plan.id, { name });
-      this.plans.update((current) => current.map((item) => item.id === plan.id ? { ...item, name } : item).sort((a, b) => a.name.localeCompare(b.name)));
-      if (this.selectedPlan()?.id === plan.id) this.selectedPlan.set({ ...this.selectedPlan()!, name });
-      this.closeRenamePlanDialog();
-      this.toast.set('Nombre del plano actualizado');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo cambiar el nombre');
-    }
+  askRemovePlan(plan: FloorPlan): void {
+    this.planAdminDialogs?.askRemove(plan);
   }
 
   acknowledgeNewOrder(): void {
     this.newOrderAlert.set(false);
     this.activeTab.set('operativo');
     this.editorMode.set('operativo');
-  }
-
-  askRemovePlan(plan: FloorPlan): void {
-    if (!this.isAdmin) return;
-    this.planToDelete.set(plan);
-    this.deletePlanDialog.set(true);
-  }
-
-  closeDeletePlanDialog(): void {
-    this.deletePlanDialog.set(false);
-    this.planToDelete.set(null);
-  }
-
-  async confirmRemovePlan(): Promise<void> {
-    const plan = this.planToDelete();
-    if (!this.isAdmin || !plan) return;
-    try {
-      await this.floors.remove(plan.id);
-      this.plans.update((current) => current.filter((item) => item.id !== plan.id));
-      if (this.selectedPlan()?.id === plan.id) this.selectedPlan.set(null);
-      this.closeDeletePlanDialog();
-      this.toast.set('Plano eliminado');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo eliminar');
-    }
-  }
-
-  productsFor(categoryId: string): Product[] {
-    return this.products().filter((product) => product.category_id === categoryId);
-  }
-
-  async createCategory(): Promise<void> {
-    if (!this.isAdmin) return;
-    const name = this.newCategory.trim();
-    if (!name) return;
-    try {
-      const category = await this.product.createCategory(name);
-      this.categories.update((current) => [...current, category]);
-      this.newCategory = '';
-      this.toast.set('Categoría creada');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo crear la categoría');
-    }
-  }
-
-  async createProduct(categoryId: string): Promise<void> {
-    if (!this.isAdmin) return;
-    const name = this.newProductName[categoryId]?.trim();
-    if (!name) return;
-    try {
-      const product = await this.product.createProduct(categoryId, name);
-      this.products.update((current) => [...current, product]);
-      this.newProductName[categoryId] = '';
-      this.toast.set('Producto añadido');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo crear el producto');
-    }
-  }
-
-  openEditCategory(category: ProductCategory): void {
-    if (!this.isAdmin) return;
-    this.categoryToEdit.set(category);
-    this.editCategoryName = category.name;
-    this.editCategoryDialog.set(true);
-  }
-
-  closeEditCategory(): void {
-    this.editCategoryDialog.set(false);
-    this.categoryToEdit.set(null);
-    this.editCategoryName = '';
-  }
-
-  async saveCategoryName(): Promise<void> {
-    const category = this.categoryToEdit();
-    const name = this.editCategoryName.trim();
-    if (!this.isAdmin || !category || !name) return;
-    try {
-      await this.product.updateCategory(category.id, name);
-      this.categories.update((items) => items.map((item) => item.id === category.id ? { ...item, name } : item));
-      this.closeEditCategory();
-      this.toast.set('Nombre de categoría actualizado');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo actualizar la categoría');
-    }
-  }
-
-  openEditProduct(product: Product): void {
-    if (!this.isAdmin) return;
-    this.productToEdit.set(product);
-    this.editProductName = product.name;
-    this.editProductDialog.set(true);
-  }
-
-  closeEditProduct(): void {
-    this.editProductDialog.set(false);
-    this.productToEdit.set(null);
-    this.editProductName = '';
-  }
-
-  async saveProductName(): Promise<void> {
-    const product = this.productToEdit();
-    const name = this.editProductName.trim();
-    if (!this.isAdmin || !product || !name) return;
-    try {
-      await this.product.updateProduct(product.id, { name });
-      this.products.update((items) => items.map((item) => item.id === product.id ? { ...item, name } : item));
-      this.closeEditProduct();
-      this.toast.set('Nombre de producto actualizado');
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo actualizar el producto');
-    }
-  }
-
-  async askDeleteProduct(product: Product): Promise<void> {
-    if (!this.isAdmin || this.catalogDeleteChecking()) return;
-    this.catalogDeleteChecking.set(true);
-    this.catalogDeleteError.set('');
-    this.productToDelete.set(product);
-    this.categoryToDelete.set(null);
-    try {
-      const used = await this.product.productHasOrderHistory(product.id);
-      this.catalogDeleteBlocked.set(used);
-      this.catalogDeleteDialog.set(true);
-    } catch (error) {
-      this.productToDelete.set(null);
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo comprobar el producto');
-    } finally {
-      this.catalogDeleteChecking.set(false);
-    }
-  }
-
-  async askDeleteCategory(category: ProductCategory): Promise<void> {
-    if (!this.isAdmin || this.catalogDeleteChecking()) return;
-    this.catalogDeleteChecking.set(true);
-    this.catalogDeleteError.set('');
-    this.categoryToDelete.set(category);
-    this.productToDelete.set(null);
-    try {
-      const used = await this.product.categoryHasOrderHistory(category.id);
-      this.catalogDeleteBlocked.set(used);
-      this.catalogDeleteDialog.set(true);
-    } catch (error) {
-      this.categoryToDelete.set(null);
-      this.toast.set(error instanceof Error ? error.message : 'No se pudo comprobar la categoría');
-    } finally {
-      this.catalogDeleteChecking.set(false);
-    }
-  }
-
-  closeCatalogDeleteDialog(): void {
-    this.catalogDeleteDialog.set(false);
-    this.catalogDeleteBlocked.set(false);
-    this.catalogDeleteError.set('');
-    this.categoryToDelete.set(null);
-    this.productToDelete.set(null);
-  }
-
-  async confirmCatalogDelete(): Promise<void> {
-    if (!this.isAdmin || this.catalogDeleteBlocked() || this.catalogDeleteChecking()) return;
-    const category = this.categoryToDelete();
-    const product = this.productToDelete();
-    if (!category && !product) return;
-    this.catalogDeleteChecking.set(true);
-    this.catalogDeleteError.set('');
-    try {
-      if (product) {
-        const deleted = await this.product.deleteProductSafe(product.id);
-        if (!deleted) {
-          this.catalogDeleteBlocked.set(true);
-          this.catalogDeleteError.set(catalogDeleteBlockedMessage({ kind: 'product', product }));
-          return;
-        }
-        const next = applyCatalogDelete(
-          { kind: 'product', product },
-          this.categories(),
-          this.products(),
-          this.newProductName,
-        );
-        this.products.set(next.products);
-        this.newProductName = next.newProductName;
-        this.toast.set(next.toast);
-      } else if (category) {
-        const deleted = await this.product.deleteCategorySafe(category.id);
-        if (!deleted) {
-          this.catalogDeleteBlocked.set(true);
-          this.catalogDeleteError.set(catalogDeleteBlockedMessage({ kind: 'category', category }));
-          return;
-        }
-        const next = applyCatalogDelete(
-          { kind: 'category', category },
-          this.categories(),
-          this.products(),
-          this.newProductName,
-        );
-        this.categories.set(next.categories);
-        this.products.set(next.products);
-        this.newProductName = next.newProductName;
-        this.toast.set(next.toast);
-      }
-      this.closeCatalogDeleteDialog();
-    } catch (error) {
-      this.catalogDeleteError.set(error instanceof Error ? error.message : 'No se pudo eliminar');
-    } finally {
-      this.catalogDeleteChecking.set(false);
-    }
   }
 
   async logout(): Promise<void> {

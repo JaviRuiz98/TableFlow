@@ -18,7 +18,14 @@
   </ion-toolbar>
 </ion-header>
 
-<app-workspace-user-admin #userAdmin (toastMessage)="onUserAdminToast($event)"></app-workspace-user-admin>
+<app-workspace-user-admin #userAdmin (toastMessage)="onChildToast($event)"></app-workspace-user-admin>
+<app-workspace-plan-admin-dialogs
+  #planAdmin
+  [plans]="plans()"
+  (toastMessage)="onChildToast($event)"
+  (plansUpdated)="onPlansUpdated($event)"
+  (planCreated)="onPlanCreated($event)"
+></app-workspace-plan-admin-dialogs>
 
 <ion-content>
   <div class="nav-wrap">
@@ -139,219 +146,21 @@
         </div>
       }
     </main>
-  } @else if (isAdmin) {
-    <main class="page products">
-      <div class="page-head">
-        <div>
-          <span class="eyebrow">CATÁLOGO</span>
-          <h1>Productos</h1>
-          <p>Gestiona las bebidas disponibles para los pedidos.</p>
-        </div>
-      </div>
-      <div class="category-create">
-        <ion-input label="Nueva categoría" labelPlacement="stacked" fill="outline" [(ngModel)]="newCategory"></ion-input>
-        <ion-button class="primary-button" (click)="createCategory()">Añadir categoría</ion-button>
-      </div>
-      @for (category of categories(); track category.id) {
-        <section class="category-card">
-          <div class="category-title-row">
-            <h2>{{ category.name }}</h2>
-            <div class="catalog-actions">
-              <ion-button size="small" fill="outline" (click)="openEditCategory(category)">
-                <ion-icon name="create-outline" slot="start"></ion-icon>Editar
-              </ion-button>
-              <ion-button size="small" fill="outline" color="danger" [disabled]="catalogDeleteChecking()" (click)="askDeleteCategory(category)">
-                <ion-icon name="trash-outline" slot="start"></ion-icon>Eliminar categoría
-              </ion-button>
-            </div>
-          </div>
-          @for (product of productsFor(category.id); track product.id) {
-            <div class="product-row">
-              <span>{{ product.name }}</span>
-              <div class="catalog-actions">
-                <ion-button size="small" fill="clear" (click)="openEditProduct(product)">
-                  <ion-icon name="create-outline" slot="start"></ion-icon>Editar
-                </ion-button>
-                <ion-button size="small" fill="clear" color="danger" [disabled]="catalogDeleteChecking()" (click)="askDeleteProduct(product)">
-                  <ion-icon name="trash-outline" slot="start"></ion-icon>Eliminar
-                </ion-button>
-              </div>
-            </div>
-          }
-          <div class="category-add">
-            <ion-input label="Producto" labelPlacement="stacked" fill="outline" [(ngModel)]="newProductName[category.id]"></ion-input>
-            <ion-button class="primary-button" (click)="createProduct(category.id)">Añadir</ion-button>
-          </div>
-        </section>
-      }
-    </main>
+  }
+
+  @if (isAdmin) {
+    <div [hidden]="activeTab() !== 'productos'">
+      <app-workspace-catalog-panel #catalogPanel (toastMessage)="onChildToast($event)"></app-workspace-catalog-panel>
+    </div>
   }
 </ion-content>
 
-
-<ion-modal [isOpen]="editCategoryDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeEditCategory()">
-  <ng-template>
-    <div class="plan-dialog">
-      <div class="dialog-header"><div><span class="dialog-eyebrow">CATEGORÍA</span><h2>Editar nombre</h2></div><button type="button" class="dialog-close" (click)="closeEditCategory()"><ion-icon name="close-outline"></ion-icon></button></div>
-      <div class="dialog-body"><ion-input label="Nombre de la categoría" labelPlacement="stacked" fill="outline" [(ngModel)]="editCategoryName" (keydown.enter)="saveCategoryName()"></ion-input></div>
-      <div class="dialog-actions"><ion-button fill="outline" class="secondary-button" (click)="closeEditCategory()">Cancelar</ion-button><ion-button class="primary-button" [disabled]="!editCategoryName.trim()" (click)="saveCategoryName()">Guardar</ion-button></div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="editProductDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeEditProduct()">
-  <ng-template>
-    <div class="plan-dialog">
-      <div class="dialog-header"><div><span class="dialog-eyebrow">PRODUCTO</span><h2>Editar nombre</h2></div><button type="button" class="dialog-close" (click)="closeEditProduct()"><ion-icon name="close-outline"></ion-icon></button></div>
-      <div class="dialog-body"><ion-input label="Nombre del producto" labelPlacement="stacked" fill="outline" [(ngModel)]="editProductName" (keydown.enter)="saveProductName()"></ion-input></div>
-      <div class="dialog-actions"><ion-button fill="outline" class="secondary-button" (click)="closeEditProduct()">Cancelar</ion-button><ion-button class="primary-button" [disabled]="!editProductName.trim()" (click)="saveProductName()">Guardar</ion-button></div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="catalogDeleteDialog()" [backdropDismiss]="false" class="danger-plan-modal" (didDismiss)="closeCatalogDeleteDialog()">
-  <ng-template>
-    <div class="plan-dialog danger-dialog">
-      <div class="danger-symbol">!</div>
-      <div class="dialog-header alert-header">
-        <div>
-          <span class="dialog-eyebrow">BORRADO DE CATÁLOGO</span>
-          @if (catalogDeleteBlocked()) {
-            <h2>No se puede eliminar</h2>
-            @if (categoryToDelete()) {
-              <p>Esta categoría contiene al menos un producto con pedidos pendientes o servidos. No se puede eliminar mientras exista ese uso.</p>
-            } @else {
-              <p>Este producto tiene pedidos pendientes o servidos. No se puede eliminar mientras exista ese uso.</p>
-            }
-          } @else {
-            <h2>¿Confirmar eliminación?</h2>
-            @if (categoryToDelete()) {
-              <p>Se eliminará la categoría <strong>{{ categoryToDelete()?.name }}</strong>, todos sus productos y cualquier línea cancelada asociada. Esta acción no se puede deshacer.</p>
-            } @else {
-              <p>Se eliminará el producto <strong>{{ productToDelete()?.name }}</strong> y cualquier línea cancelada asociada. Esta acción no se puede deshacer.</p>
-            }
-          }
-          @if (catalogDeleteError()) { <p class="form-error">{{ catalogDeleteError() }}</p> }
-        </div>
-      </div>
-      <div class="dialog-actions">
-        @if (catalogDeleteBlocked()) {
-          <ion-button class="primary-button" (click)="closeCatalogDeleteDialog()">Entendido</ion-button>
-        } @else {
-          <ion-button fill="outline" class="secondary-button" (click)="closeCatalogDeleteDialog()">No</ion-button>
-          <ion-button color="danger" [disabled]="catalogDeleteChecking()" (click)="confirmCatalogDelete()">Sí, eliminar</ion-button>
-        }
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="createPlanDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeCreatePlanDialog()">
-  <ng-template>
-    <div class="plan-dialog">
-      <div class="dialog-header">
-        <div>
-          <span class="dialog-eyebrow">NUEVO PLANO</span>
-          <h2>Crear plano</h2>
-          <p>Añade un nombre para identificar este plano.</p>
-        </div>
-        <button type="button" class="dialog-close" (click)="closeCreatePlanDialog()"><ion-icon name="close-outline"></ion-icon></button>
-      </div>
-      <div class="dialog-body">
-        <ion-input
-          label="Nombre del plano"
-          labelPlacement="stacked"
-          fill="outline"
-          placeholder="Ej. Sala principal"
-          [(ngModel)]="newPlanName"
-          (keydown.enter)="createPlan()"
-        ></ion-input>
-      </div>
-      <div class="dialog-actions">
-        <ion-button fill="outline" class="secondary-button" (click)="closeCreatePlanDialog()">Cancelar</ion-button
-        ><ion-button class="primary-button" [disabled]="!newPlanName.trim()" (click)="createPlan()">Crear plano</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="copyPlanDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeCopyDialog()">
-  <ng-template>
-    <div class="plan-dialog confirm-dialog">
-      <div class="dialog-header">
-        <div>
-          <span class="dialog-eyebrow">COPIAR PLANO</span>
-          <h2>Copiar «{{ planToCopy()?.name }}»</h2>
-          <p>Se creará un plano idéntico e independiente. Indica el nombre de la nueva copia.</p>
-        </div>
-      </div>
-      <div class="dialog-body">
-        <ion-input label="Nombre de la copia" labelPlacement="stacked" fill="outline" [(ngModel)]="copyPlanName" (keydown.enter)="confirmDuplicate()"></ion-input>
-      </div>
-      <div class="dialog-actions">
-        <ion-button fill="outline" class="secondary-button" (click)="closeCopyDialog()">No</ion-button>
-        <ion-button class="primary-button" [disabled]="!copyPlanName.trim()" (click)="confirmDuplicate()">Sí, copiar</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="renamePlanDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeRenamePlanDialog()">
-  <ng-template>
-    <div class="plan-dialog">
-      <div class="dialog-header">
-        <div>
-          <span class="dialog-eyebrow">EDITAR PLANO</span>
-          <h2>Cambiar nombre</h2>
-          <p>Modifica el nombre con el que aparecerá este plano.</p>
-        </div>
-      </div>
-      <div class="dialog-body">
-        <ion-input label="Nombre del plano" labelPlacement="stacked" fill="outline" [(ngModel)]="renamePlanName" (keydown.enter)="confirmRenamePlan()"></ion-input>
-      </div>
-      <div class="dialog-actions">
-        <ion-button fill="outline" class="secondary-button" (click)="closeRenamePlanDialog()">Cancelar</ion-button>
-        <ion-button class="primary-button" [disabled]="!renamePlanName.trim()" (click)="confirmRenamePlan()">Guardar</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="deletePlanDialog()" [backdropDismiss]="false" class="create-plan-modal danger-plan-modal" (didDismiss)="closeDeletePlanDialog()">
-  <ng-template>
-    <div class="plan-dialog danger-dialog">
-      <div class="danger-symbol">!</div>
-      <div class="dialog-header alert-header">
-        <div>
-          <span class="dialog-eyebrow">ELIMINAR PLANO</span>
-          <h2>¿Eliminar «{{ planToDelete()?.name }}»?</h2>
-          <p>Esta acción eliminará el plano de forma definitiva.</p>
-        </div>
-      </div>
-      <div class="dialog-actions">
-        <ion-button fill="outline" class="secondary-button" (click)="closeDeletePlanDialog()">No</ion-button>
-        <ion-button color="danger" (click)="confirmRemovePlan()">Sí, eliminar</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="newOrderAlert()" [backdropDismiss]="false" class="create-plan-modal order-alert-modal">
-  <ng-template>
-    <div class="plan-dialog order-alert-card">
-      <div class="alert-symbol">!</div>
-      <div class="dialog-header alert-header">
-        <div>
-          <span class="dialog-eyebrow">{{ userAlertEyebrow() }}</span>
-          <h2>{{ userAlertTitle() }}</h2>
-          <p>{{ userAlertMessage() }}</p>
-        </div>
-      </div>
-      <div class="dialog-actions">
-        <ion-button class="primary-button" expand="block" (click)="acknowledgeNewOrder()">Continuar</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
+<app-workspace-user-alert-modal
+  [open]="newOrderAlert()"
+  [eyebrow]="userAlertEyebrow()"
+  [title]="userAlertTitle()"
+  [message]="userAlertMessage()"
+  (acknowledged)="acknowledgeNewOrder()"
+></app-workspace-user-alert-modal>
 
 <ion-toast [isOpen]="toast() !== ''" [message]="toast()" [duration]="2200" (didDismiss)="toast.set('')"></ion-toast>

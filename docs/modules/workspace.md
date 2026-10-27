@@ -9,12 +9,15 @@ UI shell after login: tabs, plan list, operativa composition, product catalog UI
 
 ## Responsibilities
 
-- Compose `PlanEditorComponent` + `TableProductPanelComponent` + `WorkspaceUserAdminComponent`
+- Compose `PlanEditorComponent` + `TableProductPanelComponent` + workspace child panels
 - Navigate tabs (`planos` / `operativo` / `productos`) by role
-- Presentation state (plan/catalog dialogs, toast, editor mode, map visibility)
+- Presentation state (toast, editor mode, map visibility, USER alert copy)
 - Orchestrate → `floor-plans` / `products` / `orders` / `notifications` / `auth`
 - User admin dialogs → child `WorkspaceUserAdminComponent` → `users`
-- Init + teardown Realtime; reset transient UI on init/logout
+- Plan create/copy/rename/delete → `WorkspacePlanAdminDialogsComponent`
+- Catalog list + dialogs → `WorkspaceCatalogPanelComponent` → `ProductService`
+- USER alert modal → `WorkspaceUserAlertModalComponent` (presentation)
+- Init + teardown Realtime; reset transient UI on init/logout (delegates child `reset()`)
 
 ## Not this module
 
@@ -28,8 +31,11 @@ UI shell after login: tabs, plan list, operativa composition, product catalog UI
 
 | File | Role |
 |------|------|
-| `workspace.component.*` | Shell coordinator + plan/catalog/operativa UI |
+| `workspace.component.*` | Shell coordinator (tabs, operativa, Realtime, toast) |
 | `workspace-user-admin.component.*` | User access + create-user dialogs (B11) |
+| `components/workspace-plan-admin-dialogs/` | Create/copy/rename/delete plan dialogs (C2) |
+| `components/workspace-catalog-panel/` | Productos tab + catalog dialogs (C2) |
+| `components/workspace-user-alert-modal/` | USER order/observation alert modal (C2) |
 | `workspace-dialog.styles.scss` | Shared modal styles |
 | `workspace-init.util.ts` | Role-based initial presentation |
 | `workspace-shell-visibility.util.ts` | ADMIN/USER control gates |
@@ -44,24 +50,29 @@ UI shell after login: tabs, plan list, operativa composition, product catalog UI
 | State | Owner |
 |-------|--------|
 | tabs, plans, selectedPlan, editorMode, showMap | Workspace |
-| categories, products, catalog dialogs | Workspace |
-| plan create/copy/rename/delete dialogs | Workspace |
+| plan create/copy/rename/delete dialogs | `WorkspacePlanAdminDialogsComponent` |
+| categories, products, catalog dialogs | `WorkspaceCatalogPanelComponent` |
 | user access + create-user forms/dialogs | `WorkspaceUserAdminComponent` |
+| USER alert open + copy | Workspace (modal child is presentation) |
 | toast | Workspace (receives child toasts) |
 | Realtime channels | Workspace |
 
 ## Init flow
 
-1. `resetTransientUi()` (+ child `reset()`)
-2. Load plans/categories/products
+1. `resetTransientUi()` (+ children `reset()`)
+2. Load plans
 3. `initialWorkspacePresentation(isAdmin, plans)`
 4. USER → order/observation alerts; always → orders subscribe
-5. Destroy/logout → unsubscribe + reset
+5. Catalog child loads categories/products on its own init
+6. Destroy/logout → unsubscribe + reset
 
 ## Tests
 
-- `workspace.component.spec.ts` — ADMIN/USER init, visibility, plans, catalog, logout, user-admin delegate
+- `workspace.component.spec.ts` — ADMIN/USER init, visibility, plans navigation, logout, child delegates
 - `workspace-user-admin.component.spec.ts`
+- `components/workspace-plan-admin-dialogs/*.spec.ts`
+- `components/workspace-catalog-panel/*.spec.ts`
+- `components/workspace-user-alert-modal/*.spec.ts`
 - utils: init, visibility, transient, catalog, user-form, alerts
 
 ## Restrictions for agents
@@ -69,4 +80,4 @@ UI shell after login: tabs, plan list, operativa composition, product catalog UI
 - No visual/HTML/CSS/navigation changes unless authorized
 - No cycles (features must not import workspace)
 - No exposing Supabase from shell
-- Do not auto-start B12 without authorization
+- Do not auto-start further extractions without authorization
