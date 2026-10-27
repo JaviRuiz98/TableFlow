@@ -24,3 +24,5 @@ Session, profile/role loading, login UI, route guard, username↔internal email 
 ## Restrictions
 
 Do not change 12h absolute session policy or Auth provider setup without authorization. UI brand strings on login are visual — leave unless authorized.
+
+Session policy note: [SESSION_12H.md](../product/SESSION_12H.md).

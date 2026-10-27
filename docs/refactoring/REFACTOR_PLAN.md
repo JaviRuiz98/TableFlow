@@ -186,7 +186,7 @@ Rules: create folders only with real files; keep HTML/SCSS/UX stable; no RPC cha
 
 ### B12 — Cleanup ✅
 
-- README/NATIVE_APP TableFlow; npm name `tableflow`; e2e/playwright paths fixed; `.gitignore` hardened
+- README / `docs/native/NATIVE_APP` TableFlow; npm name `tableflow`; e2e/playwright paths fixed; `.gitignore` hardened
 - UI/Capacitor/`dist/discoteca` preserved — see [B12_CLEANUP.md](./B12_CLEANUP.md)
 
 ### B13 — Testing ✅

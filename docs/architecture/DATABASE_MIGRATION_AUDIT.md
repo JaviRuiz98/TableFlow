@@ -47,8 +47,8 @@
 | `supabase/SQL_REALTIME_PEDIDOS_OBSERVACIONES.sql` | Idéntico a `0015` |
 | `supabase/SQL_OBSERVATION_PENDING_WITHOUT_ORDERS.sql` | Idéntico a `0016` |
 | `supabase/SQL_PASSWORD_BORRADO.sql` | Semilla operativa de `app_secrets` (`table_deletion`) — **no es migración** |
-| `SQL_TEXT_FONT_SIZE.sql` (raíz) | Idéntico a `0012` |
-| `SQL_ORDER_ITEM_ATTENDED.sql` (raíz) | Idéntico a `0013` |
+| `supabase/SQL_TEXT_FONT_SIZE.sql` | Idéntico a `0012` (antes en raíz) |
+| `supabase/SQL_ORDER_ITEM_ATTENDED.sql` | Idéntico a `0013` (antes en raíz) |
 
 Estos scripts sugieren que en el proyecto original parte del esquema se aplicó **manualmente** en el SQL Editor, no solo vía CLI de migraciones.
 

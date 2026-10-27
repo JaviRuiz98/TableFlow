@@ -13,7 +13,7 @@
 | `package.json` / lock `name: discoteca` | → `tableflow` (+ description) |
 | Playwright `/discoteca/` + e2e `ion-title Discoteca` | Aligned to `/` + real login copy |
 | `.gitignore` gaps (coverage, playwright-report, android/.gradle, keystores, tsbuildinfo) | Extended |
-| `NATIVE_APP.md` titled as Sala Chocolatte product | Retitled TableFlow; native IDs documented as preserved |
+| `docs/native/NATIVE_APP.md` titled as Sala Chocolatte product | Retitled TableFlow; native IDs documented as preserved |
 | Module index “Remaining: B10…” | Updated |
 
 ### 2. Documentary / naming (applied)
@@ -38,7 +38,7 @@
 |------|--------|
 | UI «Sala Chocolatte» / toolbar brand | Visual identity until rebrand auth |
 | `com.salachocolatte.app` | External/store id |
-| `DATABASE_MIGRATION_AUDIT.md`, root ops notes (`PLANOS_Y_OPERATIVA.md`, …) | Audit / ops history |
+| `docs/architecture/DATABASE_MIGRATION_AUDIT.md`, ops notes under `docs/product/` | Audit / ops history |
 | `supabase/SQL_*.sql` duplicates of migrations | Manual apply copies; do not delete in B12 |
 | Dual migration prefix `0007_*` | Do not rename mid-history without consolidation plan |
 | Warnings about Sala Chocolatte in agent/security docs | Safety rails |
@@ -46,7 +46,7 @@
 ## SQL / migrations (document only)
 
 - **Truth sources:** remote TableFlow schema (when authorized) ≫ applied migration chain ≫ `BOOTSTRAP_TABLEFLOW.sql` ≫ complementary `SQL_*.sql`.
-- **Known issues:** duplicate `0007_` prefixes; complement SQL overlaps migrations (see `DATABASE_MIGRATION_AUDIT.md`); bootstrap may lag or lead remote.
+- **Known issues:** duplicate `0007_` prefixes; complement SQL overlaps migrations (see `docs/architecture/DATABASE_MIGRATION_AUDIT.md`); bootstrap may lag or lead remote.
 - **Future consolidation (B13+ / dedicated DB auth):** inventory remote with read-only CLI → diff vs BOOTSTRAP → single forward migration or regenerate bootstrap; **never** push to Sala Chocolatte; do not rewrite applied history casually.
 
 ## Git / secrets

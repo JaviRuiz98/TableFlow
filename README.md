@@ -33,7 +33,7 @@ SUPABASE_ANON_KEY=sb_publishable_xxx
 3. `prestart` / `prebuild` ejecutan `scripts/generate-env.mjs` y generan `src/environments/*` (ignorados por Git).
 4. **Nunca** pongas `service_role` / `sb_secret_*` en el frontend ni en `.env` de la app.
 
-Esquema de referencia local: `supabase/BOOTSTRAP_TABLEFLOW.sql` y `supabase/migrations/`. El bootstrap **no garantiza** paridad 1:1 con el esquema remoto desplegado; ver `DATABASE_MIGRATION_AUDIT.md` y `docs/refactoring/B12_CLEANUP.md`.
+Esquema de referencia local: `supabase/BOOTSTRAP_TABLEFLOW.sql` y `supabase/migrations/`. El bootstrap **no garantiza** paridad 1:1 con el esquema remoto desplegado; ver [`docs/architecture/DATABASE_MIGRATION_AUDIT.md`](docs/architecture/DATABASE_MIGRATION_AUDIT.md) y [`docs/refactoring/B12_CLEANUP.md`](docs/refactoring/B12_CLEANUP.md).
 
 ## Instalación y arranque
 
@@ -79,7 +79,7 @@ Mapas: [`docs/architecture/MODULE_MAP.md`](docs/architecture/MODULE_MAP.md) · [
 
 ## Capacitor
 
-Empaquetado nativo documentado en [`NATIVE_APP.md`](NATIVE_APP.md).  
+Empaquetado nativo documentado en [`docs/native/NATIVE_APP.md`](docs/native/NATIVE_APP.md).  
 `appId` / `appName` / `webDir` (`dist/discoteca/browser`) se conservan por compatibilidad nativa hasta autorización explícita de cambio.
 
 ## Limitaciones conocidas

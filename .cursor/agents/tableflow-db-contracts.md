@@ -6,7 +6,7 @@ readonly: true
 
 # DB contracts (readonly)
 
-**Docs:** `docs/refactoring/B10_TYPES.md`, `DATABASE_MIGRATION_AUDIT.md`, `supabase/BOOTSTRAP_TABLEFLOW.sql`
+**Docs:** `docs/refactoring/B10_TYPES.md`, `docs/architecture/DATABASE_MIGRATION_AUDIT.md`, `supabase/BOOTSTRAP_TABLEFLOW.sql`
 
 ## Paths (analyze)
 
