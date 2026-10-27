@@ -1,17 +1,37 @@
-export type Role = 'ADMIN' | 'USER';
-export type TableShape = 'circle' | 'rectangle';
-export type TableType = 'TABLE' | 'RESERVED';
-export type OrderStatus = 'OPEN' | 'CLOSED' | 'CANCELLED';
-export type OrderItemStatus = 'PENDING' | 'PLACED' | 'CANCELLED';
+/**
+ * Domain models for TableFlow (app layer).
+ * Column shapes mirror `core/data/database.types.ts` Rows (BOOTSTRAP-aligned).
+ * Prefer these in UI/services; use Database helpers at the Supabase client boundary.
+ */
+export type {
+  AppRole as Role,
+  FloorElementKind,
+  OrderItemStatus,
+  OrderStatus,
+  ReservationStatus,
+  TableShape,
+  TableType,
+} from '../data/database.types';
+
+import type {
+  AppRole,
+  FloorElementKind,
+  OrderItemStatus,
+  OrderStatus,
+  ReservationStatus,
+  TableShape,
+  TableType,
+} from '../data/database.types';
 
 export interface Profile {
   id: string;
   full_name: string | null;
   username?: string | null;
-  role: Role;
+  role: AppRole;
   created_at: string;
   updated_at: string;
 }
+
 export interface FloorPlan {
   id: string;
   name: string;
@@ -23,7 +43,7 @@ export interface FloorPlan {
   created_at: string;
   updated_at: string;
 }
-export type FloorElementKind = 'wall' | 'zone' | 'door' | 'text';
+
 export interface FloorPlanElement {
   id: string;
   floor_plan_id: string;
@@ -33,6 +53,7 @@ export interface FloorPlanElement {
   width: number;
   height: number;
   rotation: number;
+  /** Domain form of jsonb `points` (walls/doors). */
   points: number[] | null;
   label: string | null;
   font_size: number | null;
@@ -58,6 +79,21 @@ export interface ClubTable {
   updated_at: string;
 }
 
+/** Legacy dated reservations table (schema parity; app UI uses tables.type=RESERVED). */
+export interface Reservation {
+  id: string;
+  table_id: string;
+  name: string;
+  reservation_date: string;
+  reservation_time: string | null;
+  people: number;
+  notes: string | null;
+  status: ReservationStatus;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ProductCategory {
   id: string;
   name: string;
@@ -65,6 +101,7 @@ export interface ProductCategory {
   created_at: string;
   updated_at: string;
 }
+
 export interface Product {
   id: string;
   category_id: string;
@@ -74,6 +111,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
 }
+
 export interface Order {
   id: string;
   table_id: string;
@@ -82,6 +120,7 @@ export interface Order {
   created_at: string;
   updated_at: string;
 }
+
 export interface OrderItem {
   id: string;
   order_id: string;
@@ -95,6 +134,16 @@ export interface OrderItem {
   created_at: string;
   updated_at: string;
 }
+
+/** order_items row with nested `products(*)` join used by OrderService.forTable. */
+export type OrderItemWithProduct = OrderItem & { product: Product };
+
+export type OrderItemCategoryGroup = {
+  id: string;
+  name: string;
+  items: OrderItemWithProduct[];
+};
+
 export interface FloorSnapshot {
   elements: FloorPlanElement[];
   tables: ClubTable[];

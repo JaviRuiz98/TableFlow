@@ -167,20 +167,22 @@ Detailed audit: [B8_FLOOR_EDITOR.md](./B8_FLOOR_EDITOR.md)
 
 Rules: create folders only with real files; keep HTML/SCSS/UX stable; no RPC changes; stop after each subphase.
 
-### B9 — `tables`
+### B9 — `tables` ✅
 
-- Relocate `table-validation` + `table-deletion` (+ specs)
-- Document which attended/observation calls stay on `FloorPlanService` vs thin `tables` wrappers (no RPC contract change)
+- Relocated `table-validation` + `table-deletion` → `features/tables/`
+- Attended/observation remain on `FloorPlanService` (documented; no API churn)
+- See [B9_TABLES.md](./B9_TABLES.md) · [../modules/tables.md](../modules/tables.md)
 
-### B10 — Types
+### B10 — Types ✅
 
-- Regenerate or hand-align `database.types.ts` from TableFlow schema; remove table-level `any` where safe
-- No runtime behaviour change; fix compile fallout only
+- Hand-aligned `database.types.ts` from `BOOTSTRAP_TABLEFLOW.sql` (no live gen this phase)
+- Domain models re-export enums; PlanEditor/orders/floor-plans/products consumers hardened
+- Nested joins + jsonb RPC Args remain boundary casts — see [B10_TYPES.md](./B10_TYPES.md)
 
-### B11 — Workspace
+### B11 — Workspace ✅
 
-- Further extract dialogs/catalog/plan-list **only** with clear boundaries and identical UI
-- Do not introduce new global state managers
+- User-admin dialogs → `WorkspaceUserAdminComponent`; shell utils for visibility/transient/catalog
+- Plan/catalog modals kept in shell (list coupling) — see [B11_WORKSPACE.md](./B11_WORKSPACE.md)
 
 ### B12 — Cleanup
 
@@ -245,8 +247,8 @@ User confirms before each step:
 - [ ] B7.5 physical reorg (approve folder tree above)
 - [ ] B8 PlanEditor modularization
 - [ ] B9 tables
-- [ ] B10 types
-- [ ] B11 workspace further split
+- [x] B10 types
+- [x] B11 workspace further split
 - [ ] B12 cleanup / branding refs
 - [ ] B13 integration/E2E
 - [ ] B14 docs/rules/agents

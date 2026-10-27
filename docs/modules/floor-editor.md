@@ -69,7 +69,7 @@ Create in `initStage`, resize via `ResizeObserver` + `applyStageSizeIfChanged`, 
 ## Dependencies
 
 ```text
-floor-editor → floor-plans, orders, products, core/auth, core/services/table-deletion (B9)
+floor-editor → floor-plans, orders, products, core/auth, features/tables (deletion)
 floor-editor/geometry|tools|history → core/models (+ geometry types)
 floor-editor/canvas → models + geometry Point; Konva types only in lifecycle util
 floor-plans ↛ floor-editor   (forbidden)
@@ -82,10 +82,9 @@ floor-plans ↛ floor-editor   (forbidden)
 
 **Not covered by unit tests (manual QA required):** wheel/pinch feel, drag after zoom, endpoint handles, visual render, password delete UX.
 
-## Limitations / B9 debt
+## Limitations
 
-- `TableDeletionService` (+ unused `TableValidationService`) still in `core/services` → move to `features/tables/`
-- Attended/observation RPCs remain on `FloorPlanService` (wrappers optional in B9)
+- Attended/observation RPCs remain on `FloorPlanService` (see [tables.md](./tables.md))
 - `render()` still large; further split only with Konva harness + auth
 - Order item typing still uses `any` in places (B10 types)
 

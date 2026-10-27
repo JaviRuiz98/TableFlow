@@ -5,75 +5,68 @@
 
 ## Purpose
 
-UI shell after login: tabs, plan list, operativa composition, product catalog UI, admin user dialogs, toast/alerts. Coordinates feature modules; does **not** own domain persistence.
+UI shell after login: tabs, plan list, operativa composition, product catalog UI, toasts/alerts. Coordinates feature modules; does **not** own domain persistence.
 
 ## Responsibilities
 
-- Compose `PlanEditorComponent` + `TableProductPanelComponent`
+- Compose `PlanEditorComponent` + `TableProductPanelComponent` + `WorkspaceUserAdminComponent`
 - Navigate tabs (`planos` / `operativo` / `productos`) by role
-- Presentation state (dialogs, toast, editor/operativo mode, map visibility)
-- Orchestrate user actions → `floor-plans` / `products` / `users` / `orders` / `notifications` / `auth`
-- Init + teardown of Realtime channels
-- Session reset of transient overlays on init/logout
+- Presentation state (plan/catalog dialogs, toast, editor mode, map visibility)
+- Orchestrate → `floor-plans` / `products` / `orders` / `notifications` / `auth`
+- User admin dialogs → child `WorkspaceUserAdminComponent` → `users`
+- Init + teardown Realtime; reset transient UI on init/logout
 
 ## Not this module
 
-- Konva / snapshot RPCs → `floor-plans` / future `floor-editor`
+- Konva / snapshots → `floor-plans` / `floor-editor`
 - Order mutations → `orders`
-- Catalog CRUD API → `products`
-- create-user Edge → `users`
-- Alert Realtime wiring internals → `notifications`
-- Raw Supabase client → `core/infrastructure`
+- Catalog API → `products`
+- create-user Edge → `users` (via user-admin child)
+- Raw Supabase → `core/infrastructure`
 
 ## Main files
 
 | File | Role |
 |------|------|
-| `workspace.component.ts` | Coordinator + template bindings |
-| `workspace.component.html` / `.scss` | Shell UI (do not restyle without auth) |
+| `workspace.component.*` | Shell coordinator + plan/catalog/operativa UI |
+| `workspace-user-admin.component.*` | User access + create-user dialogs (B11) |
+| `workspace-dialog.styles.scss` | Shared modal styles |
 | `workspace-init.util.ts` | Role-based initial presentation |
-| `workspace-user-form.util.ts` | New-user form validation |
-| `workspace-alerts.util.ts` | USER alert copy constants |
-| `index.ts` | Public export of `WorkspaceComponent` |
+| `workspace-shell-visibility.util.ts` | ADMIN/USER control gates |
+| `workspace-transient.util.ts` | Overlay reset + copy-plan name |
+| `workspace-catalog.util.ts` | Catalog delete apply/messages |
+| `workspace-user-form.util.ts` | New-user validation |
+| `workspace-alerts.util.ts` | USER alert copy |
+| `index.ts` | Exports `WorkspaceComponent` |
+
+## State ownership
+
+| State | Owner |
+|-------|--------|
+| tabs, plans, selectedPlan, editorMode, showMap | Workspace |
+| categories, products, catalog dialogs | Workspace |
+| plan create/copy/rename/delete dialogs | Workspace |
+| user access + create-user forms/dialogs | `WorkspaceUserAdminComponent` |
+| toast | Workspace (receives child toasts) |
+| Realtime channels | Workspace |
 
 ## Init flow
 
-1. `resetTransientUi()`
-2. Load plans + categories + products via feature services
-3. `initialWorkspacePresentation(isAdmin, plans)` → tab / map / selection
-4. If USER: `OrderNotificationService.subscribeToNewOrderItems`
-5. Always: `OrderService.subscribe(..., 'workspace-orders')`
-6. `ngOnDestroy` / `logout`: unsubscribe both channels
-
-## State notes
-
-- Signals for UI; keep RxJS-style channel handles as returned by services (do not flip to Signals for preference).
-- `configured` comes from `SupabaseService.configured` (never peek private `FloorPlanService` client).
-- `refreshOperationalData` is intentionally a no-op hook (Realtime drives UI elsewhere).
-
-## Consumers / contracts
-
-| Module | Usage |
-|--------|--------|
-| `floor-plans` | list/create/update/remove + duplication |
-| `products` | catalog CRUD + safe delete checks |
-| `users` | verifyAccess + createUser |
-| `orders` | Realtime subscribe |
-| `notifications` | USER order/observation alerts |
-| `core/auth` | role, session, signOut |
-| `core/infrastructure` | Supabase configured + error humanize |
-| `plan-editor` | `@ViewChild` saveDesign / openOperationalTarget |
+1. `resetTransientUi()` (+ child `reset()`)
+2. Load plans/categories/products
+3. `initialWorkspacePresentation(isAdmin, plans)`
+4. USER → order/observation alerts; always → orders subscribe
+5. Destroy/logout → unsubscribe + reset
 
 ## Tests
 
-- `workspace.component.spec.ts` (mocked services; stubbed children)
-- `workspace-init.util.spec.ts`
-- `workspace-user-form.util.spec.ts`
-- `workspace-alerts.util.spec.ts`
+- `workspace.component.spec.ts` — ADMIN/USER init, visibility, plans, catalog, logout, user-admin delegate
+- `workspace-user-admin.component.spec.ts`
+- utils: init, visibility, transient, catalog, user-form, alerts
 
 ## Restrictions for agents
 
 - No visual/HTML/CSS/navigation changes unless authorized
-- No circular imports (workspace → features OK; features must not import workspace)
-- No exposing Supabase from this shell
-- Do not auto-advance to floor-editor (B8) without authorization
+- No cycles (features must not import workspace)
+- No exposing Supabase from shell
+- Do not auto-start B12 without authorization

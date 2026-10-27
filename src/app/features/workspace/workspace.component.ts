@@ -16,7 +16,6 @@ import {
   IonSelect,
   IonSelectOption,
   IonModal,
-  IonInputPasswordToggle,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -32,19 +31,21 @@ import {
   createOutline,
 } from 'ionicons/icons';
 
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { AuthService } from '../../core/auth/auth.service';
-import { normalizeUsername } from '../../core/auth/auth-identity';
-import { ErrorMessageService, SupabaseService } from '../../core/infrastructure';
+import { SupabaseService } from '../../core/infrastructure';
 import { FloorPlanService, PlanDuplicationService } from '../floor-plans';
 import { ProductService } from '../products';
 import { OrderService } from '../orders';
-import { UserAdminService } from '../users';
 import { OrderNotificationService } from '../notifications';
-import type { ClubTable, FloorPlan, Product, ProductCategory, Role } from '../../core/models/models';
+import type { ClubTable, FloorPlan, Product, ProductCategory } from '../../core/models/models';
 import { PlanEditorComponent, TableProductPanelComponent } from '../floor-editor';
 import { NEW_OBSERVATION_ALERT, NEW_ORDER_ALERT } from './workspace-alerts.util';
-import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form.util';
 import { initialWorkspacePresentation } from './workspace-init.util';
+import { applyCatalogDelete, catalogDeleteBlockedMessage } from './workspace-catalog.util';
+import { defaultCopyPlanName, emptyWorkspaceTransientUi } from './workspace-transient.util';
+import { workspaceShellVisibility } from './workspace-shell-visibility.util';
+import { WorkspaceUserAdminComponent } from './workspace-user-admin.component';
 
 @Component({
   selector: 'app-workspace',
@@ -61,19 +62,22 @@ import { initialWorkspacePresentation } from './workspace-init.util';
     IonSegmentButton,
     IonLabel,
     IonToast,
-      IonInput,
+    IonInput,
     IonSelect,
     IonSelectOption,
     IonModal,
-    IonInputPasswordToggle,
     PlanEditorComponent,
     TableProductPanelComponent,
+    WorkspaceUserAdminComponent,
   ],
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
 })
 export class WorkspaceComponent implements OnInit, OnDestroy {
   @ViewChild(PlanEditorComponent) private planEditor?: PlanEditorComponent;
+  /** Template ref so tests can stub the child without matching the concrete class. */
+  @ViewChild('userAdmin') private userAdminPanel?: WorkspaceUserAdminComponent;
+
   activeTab = signal<'planos' | 'operativo' | 'productos'>('planos');
   editorMode = signal<'editor' | 'operativo'>('editor');
   showMap = signal(true);
@@ -89,17 +93,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   createPlanDialog = signal(false);
   newPlanName = '';
 
-  userAccessDialog = signal(false);
-  createUserDialog = signal(false);
-  verifyingUserAccess = signal(false);
-  creatingUser = signal(false);
-  userAccessError = signal('');
-  createUserError = signal('');
-  adminAccessPassword = '';
-  newUserFullName = '';
-  newUserUsername = '';
-  newUserPassword = '';
-  newUserRole: Role = 'USER';
   copyPlanDialog = signal(false);
   planToCopy = signal<FloorPlan | null>(null);
   copyPlanName = '';
@@ -125,54 +118,43 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   catalogDeleteError = signal('');
   categoryToDelete = signal<ProductCategory | null>(null);
   productToDelete = signal<Product | null>(null);
-  private verifiedAdminPassword = '';
-  private channel: any;
-  private userOrderChannel: any;
-
+  private channel: RealtimeChannel | null = null;
+  private userOrderChannel: RealtimeChannel | null = null;
 
   /**
    * Limpia cualquier estado visual transitorio para que una nueva sesión
    * nunca herede diálogos, formularios ni avisos de la sesión anterior.
    */
   private resetTransientUi(): void {
-    this.createPlanDialog.set(false);
-    this.userAccessDialog.set(false);
-    this.createUserDialog.set(false);
-    this.copyPlanDialog.set(false);
-    this.renamePlanDialog.set(false);
-    this.deletePlanDialog.set(false);
-    this.newOrderAlert.set(false);
-    this.userAlertTitle.set(NEW_ORDER_ALERT.title);
-    this.userAlertEyebrow.set(NEW_ORDER_ALERT.eyebrow);
-    this.userAlertMessage.set(NEW_ORDER_ALERT.message);
-    this.editCategoryDialog.set(false);
-    this.editProductDialog.set(false);
-    this.catalogDeleteDialog.set(false);
-    this.catalogDeleteBlocked.set(false);
-    this.catalogDeleteChecking.set(false);
-    this.catalogDeleteError.set('');
-    this.categoryToEdit.set(null);
-    this.productToEdit.set(null);
-    this.categoryToDelete.set(null);
-    this.productToDelete.set(null);
-    this.editCategoryName = '';
-    this.editProductName = '';
-    this.toast.set('');
-
-    this.newPlanName = '';
-    this.adminAccessPassword = '';
-    this.userAccessError.set('');
-    this.createUserError.set('');
-    this.verifiedAdminPassword = '';
-    this.newUserFullName = '';
-    this.newUserUsername = '';
-    this.newUserPassword = '';
-    this.newUserRole = 'USER';
-    this.planToCopy.set(null);
-    this.copyPlanName = '';
-    this.planToRename.set(null);
-    this.renamePlanName = '';
-    this.planToDelete.set(null);
+    const ui = emptyWorkspaceTransientUi();
+    this.createPlanDialog.set(ui.createPlanDialog);
+    this.copyPlanDialog.set(ui.copyPlanDialog);
+    this.renamePlanDialog.set(ui.renamePlanDialog);
+    this.deletePlanDialog.set(ui.deletePlanDialog);
+    this.newOrderAlert.set(ui.newOrderAlert);
+    this.userAlertTitle.set(ui.userAlertTitle);
+    this.userAlertEyebrow.set(ui.userAlertEyebrow);
+    this.userAlertMessage.set(ui.userAlertMessage);
+    this.editCategoryDialog.set(ui.editCategoryDialog);
+    this.editProductDialog.set(ui.editProductDialog);
+    this.catalogDeleteDialog.set(ui.catalogDeleteDialog);
+    this.catalogDeleteBlocked.set(ui.catalogDeleteBlocked);
+    this.catalogDeleteChecking.set(ui.catalogDeleteChecking);
+    this.catalogDeleteError.set(ui.catalogDeleteError);
+    this.categoryToEdit.set(ui.categoryToEdit);
+    this.productToEdit.set(ui.productToEdit);
+    this.categoryToDelete.set(ui.categoryToDelete);
+    this.productToDelete.set(ui.productToDelete);
+    this.editCategoryName = ui.editCategoryName;
+    this.editProductName = ui.editProductName;
+    this.toast.set(ui.toast);
+    this.newPlanName = ui.newPlanName;
+    this.planToCopy.set(ui.planToCopy);
+    this.copyPlanName = ui.copyPlanName;
+    this.planToRename.set(ui.planToRename);
+    this.renamePlanName = ui.renamePlanName;
+    this.planToDelete.set(ui.planToDelete);
+    this.userAdminPanel?.reset();
   }
 
   constructor(
@@ -180,10 +162,8 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     private floors: FloorPlanService,
     private product: ProductService,
     private orders: OrderService,
-    private userAdmin: UserAdminService,
     private duplication: PlanDuplicationService,
     private notifications: OrderNotificationService,
-    private errors: ErrorMessageService,
     private supabase: SupabaseService,
     private router: Router,
   ) {
@@ -208,18 +188,10 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   get isAdmin(): boolean {
     return this.auth.hasRole('ADMIN');
   }
-  get canCreateUser(): boolean {
-    return canSubmitNewUserForm(this.newUserFormState());
-  }
 
-  private newUserFormState() {
-    return {
-      fullName: this.newUserFullName,
-      username: this.newUserUsername,
-      password: this.newUserPassword,
-      role: this.newUserRole,
-      verifiedAdminPassword: this.verifiedAdminPassword,
-    };
+  /** Role gates for tabs/actions (characterization + template parity). */
+  get shellVisibility() {
+    return workspaceShellVisibility(this.isAdmin);
   }
 
   async ngOnInit(): Promise<void> {
@@ -308,80 +280,11 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       this.toast.set('Solo los administradores pueden gestionar usuarios');
       return;
     }
-    this.adminAccessPassword = '';
-    this.userAccessError.set('');
-    this.userAccessDialog.set(true);
+    this.userAdminPanel?.openAccess();
   }
 
-  closeUserAccessDialog(): void {
-    this.userAccessDialog.set(false);
-    this.adminAccessPassword = '';
-    this.userAccessError.set('');
-  }
-
-  async verifyUserAccess(): Promise<void> {
-    if (!this.isAdmin || !this.adminAccessPassword || this.verifyingUserAccess()) return;
-    this.verifyingUserAccess.set(true);
-    this.userAccessError.set('');
-    try {
-      const ok = await this.userAdmin.verifyAccess(this.adminAccessPassword);
-      if (!ok) {
-        this.userAccessError.set('Contraseña incorrecta');
-        return;
-      }
-      this.verifiedAdminPassword = this.adminAccessPassword;
-      this.userAccessDialog.set(false);
-      this.adminAccessPassword = '';
-      this.resetNewUserForm();
-      this.createUserDialog.set(true);
-    } catch (error) {
-      this.userAccessError.set(error instanceof Error ? error.message : 'No se pudo verificar la contraseña');
-    } finally {
-      this.verifyingUserAccess.set(false);
-    }
-  }
-
-  closeCreateUserDialog(): void {
-    this.createUserDialog.set(false);
-    this.verifiedAdminPassword = '';
-    this.resetNewUserForm();
-  }
-
-  private resetNewUserForm(): void {
-    this.newUserFullName = '';
-    this.newUserUsername = '';
-    this.newUserPassword = '';
-    this.newUserRole = 'USER';
-    this.createUserError.set('');
-  }
-
-  async createUser(): Promise<void> {
-    if (!this.isAdmin || this.creatingUser()) return;
-
-    const validationError = validateNewUserForm(this.newUserFormState());
-    if (validationError) {
-      this.createUserError.set(validationError);
-      return;
-    }
-
-    this.creatingUser.set(true);
-    this.createUserError.set('');
-    try {
-      await this.userAdmin.createUser({
-        full_name: this.newUserFullName.trim(),
-        username: normalizeUsername(this.newUserUsername),
-        password: this.newUserPassword,
-        role: this.newUserRole,
-        admin_password: this.verifiedAdminPassword,
-      });
-      const username = normalizeUsername(this.newUserUsername);
-      this.closeCreateUserDialog();
-      this.toast.set(`Usuario ${username} creado correctamente`);
-    } catch (error) {
-      this.createUserError.set(this.errors.humanize(error, 'No se pudo crear el usuario'));
-    } finally {
-      this.creatingUser.set(false);
-    }
+  onUserAdminToast(message: string): void {
+    this.toast.set(message);
   }
 
   async createPlan(): Promise<void> {
@@ -427,7 +330,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   askDuplicate(plan: FloorPlan): void {
     if (!this.isAdmin) return;
     this.planToCopy.set(plan);
-    this.copyPlanName = `${plan.name} copia`;
+    this.copyPlanName = defaultCopyPlanName(plan.name);
     this.copyPlanDialog.set(true);
   }
 
@@ -653,22 +556,35 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
         const deleted = await this.product.deleteProductSafe(product.id);
         if (!deleted) {
           this.catalogDeleteBlocked.set(true);
-          this.catalogDeleteError.set('Este producto acaba de ser utilizado en un pedido y ya no puede eliminarse.');
+          this.catalogDeleteError.set(catalogDeleteBlockedMessage({ kind: 'product', product }));
           return;
         }
-        this.products.update((items) => items.filter((item) => item.id !== product.id));
-        this.toast.set('Producto eliminado');
+        const next = applyCatalogDelete(
+          { kind: 'product', product },
+          this.categories(),
+          this.products(),
+          this.newProductName,
+        );
+        this.products.set(next.products);
+        this.newProductName = next.newProductName;
+        this.toast.set(next.toast);
       } else if (category) {
         const deleted = await this.product.deleteCategorySafe(category.id);
         if (!deleted) {
           this.catalogDeleteBlocked.set(true);
-          this.catalogDeleteError.set('Algún producto de esta categoría acaba de ser utilizado en un pedido y la categoría ya no puede eliminarse.');
+          this.catalogDeleteError.set(catalogDeleteBlockedMessage({ kind: 'category', category }));
           return;
         }
-        this.products.update((items) => items.filter((item) => item.category_id !== category.id));
-        this.categories.update((items) => items.filter((item) => item.id !== category.id));
-        delete this.newProductName[category.id];
-        this.toast.set('Categoría eliminada');
+        const next = applyCatalogDelete(
+          { kind: 'category', category },
+          this.categories(),
+          this.products(),
+          this.newProductName,
+        );
+        this.categories.set(next.categories);
+        this.products.set(next.products);
+        this.newProductName = next.newProductName;
+        this.toast.set(next.toast);
       }
       this.closeCatalogDeleteDialog();
     } catch (error) {

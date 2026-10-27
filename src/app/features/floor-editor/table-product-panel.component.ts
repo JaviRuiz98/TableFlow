@@ -7,10 +7,11 @@ import { FloorPlanService } from '../floor-plans';
 import { ProductService } from '../products';
 import { OrderService } from '../orders';
 import { AuthService } from '../../core/auth/auth.service';
-import type { ClubTable, FloorPlan, OrderItem, Product, TableType } from '../../core/models/models';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { ClubTable, FloorPlan, OrderItemWithProduct, Product, TableType } from '../../core/models/models';
 
 type AssignmentTarget = ClubTable & { displayName: string; kindLabel: string };
-type ListedItem = OrderItem & { product: Product };
+type ListedItem = OrderItemWithProduct;
 type ListedTarget = AssignmentTarget & { items: ListedItem[] };
 
 type QuantityMap = Record<string, number>;
@@ -37,7 +38,7 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
   selectedTargetId = '';
   productQuantities: QuantityMap = {};
   errorMessage = '';
-  private realtimeChannel: any;
+  private realtimeChannel: RealtimeChannel | null = null;
   private loadVersion = 0;
 
   constructor(

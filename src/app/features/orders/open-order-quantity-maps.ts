@@ -2,11 +2,13 @@
  * Pure helper used by OrderService / PlanEditor pending badges.
  * Kept behaviour-identical to the previous inline PlanEditor reduce.
  */
+export type OpenOrderQuantityRow = {
+  table_id: string;
+  order_items?: Array<{ quantity?: number; status?: string }> | null;
+};
+
 export function buildOpenOrderQuantityMaps(
-  orders: Array<{
-    table_id: string;
-    order_items?: Array<{ quantity?: number; status?: string }> | null;
-  }>,
+  orders: OpenOrderQuantityRow[],
 ): {
   pendingByTableId: Map<string, number>;
   totalByTableId: Map<string, number>;

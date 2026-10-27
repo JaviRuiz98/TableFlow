@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { AuthService } from '../../core/auth/auth.service';
 import { GeometryService } from './geometry';
-import { TableDeletionService } from '../../core/services/table-deletion.service';
+import { TableDeletionService } from '../tables';
 import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../../core/models/models';
 import { FloorPlanService } from '../floor-plans';
 import { OrderService } from '../orders';

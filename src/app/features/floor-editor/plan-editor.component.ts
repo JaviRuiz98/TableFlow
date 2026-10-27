@@ -10,7 +10,8 @@
  * - saveDesign(showConfirmation?)
  * - openOperationalTarget(target)
  *
- * Do not create a second Stage elsewhere. Tables deletion/validation → B9 (`features/tables`).
+ * Tables delete: `features/tables`. Attended/observation RPC remain on FloorPlanService (documented B9).
+ * Do not create a second Stage elsewhere.
  */
 import {
   ChangeDetectorRef,
@@ -73,8 +74,16 @@ import {
 import { AuthService } from '../../core/auth/auth.service';
 import { OrderService } from '../orders';
 import { ProductService } from '../products';
-import { TableDeletionService } from '../../core/services/table-deletion.service';
-import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot, Product } from '../../core/models/models';
+import { TableDeletionService } from '../tables';
+import type {
+  ClubTable,
+  FloorPlan,
+  FloorPlanElement,
+  FloorSnapshot,
+  OrderItemCategoryGroup,
+  OrderItemWithProduct,
+  Product,
+} from '../../core/models/models';
 
 @Component({
   selector: 'app-plan-editor',
@@ -141,25 +150,25 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
   categoryProductQuantity: Record<string, number> = {};
   products: Product[] = [];
   productCategories: Array<{ id: string; name: string }> = [];
-  orderItems: WritableSignal<Array<any>> = signal([]);
+  orderItems: WritableSignal<OrderItemWithProduct[]> = signal([]);
   orderCountMap = new Map<string, number>();
   selectedPending = 0;
   attendanceSaving = false;
   attendanceError = '';
 
-  get currentOrderItems(): Array<any> {
-    return this.orderItems().filter((item: any) => item.status === 'PENDING' && item.attended !== true);
+  get currentOrderItems(): OrderItemWithProduct[] {
+    return this.orderItems().filter((item) => item.status === 'PENDING' && item.attended !== true);
   }
 
-  get attendedOrderItems(): Array<any> {
-    return this.orderItems().filter((item: any) => item.status === 'PLACED' || item.attended === true);
+  get attendedOrderItems(): OrderItemWithProduct[] {
+    return this.orderItems().filter((item) => item.status === 'PLACED' || item.attended === true);
   }
 
-  get currentOrderGroups(): Array<{ id: string; name: string; items: Array<any> }> {
+  get currentOrderGroups(): OrderItemCategoryGroup[] {
     return this.groupOrderItemsByCategory(this.currentOrderItems);
   }
 
-  get attendedOrderGroups(): Array<{ id: string; name: string; items: Array<any> }> {
+  get attendedOrderGroups(): OrderItemCategoryGroup[] {
     return this.groupOrderItemsByCategory(this.attendedOrderItems);
   }
 
@@ -214,14 +223,14 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private groupOrderItemsByCategory(items: Array<any>): Array<{ id: string; name: string; items: Array<any> }> {
+  private groupOrderItemsByCategory(items: OrderItemWithProduct[]): OrderItemCategoryGroup[] {
     const known = this.productCategories.map((category) => ({
       id: category.id,
       name: category.name,
-      items: items.filter((item) => item?.product?.category_id === category.id),
+      items: items.filter((item) => item.product?.category_id === category.id),
     })).filter((group) => group.items.length > 0);
     const knownIds = new Set(this.productCategories.map((category) => category.id));
-    const uncategorized = items.filter((item) => !knownIds.has(item?.product?.category_id));
+    const uncategorized = items.filter((item) => !knownIds.has(item.product?.category_id));
     if (uncategorized.length) known.push({ id: 'uncategorized', name: 'Otros', items: uncategorized });
     return known;
   }
@@ -1564,7 +1573,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     }
   }
 
-  async changeItemQuantity(item: any, delta: number) {
+  async changeItemQuantity(item: OrderItemWithProduct, delta: number) {
     if (!this.canManageOrders) return;
     const nextQuantity = Number(item.quantity) + delta;
     if (nextQuantity <= 0) {
@@ -1584,7 +1593,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     }
   }
 
-  async removeOrderItem(item: any) {
+  async removeOrderItem(item: OrderItemWithProduct) {
     if (!this.canManageOrders || item.attended === true || item.status !== 'PENDING') return;
     const session = this.auth.session();
     if (!session) return;

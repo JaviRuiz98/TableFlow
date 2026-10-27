@@ -18,6 +18,8 @@
   </ion-toolbar>
 </ion-header>
 
+<app-workspace-user-admin #userAdmin (toastMessage)="onUserAdminToast($event)"></app-workspace-user-admin>
+
 <ion-content>
   <div class="nav-wrap">
     <ion-segment [value]="activeTab()" (ionChange)="activeTab.set($any($event.detail.value))">
@@ -268,84 +270,6 @@
       <div class="dialog-actions">
         <ion-button fill="outline" class="secondary-button" (click)="closeCreatePlanDialog()">Cancelar</ion-button
         ><ion-button class="primary-button" [disabled]="!newPlanName.trim()" (click)="createPlan()">Crear plano</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="userAccessDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeUserAccessDialog()">
-  <ng-template>
-    <div class="plan-dialog">
-      <div class="dialog-header">
-        <div>
-          <span class="dialog-eyebrow">ADMINISTRACIÓN</span>
-          <h2>Acceso a usuarios</h2>
-          <p>Introduce la contraseña adicional para gestionar usuarios.</p>
-        </div>
-        <button type="button" class="dialog-close" (click)="closeUserAccessDialog()"><ion-icon name="close-outline"></ion-icon></button>
-      </div>
-      <div class="dialog-body">
-        <ion-input
-          label="Contraseña de administración"
-          type="password"
-          labelPlacement="stacked"
-          fill="outline"
-          [(ngModel)]="adminAccessPassword"
-          (keydown.enter)="verifyUserAccess()"
-        >
-          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-        </ion-input>
-        @if (userAccessError()) {
-          <p class="form-error">{{ userAccessError() }}</p>
-        }
-      </div>
-      <div class="dialog-actions">
-        <ion-button fill="outline" class="secondary-button" (click)="closeUserAccessDialog()">Cancelar</ion-button>
-        <ion-button class="primary-button" [disabled]="!adminAccessPassword || verifyingUserAccess()" (click)="verifyUserAccess()">{{
-          verifyingUserAccess() ? 'Comprobando…' : 'Acceder'
-        }}</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
-<ion-modal [isOpen]="createUserDialog()" [backdropDismiss]="false" class="user-create-modal" (didDismiss)="closeCreateUserDialog()">
-  <ng-template>
-    <div class="plan-dialog">
-      <div class="dialog-header">
-        <div>
-          <span class="dialog-eyebrow">ADMINISTRACIÓN</span>
-          <h2>Crear usuario</h2>
-          <p>La cuenta se creará en Supabase con el rol seleccionado.</p>
-        </div>
-        <button type="button" class="dialog-close" (click)="closeCreateUserDialog()"><ion-icon name="close-outline"></ion-icon></button>
-      </div>
-      <div class="dialog-body user-form">
-        <ion-input label="Nombre" labelPlacement="stacked" fill="outline" [(ngModel)]="newUserFullName"></ion-input>
-        <ion-input label="Nombre de usuario" type="text" autocomplete="off" labelPlacement="stacked" fill="outline" [(ngModel)]="newUserUsername"></ion-input>
-        <p class="field-help">Usa al menos 3 caracteres. Se admiten letras, números, punto, guion y guion bajo.</p>
-        <ion-input
-          label="Contraseña del nuevo usuario"
-          type="password"
-          labelPlacement="stacked"
-          fill="outline"
-          [(ngModel)]="newUserPassword"
-        >
-          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-        </ion-input>
-        <ion-select label="Rol" labelPlacement="stacked" fill="outline" [(ngModel)]="newUserRole">
-          <ion-select-option value="USER">Usuario (USER)</ion-select-option>
-          <ion-select-option value="ADMIN">Administrador (ADMIN)</ion-select-option>
-        </ion-select>
-        @if (createUserError()) {
-          <p class="form-error">{{ createUserError() }}</p>
-        }
-      </div>
-      <div class="dialog-actions">
-        <ion-button fill="outline" class="secondary-button" (click)="closeCreateUserDialog()">Cancelar</ion-button>
-        <ion-button class="primary-button" [disabled]="!canCreateUser || creatingUser()" (click)="createUser()">{{
-          creatingUser() ? 'Creando…' : 'Crear usuario'
-        }}</ion-button>
       </div>
     </div>
   </ng-template>

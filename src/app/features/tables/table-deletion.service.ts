@@ -1,9 +1,14 @@
 import { Injectable } from '@angular/core';
-import { SupabaseService } from '../infrastructure';
+import { SupabaseService } from '../../core/infrastructure';
 
 export type DeleteTableResult =
-  { ok: true; reason: 'DELETED' | 'NOT_PERSISTED' } | { ok: false; reason: 'BAD_PASSWORD' | 'SERVED_PRODUCTS' | string };
+  | { ok: true; reason: 'DELETED' | 'NOT_PERSISTED' }
+  | { ok: false; reason: 'BAD_PASSWORD' | 'SERVED_PRODUCTS' | string };
 
+/**
+ * Password-gated table/reserved deletion via RPC `delete_table_with_orders`.
+ * Server enforces ADMIN + app_secrets key `table_deletion`. Do not call remotely in tests.
+ */
 @Injectable({ providedIn: 'root' })
 export class TableDeletionService {
   constructor(private readonly db: SupabaseService) {}

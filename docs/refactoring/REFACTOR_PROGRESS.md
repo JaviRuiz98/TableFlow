@@ -26,9 +26,9 @@
 | floor-editor B8.4 tools | **DONE** — `floor-editor/tools/` |
 | floor-editor B8.5 history | **DONE** — `floor-editor/history/` |
 | floor-editor B8.6 integration | **DONE** — B8 closed · [B8_FLOOR_EDITOR.md](./B8_FLOOR_EDITOR.md) · [../modules/floor-editor.md](../modules/floor-editor.md) |
-| tables (B9) | **Next** (await authorization) |
-| types hardening (B10) | Pending |
-| workspace further (B11) | Pending |
-| cleanup (B12) | Pending |
+| tables (B9) | **DONE** — [B9_TABLES.md](./B9_TABLES.md) · [../modules/tables.md](../modules/tables.md) |
+| types hardening (B10) | **DONE** — [B10_TYPES.md](./B10_TYPES.md) (BOOTSTRAP-aligned `database.types`; no live gen) |
+| workspace further (B11) | **DONE** — [B11_WORKSPACE.md](./B11_WORKSPACE.md) · [../modules/workspace.md](../modules/workspace.md) |
+| cleanup (B12) | **Next** (await authorization) |
 | integration/E2E (B13) | Pending |
 | docs/rules/agents (B14) | Pending |

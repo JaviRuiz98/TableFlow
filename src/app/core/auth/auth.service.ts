@@ -70,7 +70,7 @@ export class AuthService {
 
   private async loadProfile(user: User): Promise<void> {
     const { data } = await this.supabase.client.from('profiles').select('*').eq('id', user.id).maybeSingle();
-    this.profile.set(data as Profile | null);
+    this.profile.set(data);
   }
 
   async signIn(identifier: string, password: string): Promise<void> {

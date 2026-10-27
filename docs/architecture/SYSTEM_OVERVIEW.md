@@ -32,16 +32,16 @@ TableFlow is a PWA / Capacitor app (Angular 20 + Ionic 8) for nightclub floor op
 
 | Area | Location |
 |------|----------|
-| Shell | `features/workspace/` (~700 LOC; B7 done, more split in B11) |
+| Shell | `features/workspace/` (~614 LOC coordinator + user-admin child; **B11 done**) |
 | Plan persistence | `features/floor-plans/` services + snapshot utils |
 | Editor UI | `features/floor-editor/` — B8 modularized (geometry/canvas/tools/history); PlanEditor still coordinates Konva |
 | Domain I/O | `features/{orders,products,users,notifications,floor-plans}` |
-| Misplaced helpers | `table-validation` / `table-deletion` in `core/services/` → **B9 tables** |
+| Tables domain | `features/tables/` (B9); attended/observation still via `FloorPlanService` |
 | Cross-cutting | `core/infrastructure` (`SupabaseService`, `ErrorMessageService`) |
 
 ## Refactor remaining (do not skip)
 
-**B8 floor-editor DONE** → **B9** tables → **B10** types → **B11** workspace → **B12** cleanup → **B13** integration/E2E → **B14** docs/rules/agents.
+**B9–B11 DONE** → **B12** cleanup → **B13** integration/E2E → **B14** docs/rules/agents.
 
 See [REFACTOR_PLAN.md](../refactoring/REFACTOR_PLAN.md) for proposed `floor-plans` / `floor-editor` trees **before** any file moves.
 

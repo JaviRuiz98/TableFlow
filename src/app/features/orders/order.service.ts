@@ -2,8 +2,11 @@ import { Injectable } from '@angular/core';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { Json } from '../../core/data/database.types';
 import { SupabaseService } from '../../core/infrastructure';
-import type { Order, OrderItem, Product } from '../../core/models/models';
-import { buildOpenOrderQuantityMaps } from './open-order-quantity-maps';
+import type { Order, OrderItemWithProduct } from '../../core/models/models';
+import {
+  buildOpenOrderQuantityMaps,
+  type OpenOrderQuantityRow,
+} from './open-order-quantity-maps';
 
 export interface ProductAssignmentItem {
   product_id: string;
@@ -16,7 +19,7 @@ export class OrderService {
 
   async forTable(tableId: string): Promise<{
     order: Order | null;
-    items: Array<OrderItem & { product: Product }>;
+    items: OrderItemWithProduct[];
   }> {
     const { data: orders, error } = await this.db.client
       .from('orders')
@@ -28,7 +31,7 @@ export class OrderService {
 
     if (error) throw error;
 
-    const order = (orders?.[0] as Order | undefined) ?? null;
+    const order = orders?.[0] ?? null;
 
     if (!order) {
       return {
@@ -46,9 +49,10 @@ export class OrderService {
 
     if (itemError) throw itemError;
 
+    // Nested join: Relationships declare FKs; alias `product:products(*)` still needs a boundary cast.
     return {
       order,
-      items: (data as Array<OrderItem & { product: Product }>) ?? [],
+      items: (data as unknown as OrderItemWithProduct[] | null) ?? [],
     };
   }
 
@@ -66,13 +70,8 @@ export class OrderService {
 
     if (error) throw error;
 
-    // database.types uses opaque Row:any without Relationships; cast keeps runtime query unchanged.
-    return buildOpenOrderQuantityMaps(
-      (data as unknown as Array<{
-        table_id: string;
-        order_items?: Array<{ quantity?: number; status?: string }> | null;
-      }>) ?? [],
-    );
+    // Partial nested select (quantity,status only) → domain aggregation row.
+    return buildOpenOrderQuantityMaps((data as unknown as OpenOrderQuantityRow[] | null) ?? []);
   }
 
   async addItem(tableId: string, productId: string, quantity: number, _userId: string): Promise<void> {
@@ -95,6 +94,7 @@ export class OrderService {
 
     const { data, error } = await this.db.client.rpc('assign_products_to_table', {
       p_table_id: tableId,
+      // RPC Args declare jsonb; keep domain array at the Json boundary.
       p_items: items as unknown as Json,
     });
 
@@ -106,7 +106,7 @@ export class OrderService {
       throw new Error('Supabase no devolvió el ID del pedido');
     }
 
-    return data as string;
+    return data;
   }
 
   async markPlaced(itemId: string, userId: string): Promise<void> {

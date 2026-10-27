@@ -21,8 +21,10 @@ Manage open orders, line items, product assignment RPC, pending badges, and real
 |------|------|
 | `order.service.ts` | Data-access + domain operations (public API) |
 | `order-state.service.ts` | Pure transition/quantity helpers |
-| `open-order-quantity-maps.ts` | Pure aggregation for canvas badges |
+| `open-order-quantity-maps.ts` | Pure aggregation for canvas badges (`OpenOrderQuantityRow`) |
 | `index.ts` | Public barrel |
+
+`forTable` returns `OrderItemWithProduct[]` (`core/models`). Nested PostgREST joins still cast at the service boundary (B10).
 
 ## 4. Public API (`OrderService`)
 

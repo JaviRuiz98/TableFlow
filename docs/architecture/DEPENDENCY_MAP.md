@@ -9,10 +9,11 @@ features/floor-editor  →  features/floor-plans , features/tables (after B9) , 
                           features/products , core/*
 features/workspace     →  features/* (coordination) , core/*
 features/tables        →  core/infrastructure , core/models  (not floor-editor)
-features/floor-plans   →  core/infrastructure , core/models  (NOT floor-editor)
+features/floor-plans   →  core/infrastructure , core/models , core/data  (NOT floor-editor)
 features/orders|products|users|notifications → core/* ; avoid editor UI
 shared/*               →  core/models , core/infrastructure
-core/*                 →  other core only (no features)
+core/models            →  core/data (enums / Database aliases only; B10)
+core/* (rest)          →  other core only (no features)
 ```
 
 ## Forbidden (cycles / layering)
@@ -30,16 +31,20 @@ core/*                 →  other core only (no features)
 
 | From | To | Status |
 |------|----|--------|
-| `features/floor-editor` (`PlanEditor`, panel) | `floor-plans`, `orders`, `products`, `core/auth`, `./geometry|canvas|tools|history`, `TableDeletionService` (core until B9) | **OK (B8 complete)** |
+| `features/floor-editor` (`PlanEditor`, panel) | `floor-plans`, `orders`, `products`, `core/auth`, `./geometry|canvas|tools|history`, `features/tables` | **OK (B9)** |
+| `features/tables` | `core/infrastructure`, `core/models` only | **OK (B9)** — no UI / no floor-editor |
 | `floor-editor/geometry` | `core/models` only (no Konva) | **OK** |
 | `floor-editor/canvas` | models + geometry `Point`; Konva types only in lifecycle util | **OK** — no Stage ownership |
 | `floor-editor/tools` | models + geometry types | **OK** — no Konva |
 | `floor-editor/history` | `core/models` only | **OK** — PlanEditor owns arrays |
 | `floor-plans` → `floor-editor` | — | **Forbidden (verified absent)** |
 | `WorkspaceComponent` | `floor-editor` barrel + other feature modules + auth + infrastructure | **OK** |
+| `WorkspaceUserAdminComponent` | `users`, `core/infrastructure` (errors), workspace form utils | **OK (B11)** — no floor-editor |
 | `PlanDuplicationService` | `FloorPlanService` | OK |
-| table-validation / table-deletion | Still `core/services` | **Debt** → B9 |
+| Attended / observation RPCs | Still on `FloorPlanService` | **Documented debt** — optional later move into `tables` |
 | Domain services / auth / workspace | `core/infrastructure` | OK (B1) |
+| `core/models` → `core/data` | Enum re-exports | **OK (B10)** — models stay above features |
+| Feature services → `database.types` (`Json`, `Tables`) | Boundary casts for jsonb / nested selects | **OK (B10)** — see B10_TYPES.md |
 | `floor-plans` → `floor-editor` | — | **Must remain absent** |
 
 ## External packages

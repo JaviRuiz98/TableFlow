@@ -18,7 +18,7 @@ Persist and manage floor plans, snapshots (elements + tables/reserved), lock fla
 
 - Konva / tools / panel UI → `features/floor-editor/` (B7.5+)
 - Order assignment UI → `orders` + `table-product-panel` in floor-editor
-- Physical table deletion password → `table-deletion.service` (still `core/services`; B9)
+- Physical table deletion password → `features/tables` (`TableDeletionService`)
 
 ## Main files
 
@@ -27,6 +27,7 @@ Persist and manage floor plans, snapshots (elements + tables/reserved), lock fla
 | `floor-plan.service.ts` | Data access (private Supabase) |
 | `plan-duplication.service.ts` | Duplicate orchestration |
 | `floor-plan-snapshot.util.ts` | Pure split/payload/clone helpers |
+| `floor-plan-element.mapper.ts` | jsonb `points` → domain `number[] \| null` (B10) |
 | `index.ts` | Public barrel for services/utils |
 
 ## Public API (`FloorPlanService`)

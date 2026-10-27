@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import type { Json } from '../../core/data/database.types';
 import { SupabaseService } from '../../core/infrastructure';
-import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../../core/models/models';
+import type { ClubTable, FloorPlan, FloorSnapshot } from '../../core/models/models';
+import { mapFloorPlanElementRow } from './floor-plan-element.mapper';
 import { buildReplaceSnapshotPayload, splitTablesByType } from './floor-plan-snapshot.util';
 
 @Injectable({
@@ -17,7 +18,7 @@ export class FloorPlanService {
       throw error;
     }
 
-    return data as FloorPlan[];
+    return data ?? [];
   }
 
   async create(name: string, width = 2000, height = 1200, userId: string): Promise<FloorPlan> {
@@ -36,7 +37,11 @@ export class FloorPlanService {
       throw error;
     }
 
-    return data as FloorPlan;
+    if (!data) {
+      throw new Error('Supabase no devolvió el plano creado');
+    }
+
+    return data;
   }
 
   async update(planId: string, patch: Partial<FloorPlan>): Promise<void> {
@@ -70,14 +75,14 @@ export class FloorPlanService {
       throw tablesResult.error;
     }
 
-    const allTables = (tablesResult.data ?? []) as ClubTable[];
+    const allTables = tablesResult.data ?? [];
     const split = splitTablesByType(allTables);
 
     return {
-      elements: elementsResult.data as FloorPlanElement[],
+      elements: (elementsResult.data ?? []).map(mapFloorPlanElementRow),
       tables: split.tables,
       reserved: split.reserved,
-    } as FloorSnapshot;
+    };
   }
 
   async saveSnapshot(planId: string, snapshot: FloorSnapshot): Promise<void> {
@@ -120,7 +125,7 @@ export class FloorPlanService {
       .eq('floor_plan_id', planId);
 
     if (error) throw error;
-    return (data ?? []) as Array<Pick<ClubTable, 'id' | 'attended' | 'observation' | 'updated_at'>>;
+    return data ?? [];
   }
 
   /** Guarda una observación operativa de una mesa/reservado. Solo ADMIN puede ejecutar la RPC. */
@@ -142,7 +147,7 @@ export class FloorPlanService {
 
     if (existingError) throw existingError;
 
-    const nextNumber = ((existing?.[0]?.number as number | undefined) ?? 0) + 1;
+    const nextNumber = (existing?.[0]?.number ?? 0) + 1;
     const row = {
       floor_plan_id: planId,
       type,
@@ -152,13 +157,16 @@ export class FloorPlanService {
       width: 100,
       height: 100,
       rotation: 0,
-      shape: type === 'RESERVED' ? 'rectangle' : 'circle',
+      shape: type === 'RESERVED' ? ('rectangle' as const) : ('circle' as const),
       attended: true,
     };
 
     const { data, error } = await this.db.client.from('tables').insert(row).select('*').single();
     if (error) throw error;
-    return data as ClubTable;
+    if (!data) {
+      throw new Error('Supabase no devolvió la mesa creada');
+    }
+    return data;
   }
 
   async setLocked(planId: string, locked: boolean): Promise<void> {

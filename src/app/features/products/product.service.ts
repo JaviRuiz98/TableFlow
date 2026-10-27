@@ -9,19 +9,20 @@ export class ProductService {
   async categories(): Promise<ProductCategory[]> {
     const { data, error } = await this.db.client.from('product_categories').select('*').order('sort_order');
     if (error) throw error;
-    return data as ProductCategory[];
+    return data ?? [];
   }
 
   async products(): Promise<Product[]> {
     const { data, error } = await this.db.client.from('products').select('*').eq('active', true).order('name');
     if (error) throw error;
-    return data as Product[];
+    return data ?? [];
   }
 
   async createCategory(name: string): Promise<ProductCategory> {
     const { data, error } = await this.db.client.from('product_categories').insert({ name }).select().single();
     if (error) throw error;
-    return data as ProductCategory;
+    if (!data) throw new Error('Supabase no devolvió la categoría creada');
+    return data;
   }
 
   async createProduct(categoryId: string, name: string): Promise<Product> {
@@ -31,7 +32,8 @@ export class ProductService {
       .select()
       .single();
     if (error) throw error;
-    return data as Product;
+    if (!data) throw new Error('Supabase no devolvió el producto creado');
+    return data;
   }
 
   async updateProduct(id: string, patch: Partial<Product>): Promise<void> {
