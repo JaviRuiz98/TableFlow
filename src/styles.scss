@@ -237,10 +237,13 @@ ion-modal.danger-plan-modal .plan-dialog {
   }
 }
 
-/* Login VIP: prevent browser autofill from painting white/blue field backgrounds */
+/* Auth VIP pages: prevent browser autofill from painting white/blue field backgrounds */
 .login-page input.native-input,
 .login-page input.native-input:focus,
-.login-page input.native-input:hover {
+.login-page input.native-input:hover,
+.register-page input.native-input,
+.register-page input.native-input:focus,
+.register-page input.native-input:hover {
   background-color: transparent !important;
   color: var(--tf-brand-text, #f4efe6) !important;
   -webkit-text-fill-color: var(--tf-brand-text, #f4efe6);
@@ -249,7 +252,10 @@ ion-modal.danger-plan-modal .plan-dialog {
 
 .login-page input.native-input:-webkit-autofill,
 .login-page input.native-input:-webkit-autofill:hover,
-.login-page input.native-input:-webkit-autofill:focus {
+.login-page input.native-input:-webkit-autofill:focus,
+.register-page input.native-input:-webkit-autofill,
+.register-page input.native-input:-webkit-autofill:hover,
+.register-page input.native-input:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--tf-brand-text, #f4efe6) !important;
   caret-color: var(--tf-brand-text, #f4efe6);
   box-shadow: 0 0 0 1000px var(--tf-brand-field-bg, #121218) inset !important;

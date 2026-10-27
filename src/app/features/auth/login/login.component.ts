@@ -8,8 +8,8 @@ import { addIcons } from 'ionicons';
 import { AuthService } from '../../../core/auth/auth.service';
 import { TABLEFLOW_DEFAULT_BRANDING } from '../../../core/branding';
 
-/** Public route reserved for upcoming company onboarding (multi-company phase). */
-export const COMPANY_REGISTER_PATH = '/register-empresa';
+/** Public route for company registration UI (backend activation pending). */
+export const COMPANY_REGISTER_PATH = '/registro-empresa';
 
 @Component({
   selector: 'app-login',

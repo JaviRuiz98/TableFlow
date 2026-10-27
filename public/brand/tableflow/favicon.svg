@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TableFlow">
+  <!-- Copia de public/favicon.svg  monograma TF para pestaña del navegador -->
+  <rect width="64" height="64" rx="12" fill="#0B0B0F"/>
+  <defs>
+    <linearGradient id="tfFavGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF4CF"/>
+      <stop offset="27%" stop-color="#D8AB68"/>
+      <stop offset="55%" stop-color="#F2CF8B"/>
+      <stop offset="100%" stop-color="#A87439"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(3.2 5.2) scale(0.192)">
+    <path d="M49 98 C63 49 106 24 150 24 C194 24 237 49 251 98" fill="none" stroke="url(#tfFavGold)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M59 127 C51 153 60 183 79 198" fill="none" stroke="url(#tfFavGold)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M241 127 C249 153 240 183 221 198" fill="none" stroke="url(#tfFavGold)" stroke-width="7" stroke-linecap="round"/>
+    <path d="M150 45 Q154 59 168 63 Q154 67 150 81 Q146 67 132 63 Q146 59 150 45Z" fill="url(#tfFavGold)"/>
+    <path d="M150 10 L156 28 L144 28Z" fill="#F5DBA1"/>
+    <path d="M39 111 H122 Q145 112 148 131 L148 225 L119 205 L119 147 Q117 132 99 129 L39 117Z" fill="url(#tfFavGold)"/>
+    <path d="M261 111 H178 Q155 112 152 131 L152 225 L181 205 L181 147 Q183 132 201 129 L261 117Z" fill="url(#tfFavGold)"/>
+  </g>
+</svg>

@@ -5,6 +5,7 @@ Recursos producidos tomando como referencia la cuarta columna de la comparativa 
 ## Archivos
 - `logo-primary.svg`: logo completo transparente, monograma TF + arco + estrella + TableFlow y eslogan.
 - `logo-compact.svg`: monograma transparente para vistas reducidas.
+- `favicon.svg`: monograma optimizado para pestaña (también en `public/favicon.svg`). PWA/nativo siguen aparte.
 - `login-background.webp`: fotografía oscura de salón VIP **recortada de una imagen generada nueva**, no del diseño original.
 - `icon-email.svg`, `icon-lock.svg`, `icon-eye.svg`: iconos decorativos opcionales, no sustituir componentes funcionales sin comprobar.
 

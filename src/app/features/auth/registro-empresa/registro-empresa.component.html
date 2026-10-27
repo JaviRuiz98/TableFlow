@@ -1,0 +1,147 @@
+<ion-content [fullscreen]="true" class="register-page">
+  <main class="register-shell" [attr.aria-label]="'Registro de empresa en ' + branding.productName" [ngStyle]="brandCssVars()">
+    <div class="register-ambiance" aria-hidden="true"></div>
+
+    <section class="register-card">
+      <header class="brand">
+        <div class="brand-halo" aria-hidden="true"></div>
+        <img
+          class="brand-logo"
+          [src]="branding.assets.logoCompactUrl"
+          [alt]="branding.productName"
+          width="72"
+          height="58"
+        />
+        <p class="brand-wordmark" aria-hidden="true">
+          <span>Table</span><span class="brand-flow">Flow</span>
+        </p>
+        <h1>Registra tu empresa</h1>
+        <p class="subtitle">Comienza a gestionar tu discoteca con TableFlow.</p>
+      </header>
+
+      <ion-text class="pending-banner" role="status">
+        <p>Alta de empresas pendiente de activación. El formulario es preparatorio; el envío está deshabilitado.</p>
+      </ion-text>
+
+      <form class="register-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="field">
+          <label class="field-label" for="establishmentName">Nombre comercial del establecimiento</label>
+          <ion-input
+            id="establishmentName"
+            class="register-field"
+            type="text"
+            autocomplete="organization"
+            fill="outline"
+            formControlName="establishmentName"
+            placeholder="Ej. Club Aurora"
+            required
+          ></ion-input>
+          @if (errorFor('establishmentName'); as message) {
+            <p class="field-error" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="adminFullName">Nombre y apellidos del administrador</label>
+          <ion-input
+            id="adminFullName"
+            class="register-field"
+            type="text"
+            autocomplete="name"
+            fill="outline"
+            formControlName="adminFullName"
+            placeholder="Nombre y apellidos"
+            required
+          ></ion-input>
+          @if (errorFor('adminFullName'); as message) {
+            <p class="field-error" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="email">Correo electrónico</label>
+          <ion-input
+            id="email"
+            class="register-field"
+            type="email"
+            autocomplete="email"
+            fill="outline"
+            formControlName="email"
+            placeholder="nombre@empresa.com"
+            required
+          ></ion-input>
+          @if (errorFor('email'); as message) {
+            <p class="field-error" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="password">Contraseña</label>
+          <ion-input
+            id="password"
+            class="register-field"
+            type="password"
+            autocomplete="new-password"
+            fill="outline"
+            formControlName="password"
+            placeholder="Mín. 8 caracteres"
+            required
+          >
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+          @if (errorFor('password'); as message) {
+            <p class="field-error" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="confirmPassword">Confirmar contraseña</label>
+          <ion-input
+            id="confirmPassword"
+            class="register-field"
+            type="password"
+            autocomplete="new-password"
+            fill="outline"
+            formControlName="confirmPassword"
+            placeholder="Repite la contraseña"
+            required
+          >
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+          @if (errorFor('confirmPassword'); as message) {
+            <p class="field-error" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div class="terms-field">
+          <label class="terms-label">
+            <ion-checkbox formControlName="acceptTerms" aria-label="Aceptar términos y política de privacidad"></ion-checkbox>
+            <span class="terms-copy">
+              Acepto los términos de uso y la política de privacidad
+              <span class="terms-pending">— documentos legales pendientes de publicación</span>
+            </span>
+          </label>
+          @if (errorFor('acceptTerms'); as message) {
+            <p class="field-error" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <ion-button
+          class="submit-button"
+          type="submit"
+          expand="block"
+          size="large"
+          [disabled]="!registrationEnabled"
+        >
+          Crear cuenta de empresa
+        </ion-button>
+        <p class="submit-hint" role="note">Envío pendiente de activación</p>
+      </form>
+
+      <p class="login-link-row">
+        ¿Ya tienes cuenta?
+        <a class="login-link" routerLink="/login">Iniciar sesión</a>
+      </p>
+    </section>
+  </main>
+</ion-content>
