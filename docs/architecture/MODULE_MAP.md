@@ -8,9 +8,9 @@
 | Logical domain | Current primary location | Target / status |
 |----------------|--------------------------|-----------------|
 | Authentication | `core/auth/*`, `features/auth/login.component.ts`, `core/guards/` | Keep; optional rename later |
-| Workspace shell | `features/workspace/*` (~614 LOC + user-admin child) | **B11 done** — [../modules/workspace.md](../modules/workspace.md) |
+| Workspace shell | `features/workspace/` (~316 TS + components/ + user-admin) | **B11 + C2** — [../modules/workspace.md](../modules/workspace.md) |
 | Floor plans (data) | `features/floor-plans/` services + utils | **B6 done**; editor removed in **B7.5** |
-| Floor editor (UI) | `features/floor-editor/` (geometry/canvas/tools/history) | **B8 DONE** — [../modules/floor-editor.md](../modules/floor-editor.md) |
+| Floor editor (UI) | `features/floor-editor/` (components/ + helpers + geometry/…) | **B8 + C1** — [../modules/floor-editor.md](../modules/floor-editor.md) |
 | Geometry | `features/floor-editor/geometry/` | **Done (B8.2)** — see [../modules/floor-editor.md](../modules/floor-editor.md) |
 | Tables / reserved | `features/tables/` (deletion + validation); attended/observation still on `FloorPlanService` | **B9 done** — [../modules/tables.md](../modules/tables.md) |
 | Reservations (SQL) | Bootstrap / types only | Docs only until UI |
@@ -22,8 +22,9 @@
 | Shared models | `core/models/models.ts` (enums from `database.types`) | **B10 done** |
 | DB / Supabase types | `core/data/database.types.ts` (BOOTSTRAP-aligned) | **B10 done** — [../refactoring/B10_TYPES.md](../refactoring/B10_TYPES.md) |
 | Branding / docs cleanup | README, npm name, ignore, e2e paths | **B12 done** — [../refactoring/B12_CLEANUP.md](../refactoring/B12_CLEANUP.md) |
-| Integration / E2E | Vitest 159 + Playwright smoke/auth-shell | **B13 done** — [../testing/TEST_MATRIX.md](../testing/TEST_MATRIX.md) |
-| Agent docs / Cursor rules | `AGENTS.md`, `.cursor/rules`, `.cursor/agents` | **B14 done** — [../agents/AGENT_MAP.md](../agents/AGENT_MAP.md) |
+| Integration / E2E | Vitest 185 + Playwright smoke/auth-shell | **B13 + C1/C2 specs** — [../testing/TEST_MATRIX.md](../testing/TEST_MATRIX.md) |
+| Agent docs / Cursor rules | `AGENTS.md`, `.cursor/rules`, `.cursor/agents` | **B14 + C4 path updates** — [../agents/AGENT_MAP.md](../agents/AGENT_MAP.md) |
+| Component architecture | UI children under workspace/floor-editor `components/` | **C0–C4** — [../refactoring/COMPONENT_REFACTOR_PLAN.md](../refactoring/COMPONENT_REFACTOR_PLAN.md) |
 
 ## Actual trees (post B7.5)
 
@@ -43,8 +44,10 @@ floor-plans/
 ```text
 floor-editor/
   index.ts
-  plan-editor.component.{ts,html,scss}
+  plan-editor.component.{ts,html,scss}   # Stage owner (~648 TS, approved exception)
+  plan-editor-{renderer,viewport,drawing,delete.facade,host}.ts
   table-product-panel.component.{ts,html,scss}
+  components/{editor-toolbar,plan-editor-dialogs,order-attention-dialog}/
   geometry/ canvas/ tools/ history/   # B8.2–B8.5
 ```
 

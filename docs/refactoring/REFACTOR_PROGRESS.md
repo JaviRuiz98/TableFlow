@@ -33,3 +33,8 @@
 | integration/E2E (B13) | **DONE** — [B13_TESTING.md](./B13_TESTING.md) · [../testing/TEST_MATRIX.md](../testing/TEST_MATRIX.md) |
 | docs/rules/agents (B14) | **DONE** — [B14_AGENTS.md](./B14_AGENTS.md) · [../agents/AGENT_MAP.md](../agents/AGENT_MAP.md) |
 | agents polish (B14.1) | **DONE** — descriptions + products/workspace boundary · [B14_AGENTS.md](./B14_AGENTS.md#b141--agent-description--boundary-polish) |
+| components audit (C0) | **DONE** — [COMPONENT_ARCHITECTURE_AUDIT.md](./COMPONENT_ARCHITECTURE_AUDIT.md) |
+| floor-editor UI split (C1) | **DONE** — children + helpers; PlanEditor 648 TS exception · [COMPONENT_REFACTOR_PLAN.md](./COMPONENT_REFACTOR_PLAN.md) |
+| workspace UI split (C2) | **DONE** — plan/catalog/alert children; shell 316 TS |
+| other components (C3) | **DONE** — no-op (already within caps) |
+| component closeout (C4) | **DONE** — LOC gate, docs/agents, 185 Vitest / 4 e2e |

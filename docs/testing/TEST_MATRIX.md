@@ -27,10 +27,10 @@ Legend: **U** unit · **I** integration (mocked) · **E** E2E · **M** manual ·
 | Konva drag/draw in browser | — | — | — | Documented gap |
 | Create user against remote | — | — | blocked | Intentionally forbidden |
 
-## Counts (post B13 Vitest)
+## Counts
 
-- Spec files: 35
-- Tests: **159** (was 138 before B13)
-- Playwright files: `e2e/app.spec.ts`, `e2e/auth-shell.spec.ts` (+ helper)
+- Post B13: 35 files / **159** tests  
+- Post C1–C4: **41** files / **185** tests (workspace + floor-editor child specs)  
+- Playwright: `e2e/app.spec.ts`, `e2e/auth-shell.spec.ts` (+ helper) — **4** scenarios  
 
 Percentages intentionally omitted — matrix is qualitative.
