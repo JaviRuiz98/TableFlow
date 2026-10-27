@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SupabaseService } from './supabase.service';
+import { SupabaseService } from '../infrastructure';
 
 export type DeleteTableResult =
   { ok: true; reason: 'DELETED' | 'NOT_PERSISTED' } | { ok: false; reason: 'BAD_PASSWORD' | 'SERVED_PRODUCTS' | string };

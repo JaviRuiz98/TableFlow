@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
-
-import { SupabaseService } from './supabase.service';
-
-import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../models/models';
+import type { Json } from '../../core/data/database.types';
+import { SupabaseService } from '../../core/infrastructure';
+import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../../core/models/models';
+import { buildReplaceSnapshotPayload, splitTablesByType } from './floor-plan-snapshot.util';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FloorPlanService {
-  constructor(public readonly db: SupabaseService) {}
+  constructor(private readonly db: SupabaseService) {}
 
   async list(): Promise<FloorPlan[]> {
     const { data, error } = await this.db.client.from('floor_plans').select('*').order('name');
@@ -71,75 +71,22 @@ export class FloorPlanService {
     }
 
     const allTables = (tablesResult.data ?? []) as ClubTable[];
+    const split = splitTablesByType(allTables);
 
     return {
       elements: elementsResult.data as FloorPlanElement[],
-
-      /*
-       * La tabla de Supabase contiene tanto
-       * mesas normales como reservados.
-       *
-       * Separamos ambos tipos para que el
-       * componente pueda trabajar con ellos
-       * independientemente.
-       */
-      tables: allTables.filter((table) => table.type !== 'RESERVED'),
-
-      reserved: allTables.filter((table) => table.type === 'RESERVED'),
+      tables: split.tables,
+      reserved: split.reserved,
     } as FloorSnapshot;
   }
 
   async saveSnapshot(planId: string, snapshot: FloorSnapshot): Promise<void> {
-    /*
-     * IMPORTANTE:
-     *
-     * El componente mantiene las mesas normales
-     * y los reservados en arrays separados.
-     *
-     * Supabase, sin embargo, guarda ambos en
-     * la misma tabla "tables".
-     *
-     * Por eso aquí los combinamos antes de
-     * enviarlos al RPC.
-     */
-    const allTables: ClubTable[] = [...(snapshot.tables ?? []), ...(snapshot.reserved ?? [])];
+    const payload = buildReplaceSnapshotPayload(planId, snapshot);
 
     const { error: rpcError } = await this.db.client.rpc('replace_floor_plan_snapshot', {
-      p_floor_plan_id: planId,
-
-      p_elements: snapshot.elements.map((element) => ({
-        kind: element.kind,
-        x: element.x,
-        y: element.y,
-        width: element.width,
-        height: element.height,
-        rotation: element.rotation,
-        points: element.points,
-        label: element.label,
-        font_size: element.font_size ?? 22,
-        z_index: element.z_index,
-      })),
-
-      /*
-       * IMPORTANTE: aquí SÍ se envía el id de cada mesa/reservado
-       * (junto con type y attended). El RPC hace un upsert por id:
-       * así las mesas que se mantienen conservan su fila real en
-       * BBDD (y sus pedidos), las que ya no están en el array se
-       * borran de verdad, y las nuevas se crean con el id que ya
-       * generó el cliente. Se envían tanto TABLE como RESERVED.
-       */
-      p_tables: allTables.map((table) => ({
-        id: table.id,
-        type: table.type,
-        number: table.number,
-        x: table.x,
-        y: table.y,
-        width: table.width,
-        height: table.height,
-        rotation: table.rotation,
-        shape: table.shape,
-        attended: table.attended ?? false,
-      })),
+      p_floor_plan_id: payload.p_floor_plan_id,
+      p_elements: payload.p_elements as unknown as Json,
+      p_tables: payload.p_tables as unknown as Json,
     });
 
     if (rpcError) {
@@ -176,7 +123,6 @@ export class FloorPlanService {
     return (data ?? []) as Array<Pick<ClubTable, 'id' | 'attended' | 'observation' | 'updated_at'>>;
   }
 
-
   /** Guarda una observación operativa de una mesa/reservado. Solo ADMIN puede ejecutar la RPC. */
   async setTableObservation(tableId: string, observation: string | null): Promise<void> {
     const { error } = await this.db.client.rpc('set_table_observation', {
@@ -185,7 +131,6 @@ export class FloorPlanService {
     });
     if (error) throw error;
   }
-
 
   async createOperationalTarget(planId: string, type: 'TABLE' | 'RESERVED'): Promise<ClubTable> {
     const { data: existing, error: existingError } = await this.db.client

@@ -1,4 +1,5 @@
-export const INTERNAL_AUTH_DOMAIN = 'usuarios.salachocolatte.app';
+/** Dominio técnico interno para Auth (no es email real). Debe coincidir con create-user. */
+export const INTERNAL_AUTH_DOMAIN = 'usuarios.tableflow.app';
 
 export function normalizeUsername(value: string): string {
   return value

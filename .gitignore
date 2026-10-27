@@ -1,0 +1,27 @@
+# Dependencies & build
+node_modules/
+dist/
+.angular/
+.DS_Store
+
+# Secrets and local env (nunca commitear)
+.env
+.env.local
+.env.*.local
+
+# Environments generados desde .env / CI
+src/environments/environment.ts
+src/environments/environment.prod.ts
+
+# Supabase local / CLI
+supabase/.temp/
+supabase/.branches/
+
+# IDE / OS
+*.log
+.idea/
+.vscode/
+
+# Native (generated / local)
+android/app/build/
+ios/App/Pods/

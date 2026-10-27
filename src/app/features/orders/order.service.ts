@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
-import { SupabaseService } from './supabase.service';
-import type { Order, OrderItem, Product } from '../models/models';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { Json } from '../../core/data/database.types';
+import { SupabaseService } from '../../core/infrastructure';
+import type { Order, OrderItem, Product } from '../../core/models/models';
+import { buildOpenOrderQuantityMaps } from './open-order-quantity-maps';
 
 export interface ProductAssignmentItem {
   product_id: string;
@@ -9,7 +12,7 @@ export interface ProductAssignmentItem {
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
-  constructor(public db: SupabaseService) {}
+  constructor(private readonly db: SupabaseService) {}
 
   async forTable(tableId: string): Promise<{
     order: Order | null;
@@ -49,6 +52,29 @@ export class OrderService {
     };
   }
 
+  /**
+   * Open orders with nested items — drives pending/total badges on the floor canvas.
+   */
+  async getOpenOrderQuantityMaps(): Promise<{
+    pendingByTableId: Map<string, number>;
+    totalByTableId: Map<string, number>;
+  }> {
+    const { data, error } = await this.db.client
+      .from('orders')
+      .select('id,table_id,order_items(quantity,status)')
+      .eq('status', 'OPEN');
+
+    if (error) throw error;
+
+    // database.types uses opaque Row:any without Relationships; cast keeps runtime query unchanged.
+    return buildOpenOrderQuantityMaps(
+      (data as unknown as Array<{
+        table_id: string;
+        order_items?: Array<{ quantity?: number; status?: string }> | null;
+      }>) ?? [],
+    );
+  }
+
   async addItem(tableId: string, productId: string, quantity: number, _userId: string): Promise<void> {
     if (!productId || quantity < 1) {
       throw new Error('Producto o cantidad no válidos');
@@ -67,9 +93,9 @@ export class OrderService {
       throw new Error('Selecciona al menos un producto');
     }
 
-    const { data, error } = await (this.db.client as any).rpc('assign_products_to_table', {
+    const { data, error } = await this.db.client.rpc('assign_products_to_table', {
       p_table_id: tableId,
-      p_items: items,
+      p_items: items as unknown as Json,
     });
 
     if (error) {
@@ -98,7 +124,33 @@ export class OrderService {
     if (error) throw error;
   }
 
-  subscribe(onChange: () => void, channelName = 'orders-realtime') {
+  /** Same filters as previous PlanEditor.changeItemQuantity update. */
+  async updatePendingItemQuantity(itemId: string, quantity: number): Promise<void> {
+    const { error } = await this.db.client
+      .from('order_items')
+      .update({
+        quantity,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', itemId);
+
+    if (error) throw error;
+  }
+
+  /** Same payload as previous PlanEditor.removeOrderItem update. */
+  async cancelPendingItem(itemId: string): Promise<void> {
+    const { error } = await this.db.client
+      .from('order_items')
+      .update({
+        status: 'CANCELLED',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', itemId);
+
+    if (error) throw error;
+  }
+
+  subscribe(onChange: () => void, channelName = 'orders-realtime'): RealtimeChannel {
     return this.db.client
       .channel(channelName)
       .on(

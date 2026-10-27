@@ -32,18 +32,20 @@ import {
   createOutline,
 } from 'ionicons/icons';
 
-import { AuthService } from '../core/auth/auth.service';
-import { isValidUsername, normalizeUsername } from '../core/auth/auth-identity';
-import { ErrorMessageService } from '../core/services/error-message.service';
-import { FloorPlanService } from '../core/services/floor-plan.service';
-import { ProductService } from '../core/services/product.service';
-import { OrderService } from '../core/services/order.service';
-import { UserAdminService } from '../core/services/user-admin.service';
-import { PlanDuplicationService } from '../core/services/plan-duplication.service';
-import { OrderNotificationService } from '../core/services/order-notification.service';
-import type { ClubTable, FloorPlan, Product, ProductCategory, Role } from '../core/models/models';
-import { PlanEditorComponent } from './floor-plans/plan-editor.component';
-import { TableProductPanelComponent } from './floor-plans/table-product-panel.component';
+import { AuthService } from '../../core/auth/auth.service';
+import { normalizeUsername } from '../../core/auth/auth-identity';
+import { ErrorMessageService, SupabaseService } from '../../core/infrastructure';
+import { FloorPlanService, PlanDuplicationService } from '../floor-plans';
+import { ProductService } from '../products';
+import { OrderService } from '../orders';
+import { UserAdminService } from '../users';
+import { OrderNotificationService } from '../notifications';
+import type { ClubTable, FloorPlan, Product, ProductCategory, Role } from '../../core/models/models';
+import { PlanEditorComponent } from '../floor-plans/plan-editor.component';
+import { TableProductPanelComponent } from '../floor-plans/table-product-panel.component';
+import { NEW_OBSERVATION_ALERT, NEW_ORDER_ALERT } from './workspace-alerts.util';
+import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form.util';
+import { initialWorkspacePresentation } from './workspace-init.util';
 
 @Component({
   selector: 'app-workspace',
@@ -108,9 +110,9 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   deletePlanDialog = signal(false);
   planToDelete = signal<FloorPlan | null>(null);
   newOrderAlert = signal(false);
-  userAlertTitle = signal('HAY NUEVOS PEDIDOS');
-  userAlertEyebrow = signal('NUEVO PEDIDO');
-  userAlertMessage = signal('Se han recibido nuevos pedidos. Pulsa Continuar para cerrar este aviso.');
+  userAlertTitle = signal(NEW_ORDER_ALERT.title);
+  userAlertEyebrow = signal(NEW_ORDER_ALERT.eyebrow);
+  userAlertMessage = signal(NEW_ORDER_ALERT.message);
 
   editCategoryDialog = signal(false);
   categoryToEdit = signal<ProductCategory | null>(null);
@@ -141,9 +143,9 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     this.renamePlanDialog.set(false);
     this.deletePlanDialog.set(false);
     this.newOrderAlert.set(false);
-    this.userAlertTitle.set('HAY NUEVOS PEDIDOS');
-    this.userAlertEyebrow.set('NUEVO PEDIDO');
-    this.userAlertMessage.set('Se han recibido nuevos pedidos. Pulsa Continuar para cerrar este aviso.');
+    this.userAlertTitle.set(NEW_ORDER_ALERT.title);
+    this.userAlertEyebrow.set(NEW_ORDER_ALERT.eyebrow);
+    this.userAlertMessage.set(NEW_ORDER_ALERT.message);
     this.editCategoryDialog.set(false);
     this.editProductDialog.set(false);
     this.catalogDeleteDialog.set(false);
@@ -183,6 +185,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     private duplication: PlanDuplicationService,
     private notifications: OrderNotificationService,
     private errors: ErrorMessageService,
+    private supabase: SupabaseService,
     private router: Router,
   ) {
     addIcons({
@@ -197,7 +200,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       alertCircleOutline,
       createOutline,
     });
-    this.configured = (this.floors as any).db.configured;
+    this.configured = this.supabase.configured;
   }
 
   get activeLabel(): string {
@@ -207,26 +210,17 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     return this.auth.hasRole('ADMIN');
   }
   get canCreateUser(): boolean {
-    return (
-      !!this.newUserFullName.trim() &&
-      isValidUsername(this.newUserUsername) &&
-      this.newUserPassword.length >= 6 &&
-      (this.newUserRole === 'ADMIN' || this.newUserRole === 'USER') &&
-      !!this.verifiedAdminPassword
-    );
+    return canSubmitNewUserForm(this.newUserFormState());
   }
 
-  private validateNewUserForm(): string | null {
-    if (!this.newUserFullName.trim()) return 'Introduce el nombre del usuario.';
-    if (!this.newUserUsername.trim()) return 'Introduce un nombre de usuario.';
-    if (!isValidUsername(this.newUserUsername)) {
-      return 'El nombre de usuario debe tener entre 3 y 32 caracteres y solo puede contener letras, números, punto, guion o guion bajo.';
-    }
-    if (!this.newUserPassword) return 'Introduce una contraseña para el nuevo usuario.';
-    if (this.newUserPassword.length < 6) return 'La contraseña debe tener al menos 6 caracteres.';
-    if (this.newUserRole !== 'ADMIN' && this.newUserRole !== 'USER') return 'Selecciona un rol válido.';
-    if (!this.verifiedAdminPassword) return 'Vuelve a validar la contraseña de administración.';
-    return null;
+  private newUserFormState() {
+    return {
+      fullName: this.newUserFullName,
+      username: this.newUserUsername,
+      password: this.newUserPassword,
+      role: this.newUserRole,
+      verifiedAdminPassword: this.verifiedAdminPassword,
+    };
   }
 
   async ngOnInit(): Promise<void> {
@@ -236,32 +230,15 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       this.plans.set(await this.floors.list());
       this.categories.set(await this.product.categories());
       this.products.set(await this.product.products());
-      if (this.isAdmin) {
-        // Un ADMIN siempre entra por la pantalla de planos.
-        this.activeTab.set('planos');
-        this.editorMode.set('operativo');
-        this.showMap.set(true);
-        this.selectedPlan.set(null);
-      } else {
-        this.activeTab.set('operativo');
-        this.editorMode.set('operativo');
-        this.showMap.set(false);
-        if (this.plans().length) this.selectedPlan.set(this.plans()[0]);
+      const presentation = initialWorkspacePresentation(this.isAdmin, this.plans());
+      this.activeTab.set(presentation.activeTab);
+      this.editorMode.set(presentation.editorMode);
+      this.showMap.set(presentation.showMap);
+      this.selectedPlan.set(presentation.selectedPlan);
+      if (presentation.subscribeUserOrderAlerts) {
         this.userOrderChannel = this.notifications.subscribeToNewOrderItems(
-          () => {
-            this.userAlertEyebrow.set('NUEVO PEDIDO');
-            this.userAlertTitle.set('HAY NUEVOS PEDIDOS');
-            this.userAlertMessage.set('Se han recibido nuevos pedidos. Pulsa Continuar para cerrar este aviso.');
-            this.newOrderAlert.set(true);
-            void this.refreshOperationalData();
-          },
-          () => {
-            this.userAlertEyebrow.set('OBSERVACIÓN');
-            this.userAlertTitle.set('HAY UNA NUEVA OBSERVACIÓN');
-            this.userAlertMessage.set('Se ha actualizado la observación de una mesa o reservado. Pulsa Continuar para revisarla.');
-            this.newOrderAlert.set(true);
-            void this.refreshOperationalData();
-          },
+          () => this.showUserAlert(NEW_ORDER_ALERT),
+          () => this.showUserAlert(NEW_OBSERVATION_ALERT),
         );
       }
       this.channel = this.orders.subscribe(() => this.refreshOperationalData(), 'workspace-orders');
@@ -280,6 +257,14 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     // El aviso visual de nuevos pedidos se gestiona exclusivamente
     // mediante OrderNotificationService cuando se inserta un order_item.
     return;
+  }
+
+  private showUserAlert(copy: typeof NEW_ORDER_ALERT): void {
+    this.userAlertEyebrow.set(copy.eyebrow);
+    this.userAlertTitle.set(copy.title);
+    this.userAlertMessage.set(copy.message);
+    this.newOrderAlert.set(true);
+    void this.refreshOperationalData();
   }
 
   openOperationalTarget(target: ClubTable): void {
@@ -374,7 +359,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   async createUser(): Promise<void> {
     if (!this.isAdmin || this.creatingUser()) return;
 
-    const validationError = this.validateNewUserForm();
+    const validationError = validateNewUserForm(this.newUserFormState());
     if (validationError) {
       this.createUserError.set(validationError);
       return;

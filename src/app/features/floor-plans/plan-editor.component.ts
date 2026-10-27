@@ -16,11 +16,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonInput, IonInputPasswordToggle, IonLabel, IonModal, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import Konva from 'konva';
-import { FloorPlanService } from '../../core/services/floor-plan.service';
+import { FloorPlanService } from './floor-plan.service';
 import { GeometryService, Point } from '../../core/services/geometry.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { OrderService } from '../../core/services/order.service';
-import { ProductService } from '../../core/services/product.service';
+import { OrderService } from '../orders';
+import { ProductService } from '../products';
 import { TableDeletionService } from '../../core/services/table-deletion.service';
 import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot, Product } from '../../core/models/models';
 
@@ -1083,25 +1083,10 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
 
   private async refreshPendingMap() {
     try {
-      const { data, error } = await this.orders.db.client
-        .from('orders')
-        .select('id,table_id,order_items(quantity,status)')
-        .eq('status', 'OPEN');
-      if (error) {
-        throw error;
-      }
-      const map = new Map<string, number>();
-      const countMap = new Map<string, number>();
-      for (const o of data as any[]) {
-        const items = (o.order_items ?? []).filter((i: any) => i.status !== 'CANCELLED');
-        const total = items.reduce((a: number, i: any) => a + Number(i.quantity || 0), 0);
-        const pending = items.filter((i: any) => i.status === 'PENDING').reduce((a: number, i: any) => a + Number(i.quantity || 0), 0);
-        if (total) countMap.set(o.table_id, total);
-        if (pending) map.set(o.table_id, pending);
-      }
-      this.pendingMap = map;
-      this.orderCountMap = countMap;
-      this.pendingChanged.emit([...map.values()].reduce((a, b) => a + b, 0));
+      const { pendingByTableId, totalByTableId } = await this.orders.getOpenOrderQuantityMaps();
+      this.pendingMap = pendingByTableId;
+      this.orderCountMap = totalByTableId;
+      this.pendingChanged.emit([...pendingByTableId.values()].reduce((a, b) => a + b, 0));
       this.render();
     } catch {
       // Silenciado a propósito: si falla el refresco de pendientes,
@@ -1642,12 +1627,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     if (!session) return;
     try {
       if (item.attended === true || item.status !== 'PENDING') return;
-      const patch: any = {
-        quantity: nextQuantity,
-        updated_at: new Date().toISOString(),
-      };
-      const { error } = await this.orders.db.client.from('order_items').update(patch).eq('id', item.id);
-      if (error) throw error;
+      await this.orders.updatePendingItemQuantity(item.id, nextQuantity);
       await this.loadOrdersForTarget();
       await this.refreshPendingMap();
       this.render();
@@ -1661,14 +1641,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy {
     const session = this.auth.session();
     if (!session) return;
     try {
-      const { error } = await this.orders.db.client
-        .from('order_items')
-        .update({
-          status: 'CANCELLED',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', item.id);
-      if (error) throw error;
+      await this.orders.cancelPendingItem(item.id);
       await this.loadOrdersForTarget();
       await this.refreshPendingMap();
       this.render();

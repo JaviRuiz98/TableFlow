@@ -3,9 +3,9 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonSelect, IonSelectOption, IonSpinner } from '@ionic/angular/standalone';
 
-import { FloorPlanService } from '../../core/services/floor-plan.service';
-import { ProductService } from '../../core/services/product.service';
-import { OrderService } from '../../core/services/order.service';
+import { FloorPlanService } from './floor-plan.service';
+import { ProductService } from '../products';
+import { OrderService } from '../orders';
 import { AuthService } from '../../core/auth/auth.service';
 import type { ClubTable, FloorPlan, OrderItem, Product, TableType } from '../../core/models/models';
 

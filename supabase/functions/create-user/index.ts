@@ -9,7 +9,7 @@ interface CreateUserPayload {
   admin_password: string;
 }
 
-const INTERNAL_AUTH_DOMAIN = "usuarios.salachocolatte.app";
+const INTERNAL_AUTH_DOMAIN = "usuarios.tableflow.app";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

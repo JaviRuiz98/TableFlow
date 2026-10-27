@@ -16,7 +16,17 @@ function readDotEnv() {
 
 const dotEnv = readDotEnv();
 const url = process.env.SUPABASE_URL || dotEnv.SUPABASE_URL || '';
-const key = process.env.SUPABASE_ANON_KEY || dotEnv.SUPABASE_ANON_KEY || '';
+const key =
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_PUBLISHABLE_KEY ||
+  dotEnv.SUPABASE_ANON_KEY ||
+  dotEnv.SUPABASE_PUBLISHABLE_KEY ||
+  '';
+
+if (key.startsWith('sb_secret_') || key.includes('service_role')) {
+  console.error('Refusing to write a secret/service_role key into frontend environments.');
+  process.exit(1);
+}
 
 const makeEnvironment = production => `export const environment = {
   production: ${production},
@@ -29,7 +39,7 @@ if (url && key) {
   mkdirSync('src/environments', { recursive: true });
   writeFileSync('src/environments/environment.ts', makeEnvironment(false));
   writeFileSync('src/environments/environment.prod.ts', makeEnvironment(true));
-  console.log('Supabase environment generated.');
+  console.log('Supabase environment generated for TableFlow (public keys only).');
 } else {
   console.warn('Supabase environment not configured. Create .env from .env.example.');
 }

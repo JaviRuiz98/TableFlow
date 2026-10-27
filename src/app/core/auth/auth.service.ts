@@ -1,7 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import type { Session, User } from '@supabase/supabase-js';
-import { SupabaseService } from '../services/supabase.service';
-import { ErrorMessageService } from '../services/error-message.service';
+import { ErrorMessageService, SupabaseService } from '../infrastructure';
 import type { Profile, Role } from '../models/models';
 import { usernameToInternalEmail } from './auth-identity';
 
@@ -11,7 +10,7 @@ export class AuthService {
   readonly profile = signal<Profile | null>(null);
   readonly ready = signal(false);
 
-  private readonly sessionStartedAtKey = 'creadorSala.sessionStartedAt';
+  private readonly sessionStartedAtKey = 'tableflow.sessionStartedAt';
   private readonly maxSessionDurationMs = 12 * 60 * 60 * 1000;
   private expiryTimer: number | null = null;
 
