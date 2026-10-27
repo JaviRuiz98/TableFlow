@@ -1,0 +1,13 @@
+---
+description: TableFlow orders domain
+globs: src/app/features/orders/**/*
+alwaysApply: false
+---
+
+# Orders domain
+
+- Doc: `docs/modules/orders.md`
+- Agent: `/tableflow-orders`
+- Own: OrderService, quantity maps, order-state helpers
+- Preserve `assign_products_to_table` / item status contracts; Json boundary casts OK
+- Tests: `order.service.spec.ts`, `order-state.service.spec.ts`, `open-order-quantity-maps.spec.ts`

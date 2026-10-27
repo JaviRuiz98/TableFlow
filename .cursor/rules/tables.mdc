@@ -1,0 +1,13 @@
+---
+description: TableFlow tables validation and deletion
+globs: src/app/features/tables/**/*
+alwaysApply: false
+---
+
+# Tables domain
+
+- Doc: `docs/modules/tables.md`
+- Agent: `/tableflow-tables`
+- Own: validation + `delete_table_with_orders` client (mocked in tests)
+- Never call live deletion against remote TableFlow in tests
+- Do not import floor-editor

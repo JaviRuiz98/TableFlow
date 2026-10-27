@@ -1,0 +1,12 @@
+---
+description: TableFlow DB types and SQL docs (read-heavy)
+globs: src/app/core/data/**/*,src/app/core/models/**/*,supabase/**/*,DATABASE_MIGRATION_AUDIT.md,docs/refactoring/B10_TYPES.md
+alwaysApply: false
+---
+
+# DB contracts
+
+- Docs: `docs/refactoring/B10_TYPES.md`, `DATABASE_MIGRATION_AUDIT.md`, `supabase/BOOTSTRAP_TABLEFLOW.sql`
+- Agent: `/tableflow-db-contracts` (**readonly by default**)
+- Do not run migrations, push schema, or invent RPC signatures
+- Type regen only with verified TableFlow-only read-only procedure + user auth

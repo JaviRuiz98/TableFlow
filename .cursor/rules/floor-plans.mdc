@@ -1,0 +1,13 @@
+---
+description: TableFlow floor-plans persistence
+globs: src/app/features/floor-plans/**/*
+alwaysApply: false
+---
+
+# Floor-plans domain
+
+- Doc: `docs/modules/floor-plans.md`
+- Agent: `/tableflow-floor-plans`
+- Own: CRUD, snapshot RPC payload mapping, duplication, attended/observation RPC wrappers
+- Forbidden: import `floor-editor`; invent RPC/json shapes
+- Tests: `floor-plan.service.spec.ts`, snapshot/mapper/duplication specs

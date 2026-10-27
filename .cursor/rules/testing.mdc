@@ -1,0 +1,12 @@
+---
+description: TableFlow Vitest / Playwright / fixtures
+globs: src/**/*.spec.ts,src/testing/**/*,e2e/**/*
+alwaysApply: false
+---
+
+# Testing
+
+- Docs: `docs/testing/TEST_STRATEGY.md`, `TEST_MATRIX.md`
+- Agent: `/tableflow-test-runner`
+- Prefer module specs + `src/testing` fixtures; block remote mutations in E2E
+- Never weaken expectations to hide regressions

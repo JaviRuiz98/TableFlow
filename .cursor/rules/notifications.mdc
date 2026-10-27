@@ -1,0 +1,13 @@
+---
+description: TableFlow Realtime notifications
+globs: src/app/features/notifications/**/*
+alwaysApply: false
+---
+
+# Notifications domain
+
+- Doc: `docs/modules/notifications.md`
+- Agent: `/tableflow-notifications`
+- Own: OrderNotificationService channel wiring + debounce behaviour
+- Do not invent reconnect logic; keep alert copy contracts unless authorized
+- Tests: `order-notification.service.spec.ts`

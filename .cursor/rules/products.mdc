@@ -1,0 +1,13 @@
+---
+description: TableFlow products catalog
+globs: src/app/features/products/**/*
+alwaysApply: false
+---
+
+# Products domain
+
+- Doc: `docs/modules/products.md`
+- Agent: `/tableflow-products`
+- Own: `ProductService` + catalog RPC wrappers under `features/products`
+- Catalog UI is workspace-owned: do **not** edit `features/workspace` without explicit authorization and `/tableflow-workspace`
+- Tests: `product.service.spec.ts`

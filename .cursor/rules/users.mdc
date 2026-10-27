@@ -1,0 +1,12 @@
+---
+description: TableFlow user admin / create-user Edge
+globs: src/app/features/users/**/*,src/app/features/workspace/workspace-user-admin.*
+alwaysApply: false
+---
+
+# Users domain
+
+- Doc: `docs/modules/users.md`
+- Agent: `/tableflow-users`
+- Own: UserAdminService; workspace user-admin dialogs (UI ownership with workspace)
+- Edge `create-user` contract: mock in tests; no remote user creation in CI

@@ -1,0 +1,14 @@
+---
+description: TableFlow global safety and workflow (always)
+alwaysApply: true
+---
+
+# TableFlow global
+
+- Work on **`main`**. No commit/push without user authorization. Keep WIP.
+- Scope to one domain when possible. Read `docs/modules/<domain>.md` before editing.
+- Never touch Sala Chocolatte DB. TableFlow remote schema/RPC/RLS/Edge only with explicit auth.
+- No drive-by refactors, UI restyles, or public API changes unless requested.
+- Supabase via feature services / `core/infrastructure` — never raw client from UI.
+- After code changes: relevant Vitest specs, then `npm run lint` / `npm run build` when appropriate. E2E must not mutate remote data (`e2e/helpers/network-safety.ts`).
+- Report risks, skipped tests, and what was *not* changed.

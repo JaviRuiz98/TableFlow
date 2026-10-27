@@ -1,0 +1,14 @@
+---
+description: TableFlow Konva floor-editor
+globs: src/app/features/floor-editor/**/*
+alwaysApply: false
+---
+
+# Floor-editor domain
+
+- Doc: `docs/modules/floor-editor.md`
+- Agent: `/tableflow-floor-editor`
+- Own: PlanEditor Stage, geometry/canvas/tools/history utils, table-product panel
+- Util specs ≠ real Konva gesture coverage (see TEST_STRATEGY)
+- No visual redesign without authorization; keep PlanEditor as sole Stage owner
+- Tests: geometry/canvas/tools/history specs + `plan-editor.history.spec.ts`
