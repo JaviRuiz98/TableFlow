@@ -1,0 +1,209 @@
+<ion-modal
+  [isOpen]="open"
+  [backdropDismiss]="true"
+  class="order-modal"
+  (didDismiss)="closeOrderDialog()">
+  <ng-template>
+    <div class="order-dialog attention-dialog">
+
+      <div class="order-dialog-header">
+        <div>
+          <span class="dialog-eyebrow">
+            {{ selectedOrderTarget?.type === 'RESERVED' ? 'RESERVADO' : 'MESA' }}
+          </span>
+
+          <h2>{{ selectedOrderTarget?.number }}</h2>
+        </div>
+
+        <ion-button
+          class="close-button"
+          fill="clear"
+          (click)="closeOrderDialog()">
+          ✕
+        </ion-button>
+      </div>
+
+      <section class="table-observation" [class.editable]="isAdmin">
+        <div class="observation-heading">
+          <span class="dialog-eyebrow">OBSERVACIONES</span>
+          @if (!isAdmin && selectedOrderTarget?.observation) {
+            <span class="observation-priority">Leer antes del pedido</span>
+          }
+        </div>
+
+        @if (isAdmin) {
+          <textarea
+            class="observation-input"
+            [(ngModel)]="observationDraft"
+            rows="3"
+            maxlength="1000"
+            placeholder="Escribe aquí una observación para esta mesa o reservado..."></textarea>
+          <div class="observation-actions">
+            @if (observationMessage && selectedOrderTarget?.attended === false) {
+              <span class="observation-message">{{ observationMessage }}</span>
+            }
+            <ion-button
+              class="editor-button primary observation-save"
+              size="small"
+              [disabled]="observationSaving"
+              (click)="saveObservation()">
+              {{ observationSaving ? 'Guardando…' : 'Guardar observación' }}
+            </ion-button>
+          </div>
+        } @else {
+          @if (selectedOrderTarget?.observation) {
+            <div class="observation-text">{{ selectedOrderTarget?.observation }}</div>
+          } @else {
+            <div class="observation-empty">Sin observaciones.</div>
+          }
+        }
+      </section>
+
+      <div class="current-order">
+        <div class="section-title">Pedido actual</div>
+
+        @if (currentOrderItems.length === 0) {
+          <div class="empty-order compact-empty">
+            <span>🛒</span>
+            <p>No hay productos pendientes de llevar.</p>
+          </div>
+        } @else {
+          @for (group of currentOrderGroups; track group.id) {
+            <div class="product-section neutral-section">
+              <div class="product-section-title">{{ group.name }}</div>
+              @for (item of group.items; track item.id) {
+                <div class="order-item">
+                  <div class="order-item-info">
+                    <strong>{{ item.product.name }}</strong>
+                    <span class="neutral-status">Pendiente</span>
+                  </div>
+                  <div class="quantity-editor">
+                    @if (canManageOrders) {
+                      <ion-button size="small" class="qty-button" (click)="changeItemQuantity(item, -1)">−</ion-button>
+                    }
+                    <span class="order-item-quantity">x{{ item.quantity }}</span>
+                    @if (canManageOrders) {
+                      <ion-button size="small" class="qty-button" (click)="changeItemQuantity(item, 1)">+</ion-button>
+                      <ion-button size="small" class="remove-item" (click)="removeOrderItem(item)">✕</ion-button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      <div class="attended-order">
+        <div class="section-title attended-title">Pedido atendido</div>
+        @if (attendedOrderItems.length === 0) {
+          <div class="empty-order compact-empty attended-empty">
+            <p>Todavía no hay productos atendidos.</p>
+          </div>
+        } @else {
+          @for (group of attendedOrderGroups; track group.id) {
+            <div class="product-section neutral-section served-section">
+              <div class="product-section-title">{{ group.name }}</div>
+              @for (item of group.items; track item.id) {
+                <div class="order-item served-order-item">
+                  <div class="order-item-info">
+                    <strong>{{ item.product.name }}</strong>
+                    <span class="served-label">Atendido</span>
+                  </div>
+                  <div class="quantity-editor read-only-quantity">
+                    <span class="order-item-quantity">x{{ item.quantity }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      @if (canManageOrders) {
+        <div class="add-order-dialog">
+          <div class="section-title">Añadir producto</div>
+          <div class="category-order-grid">
+            @for (group of productGroupsForOrdering; track group.id) {
+              <section class="category-order-card">
+                <div class="category-order-title">{{ group.name }}</div>
+
+                <div class="category-order-controls-scroll">
+                  <div class="category-order-controls">
+                    <input
+                      class="category-search-input"
+                      type="search"
+                      [(ngModel)]="categoryProductSearch[group.id]"
+                      placeholder="Buscar en {{ group.name }}..."
+                      [attr.aria-label]="'Buscar productos en ' + group.name">
+
+                    <select
+                      class="category-product-select"
+                      [(ngModel)]="categoryProductSelection[group.id]"
+                      [attr.aria-label]="'Producto de ' + group.name">
+                      <option value="">Selecciona un producto</option>
+                      @for (product of filteredProductsForCategory(group); track product.id) {
+                        <option [value]="product.id">{{ product.name }}</option>
+                      }
+                    </select>
+
+                    <label class="category-quantity-label">
+                      <span>Cantidad</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        [(ngModel)]="categoryProductQuantity[group.id]">
+                    </label>
+
+                    <ion-button
+                      class="editor-button primary category-add-button"
+                      [disabled]="!categoryProductSelection[group.id]"
+                      (click)="addProductFromCategory(group.id)">
+                      + Añadir
+                    </ion-button>
+                  </div>
+                </div>
+              </section>
+            } @empty {
+              <div class="empty-order compact-empty"><p>No hay productos activos en el catálogo.</p></div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="attention-question">
+        ¿Ha sido atendida esta
+        {{ selectedOrderTarget?.type === 'RESERVED' ? 'reservado' : 'mesa' }}?
+      </div>
+
+      @if (attendanceError) {
+        <div class="attendance-error" role="alert">{{ attendanceError }}</div>
+      }
+
+      <div class="dialog-actions attention-actions">
+        <ion-button
+          class="dialog-secondary"
+          [disabled]="!canSetAttendedStatus || attendanceSaving"
+          (click)="markAttended(false)">
+          No ha sido atendida
+        </ion-button>
+
+        <ion-button
+          class="dialog-button"
+          [disabled]="!canSetAttendedStatus || attendanceSaving"
+          (click)="markAttended(true)">
+          @if (attendanceSaving) {
+            <span class="attendance-loading" aria-live="polite">
+              <span class="attendance-spinner" aria-hidden="true"></span>
+              Procesando…
+            </span>
+          } @else {
+            Sí, atendida
+          }
+        </ion-button>
+      </div>
+
+    </div>
+  </ng-template>
+</ion-modal>

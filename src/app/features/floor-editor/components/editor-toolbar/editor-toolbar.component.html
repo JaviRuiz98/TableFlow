@@ -1,0 +1,58 @@
+<div class="editor-toolbar">
+  @if (mode === 'editor') {
+    <div class="tool-group">
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'select'" (click)="setTool.emit('select')">↖ Seleccionar</ion-button>
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'draw'" [disabled]="!canEditGeometry" (click)="setTool.emit('draw')">✏️ Dibujar</ion-button>
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'text'" [disabled]="!canEditGeometry" (click)="setTool.emit('text')">T Texto</ion-button>
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'pan'" (click)="setTool.emit('pan')">✋ MOVER</ion-button>
+    </div>
+
+    <div class="tool-group">
+      <ion-button class="editor-button primary" size="small" (click)="save.emit()" [disabled]="!isAdmin">💾 Guardar diseño</ion-button>
+      <ion-button class="editor-button lock-button" size="small" [class.locked]="isLocked" (click)="lockToggle.emit()">{{ isLocked ? '🔒 Fijado' : '🔓 Fijar' }}</ion-button>
+      <ion-button class="editor-button danger" size="small" (click)="deleteSelected.emit()" [disabled]="!canEditGeometry || (!selectedElementId && !selectedTable && !selectedReserved)">🧹 Borrar</ion-button>
+      <ion-button class="editor-button" size="small" (click)="clearDrawing.emit()" [disabled]="!canEditGeometry || drawingLength === 0">Borrar dibujo</ion-button>
+      <ion-button class="editor-button" size="small" (click)="addTable.emit()" [disabled]="!canEditGeometry">+ Mesa</ion-button>
+      <ion-button class="editor-button reserved-button" size="small" (click)="addReserved.emit()" [disabled]="!canEditGeometry">+ Reservado</ion-button>
+      <ion-button class="editor-button icon-button" size="small" (click)="undo.emit()" [disabled]="historyIndex < 1">↶</ion-button>
+      <ion-button class="editor-button icon-button" size="small" (click)="redo.emit()" [disabled]="historyIndex >= historyLength - 1">↷</ion-button>
+      <ion-button class="editor-button icon-button" size="small" (click)="zoom.emit(-0.1)" [disabled]="!canZoomOut">−</ion-button>
+      <ion-button class="editor-button icon-button" size="small" (click)="zoom.emit(0.1)" [disabled]="!canZoomIn">+</ion-button>
+    </div>
+
+    <span class="tool-status">
+      Herramienta: <strong>{{ toolLabel }}</strong>
+      @if (selectedElementId) {
+        <span class="selected-status">· Elemento seleccionado</span>
+      }
+      @if (selectedTable) {
+        <span class="selected-status">· Mesa {{ selectedTable.number }}</span>
+      }
+      @if (selectedReserved) {
+        <span class="selected-status">· Reservado {{ selectedReserved.number }}</span>
+      }
+    </span>
+
+    @if (showTextSizeControl) {
+      <div class="text-size-control">
+        <span>Tamaño texto</span>
+        <input
+          type="number"
+          min="8"
+          max="120"
+          step="1"
+          [value]="selectedTextFontSize"
+          (change)="textFontSizeChange.emit($any($event.target).value)"
+          aria-label="Tamaño de letra del texto seleccionado">
+        <span>px</span>
+      </div>
+    }
+  } @else {
+    <div class="tool-group">
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'select'" (click)="setTool.emit('select')">↖ Seleccionar</ion-button>
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'pan'" (click)="setTool.emit('pan')">✋ MOVER</ion-button>
+      <ion-button class="editor-button icon-button" size="small" (click)="zoom.emit(-0.1)" [disabled]="!canZoomOut">−</ion-button>
+      <ion-button class="editor-button icon-button" size="small" (click)="zoom.emit(0.1)" [disabled]="!canZoomIn">+</ion-button>
+    </div>
+  }
+</div>

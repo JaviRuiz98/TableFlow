@@ -8,7 +8,8 @@ alwaysApply: false
 
 - Doc: `docs/modules/floor-editor.md`
 - Agent: `/tableflow-floor-editor`
-- Own: PlanEditor Stage, geometry/canvas/tools/history utils, table-product panel
+- Own: PlanEditor Stage coordinator, `components/*` (toolbar/dialogs/order-attention), renderer/viewport/drawing/delete helpers, geometry/canvas/tools/history, table-product panel
+- PlanEditor may exceed 500 TS only as sole Stage owner (documented exception ~648)
 - Util specs ≠ real Konva gesture coverage (see TEST_STRATEGY)
 - No visual redesign without authorization; keep PlanEditor as sole Stage owner
-- Tests: geometry/canvas/tools/history specs + `plan-editor.history.spec.ts`
+- Tests: geometry/canvas/tools/history specs + `plan-editor.history.spec.ts` + `components/**/*.spec.ts`

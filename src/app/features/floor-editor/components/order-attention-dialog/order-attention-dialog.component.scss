@@ -1,0 +1,939 @@
+/* Moved from plan-editor — order attention modal (as-is) */
+
+.editor-button{
+  --background:#fffaf6;
+  --background-hover:#f4e7de;
+  --background-activated:#ead8ca;
+  --color:#5b3928;
+  --border-color:#d8c4b6;
+  --border-style:solid;
+  --border-width:1px;
+  --border-radius:9px;
+  --box-shadow:none;
+  font-weight:700;
+  font-size:12px;
+  margin:0;
+}
+
+.editor-button:hover{
+  --background:#f4e7de;
+}
+
+.editor-button.active{
+  --background:#704936;
+  --color:#ffffff;
+  --border-color:#704936;
+}
+
+.editor-button.primary{
+  --background:#6b4430;
+  --color:#ffffff;
+  --border-color:#6b4430;
+}
+
+.editor-button.primary:hover{
+  --background:#593624;
+}
+
+.editor-button.danger{
+  --color:#8c3f3f;
+  --border-color:#d9b7b0;
+}
+
+.editor-button.danger:hover{
+  --background:#f8e8e5;
+  --color:#783333;
+}
+
+.editor-button.reserved-button{
+  --background:#7a4b2e;
+  --color:#ffffff;
+  --border-color:#7a4b2e;
+}
+
+.editor-button.reserved-button:hover{
+  --background:#653c24;
+}
+
+.editor-button.full{
+  width:100%;
+}
+
+.editor-button.icon-button{
+  min-width:38px;
+}
+
+.editor-button:disabled{
+  opacity:.38;
+  --background:#ece8e5;
+  --color:#9b928c;
+  --border-color:#d7d1cd;
+  pointer-events:none;
+}
+
+.order-backdrop{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:99999 !important;
+}
+
+.order-dialog{
+  position:relative;
+  z-index:100000;
+
+  width:min(620px,calc(100vw - 24px));
+  max-width:620px;
+
+  max-height:calc(100vh - 24px);
+
+  display:flex;
+  flex-direction:column;
+
+  margin:auto;
+
+  background:#fffaf7;
+  border:1px solid #e2d5cc;
+  border-radius:20px;
+
+  overflow:hidden;
+
+  box-shadow:0 25px 70px rgba(45,30,22,.30);
+
+  animation:dialogIn .18s ease-out;
+
+  box-sizing:border-box;
+}
+
+.order-dialog-header{
+  flex-shrink:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:16px 20px;
+
+  border-bottom:1px solid #eadfd8;
+  background:#fffaf7;
+}
+
+.order-dialog-header h2{
+  margin:2px 0 0;
+  color:#2d211b;
+  font-size:24px;
+}
+
+.close-button{
+  --color:#725e52;
+  --background:transparent;
+  --box-shadow:none;
+  font-size:18px;
+  margin:0;
+}
+
+/* =========================================================
+   PEDIDO ACTUAL
+   ========================================================= */
+
+.current-order{
+  padding:14px 20px;
+
+  overflow-y:auto;
+
+  flex:1;
+  min-height:0;
+
+  max-height:45vh;
+}
+
+.section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+
+  margin-bottom:10px;
+
+  color:#4e3326;
+  font-size:15px;
+  font-weight:800;
+}
+
+.pending-badge{
+  padding:4px 8px;
+  border-radius:999px;
+  background:#f5dfdf;
+  color:#9f2f3a;
+  font-size:11px;
+  font-weight:800;
+}
+
+.empty-order{
+  padding:20px 15px;
+  text-align:center;
+
+  border:1px dashed #d8c4b6;
+  border-radius:12px;
+
+  background:#fff;
+}
+
+.empty-order span{
+  display:block;
+  font-size:28px;
+  margin-bottom:6px;
+}
+
+.empty-order p{
+  margin:0;
+  color:#81736b;
+  font-size:13px;
+}
+
+.order-items{
+  display:grid;
+  gap:8px;
+}
+
+.order-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+
+  padding:9px 12px;
+
+  background:#ffffff;
+  border:1px solid #eadfd8;
+  border-radius:11px;
+}
+
+.order-item-info{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.order-item-info strong{
+  color:#3d2a20;
+  font-size:14px;
+}
+
+.order-item-info span{
+  color:#8b5a3c;
+  font-size:13px;
+  font-weight:800;
+}
+
+.order-item-status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+  font-size:11px;
+  font-weight:700;
+}
+
+.order-item-status.pending{
+  color:#9f2f3a;
+}
+
+.order-item-status.placed{
+  color:#4c8b62;
+}
+
+.small-action{
+  --background:#f4e7de;
+  --color:#5b3928;
+  --border-radius:8px;
+  --box-shadow:none;
+
+  font-size:10px;
+  margin:0;
+  height:28px;
+}
+
+/* =========================================================
+   SECCIONES ALCOHOL / REFRESCOS
+   ========================================================= */
+
+.product-section{
+  display:grid;
+  gap:6px;
+  margin-bottom:10px;
+}
+
+.product-section-title{
+  padding:6px 9px;
+
+  border-radius:8px;
+
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.04em;
+
+  background:#f4e7de;
+  color:#5b3928;
+}
+
+.alcohol-section .product-section-title{
+  background:#f3dfdf;
+  color:#8f3038;
+}
+
+.soft-section .product-section-title{
+  background:#e2f0e7;
+  color:#3d7652;
+}
+
+.quantity-editor{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+
+.quantity-editor > span{
+  min-width:24px;
+  text-align:center;
+  font-weight:800;
+  color:#4e3326;
+}
+
+.qty-button{
+  --background:#f4e7de;
+  --color:#5b3928;
+  --border-radius:7px;
+  --box-shadow:none;
+
+  margin:0;
+  height:28px;
+  min-width:28px;
+}
+
+.remove-item{
+  --background:#f5dfdf;
+  --color:#9f2f3a;
+  --border-radius:7px;
+  --box-shadow:none;
+
+  margin:0;
+  height:28px;
+  min-width:28px;
+}
+
+.order-list{
+  padding:0 10px;
+  max-height:35vh;
+  overflow:auto;
+}
+
+.order-list-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+
+  padding:9px 4px;
+
+  border-bottom:1px solid #eadfd8;
+}
+
+.order-list-item ion-label{
+  display:grid;
+  gap:2px;
+}
+
+.order-list-item ion-label strong{
+  color:#3d2a20;
+  font-size:13px;
+}
+
+.order-list-item ion-label span{
+  color:#8b5a3c;
+  font-size:12px;
+}
+
+.order-list-item ion-label small{
+  color:#81736b;
+  font-size:10px;
+}
+
+/* =========================================================
+   AÑADIR PRODUCTOS
+   ========================================================= */
+
+.add-order-dialog{
+  flex-shrink:0;
+
+  padding:12px 20px;
+
+  display:grid;
+  gap:8px;
+
+  border-top:1px solid #eadfd8;
+  background:#fdf8f4;
+}
+
+.add-product-row{
+  display:grid;
+
+  /*
+   * Antes:
+   * selector
+   * cantidad
+   * boton
+   *
+   * Ahora:
+   * selector | cantidad | boton
+   */
+  grid-template-columns:minmax(0,1fr) 82px auto;
+
+  align-items:end;
+
+  gap:8px;
+
+  padding:7px 8px;
+
+  border-radius:10px;
+
+  background:#fff;
+  border:1px solid #eadfd8;
+
+  min-height:0;
+}
+
+.alcohol-row{
+  border-color:#eccfcf;
+}
+
+.soft-row{
+  border-color:#cfe6d7;
+}
+
+.add-product-button{
+  margin:0;
+
+  white-space:nowrap;
+
+  height:40px;
+}
+
+/* =========================================================
+   PARTE INFERIOR DEL DIALOGO
+   ========================================================= */
+
+.attention-question{
+  flex-shrink:0;
+
+  padding:10px 20px 6px;
+
+  text-align:center;
+
+  color:#4e3326;
+  font-weight:800;
+}
+
+.attention-actions{
+  flex-shrink:0;
+
+  padding:6px 20px 14px;
+}
+
+.order-dialog-footer{
+  display:flex;
+  justify-content:flex-end;
+
+  padding:12px 22px;
+
+  border-top:1px solid #eadfd8;
+  background:#fffaf7;
+}
+
+/* El pedido se presenta como IonModal para quedar siempre por encima de la cabecera. */
+.order-modal {
+  --width:min(640px,calc(100vw - 24px));
+  --height:min(820px,calc(100vh - 24px));
+  --max-height:calc(100vh - 24px);
+  --border-radius:20px;
+}
+
+.order-modal::part(content) {
+  overflow:hidden;
+  border-radius:20px;
+}
+
+.order-modal .order-dialog {
+  width:100%;
+  max-width:none;
+  height:100%;
+  max-height:none;
+  margin:0;
+  border:0;
+  border-radius:20px;
+  box-shadow:none;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+.order-modal .order-dialog-header {
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+
+.order-modal .current-order {
+  flex:none;
+  max-height:none;
+  overflow:visible;
+}
+
+@media (max-width:640px) {
+  .order-modal {
+    --width:calc(100vw - 12px);
+    --height:calc(100vh - 12px);
+    --max-height:calc(100vh - 12px);
+  }
+}
+
+.order-item-quantity {
+  min-width: 2.5rem;
+  text-align: center;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   OBSERVACIONES DE MESA / RESERVADO
+   ========================================================= */
+.table-observation{
+  margin:16px 20px 0;
+  padding:14px 16px;
+  border:1px solid #dfcfc4;
+  border-radius:14px;
+  background:#fff8f1;
+}
+.table-observation:not(.editable){
+  border-left:5px solid #8b4f2f;
+  background:#fff5eb;
+}
+.observation-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.observation-priority{
+  color:#8f2f26;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.observation-input{
+  width:100%;
+  min-height:82px;
+  resize:vertical;
+  box-sizing:border-box;
+  padding:11px 12px;
+  border:1px solid #d8c5b8;
+  border-radius:10px;
+  background:#fff;
+  color:#2d211b;
+  font:inherit;
+  line-height:1.4;
+  outline:none;
+}
+.observation-input:focus{
+  border-color:#79503a;
+  box-shadow:0 0 0 2px rgba(121,80,58,.12);
+}
+.observation-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  margin-top:9px;
+}
+.observation-message{
+  margin-right:auto;
+  font-size:12px;
+  font-weight:700;
+  color:#68422e;
+}
+.observation-save{
+  margin:0;
+}
+.observation-text{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  color:#2d211b;
+  font-size:15px;
+  line-height:1.45;
+  font-weight:650;
+}
+.observation-empty{
+  color:#8f8178;
+  font-size:13px;
+  font-style:italic;
+}
+@media (max-width: 640px){
+  .table-observation{margin:12px 12px 0;padding:12px;}
+  .observation-heading{align-items:flex-start;flex-direction:column;gap:4px;}
+  .observation-actions{align-items:stretch;flex-direction:column;}
+  .observation-save{width:100%;}
+}
+
+/* Pedido actual / atendido: categorías en tono neutro para no confundirlas con estados */
+.neutral-section .product-section-title {
+  background: #eee8e4;
+  color: #5f544d;
+  border: 1px solid #ded4ce;
+}
+
+.neutral-status {
+  color: #756b65 !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+}
+
+.attended-order {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #e6ddd7;
+}
+
+.attended-title {
+  color: #4f4945;
+}
+
+.served-order-item {
+  background: #f7f5f3;
+  border-color: #e2dcd8;
+}
+
+.served-label {
+  color: #6f6762 !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+}
+
+.read-only-quantity {
+  min-width: 42px;
+  justify-content: flex-end;
+}
+
+.compact-empty {
+  min-height: 0;
+  padding: 14px;
+}
+
+.attended-empty {
+  background: #f8f6f4;
+}
+
+.generic-product-row {
+  grid-template-columns: minmax(220px, 1fr) minmax(90px, 120px) minmax(150px, auto);
+}
+
+@media (max-width: 700px) {
+  .generic-product-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   ALTA DE PRODUCTOS POR CATEGORÍA
+   ========================================================= */
+.category-order-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:14px;
+  margin-top:10px;
+}
+
+.category-order-card{
+  border:1px solid #ded3cb;
+  border-radius:14px;
+  padding:13px;
+  background:#fffdfa;
+  min-width:0;
+}
+
+/* El nombre ocupa siempre su propia línea. */
+.category-order-title{
+  display:block;
+  width:100%;
+  margin:0 0 10px;
+  padding:0 2px 8px;
+  border-bottom:1px solid #eee4dd;
+  font-size:13px;
+  font-weight:900;
+  color:#5c493f;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+
+/* Si la segunda fila no cabe, solo esta zona desplaza horizontalmente. */
+.category-order-controls-scroll{
+  width:100%;
+  min-width:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding-bottom:4px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+
+.category-order-controls{
+  display:grid;
+  grid-template-columns:minmax(190px,1fr) minmax(230px,1.25fr) 95px 132px;
+  align-items:end;
+  gap:10px;
+  min-width:680px;
+}
+
+.category-search-input,
+.category-product-select,
+.category-quantity-label input{
+  width:100%;
+  box-sizing:border-box;
+  min-height:42px;
+  border:1px solid #d8ccc4;
+  border-radius:10px;
+  background:#fff;
+  color:#332721;
+  font:inherit;
+  padding:9px 11px;
+  outline:none;
+}
+
+.category-search-input:focus,
+.category-product-select:focus,
+.category-quantity-label input:focus{
+  border-color:#79503a;
+  box-shadow:0 0 0 2px rgba(121,80,58,.1);
+}
+
+.category-quantity-label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  color:#6a5b52;
+  font-size:11px;
+  font-weight:800;
+}
+
+.category-add-button{
+  margin:0;
+  min-height:42px;
+  white-space:nowrap;
+}
+
+@media(max-width:640px){
+  .category-order-card{padding:11px;}
+  .category-order-controls{
+    grid-template-columns:180px 220px 82px 120px;
+    min-width:638px;
+    gap:8px;
+  }
+}
+
+/* Pedido atendido: bloque visual independiente y más legible */
+.attended-order{
+  margin:18px 16px 34px;
+  padding:14px;
+  border:1px solid #d8d0ca;
+  border-radius:16px;
+  background:#f7f5f3;
+}
+.attended-order .attended-title{
+  margin-bottom:10px;
+  font-size:15px;
+  font-weight:900;
+  color:#4c443f;
+}
+.attended-order .served-section{
+  margin:9px 0 0;
+  border:1px solid #ded8d4;
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+}
+.attended-order .served-section .product-section-title{
+  border:0;
+  border-bottom:1px solid #e1dbd6;
+  border-radius:0;
+  padding:8px 10px;
+  background:#ebe7e4;
+}
+.attended-order .served-order-item{
+  margin:0;
+  border:0;
+  border-bottom:1px solid #eee9e5;
+  border-radius:0;
+  background:#fff;
+  padding:10px 12px;
+}
+.attended-order .served-order-item:last-child{border-bottom:0;}
+@media(max-width:640px){.attended-order{margin:14px 12px 30px;padding:11px;}}
+
+/* =========================================================
+   AJUSTE DEFINITIVO: ALTA POR CATEGORÍA RESPONSIVE
+   ========================================================= */
+.category-order-controls-scroll{
+  overflow:visible;
+  padding-bottom:0;
+}
+
+.category-order-controls{
+  width:100%;
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) 88px 118px;
+  align-items:end;
+  gap:10px;
+}
+
+.category-order-controls > *{
+  min-width:0;
+}
+
+.category-search-input,
+.category-product-select,
+.category-quantity-label input{
+  max-width:100%;
+}
+
+.category-add-button{
+  width:100%;
+  min-width:0;
+  overflow:hidden;
+}
+
+.category-add-button::part(native){
+  width:100%;
+  min-width:0;
+  padding-inline:10px;
+  white-space:nowrap;
+}
+
+/* En anchos medios repartimos los controles en dos filas reales. */
+@media (max-width:760px){
+  .category-order-controls{
+    grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
+    gap:10px;
+  }
+
+  .category-quantity-label{
+    grid-column:1;
+  }
+
+  .category-add-button{
+    grid-column:2;
+    align-self:end;
+  }
+}
+
+/* En móvil cada control ocupa todo el ancho: nunca se corta. */
+@media (max-width:520px){
+  .category-order-card{
+    padding:12px;
+  }
+
+  .category-order-title{
+    margin-bottom:12px;
+  }
+
+  .category-order-controls{
+    grid-template-columns:1fr;
+    gap:9px;
+  }
+
+  .category-quantity-label,
+  .category-add-button{
+    grid-column:1;
+  }
+}
+
+/* Feedback inmediato al confirmar una mesa/reservado como atendida */
+.attendance-loading{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+.attendance-spinner{
+  width:15px;
+  height:15px;
+  border:2px solid rgba(255,255,255,.45);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:attendance-spin .65s linear infinite;
+}
+.attendance-error{
+  margin:2px 20px 4px;
+  padding:8px 10px;
+  border-radius:9px;
+  background:#fff0ee;
+  color:#9f2d24;
+  font-size:12px;
+  font-weight:750;
+  text-align:center;
+}
+@keyframes attendance-spin{
+  to{transform:rotate(360deg)}
+}
+@media (prefers-reduced-motion: reduce){
+  .attendance-spinner{animation-duration:1.4s}
+}
+
+
+/* Shared dialog chrome used by attention footer / eyebrows (copied as-is) */
+.dialog-eyebrow{
+  display:block;
+  margin-bottom:7px;
+  color:#9a6749;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+
+.dialog-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+}
+
+.dialog-button{
+  --background:#6b4430;
+  --background-hover:#593624;
+  --color:#fff;
+  --border-radius:10px;
+  font-weight:700;
+  margin:0;
+  flex:1;
+}
+
+.dialog-secondary{
+  --background:#f4e7de;
+  --background-hover:#ead8ca;
+  --color:#5b3928;
+  --border-radius:10px;
+  font-weight:700;
+  margin:0;
+}
+
+@media (max-width:800px){
+  .dialog-actions{flex-direction:column;}
+  .dialog-secondary,.dialog-button{width:100%;}
+}
+
+@keyframes dialogIn{
+  from{opacity:0;transform:translateY(8px) scale(.98);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}

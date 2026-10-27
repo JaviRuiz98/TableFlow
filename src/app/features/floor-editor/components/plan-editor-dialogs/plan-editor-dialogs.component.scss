@@ -1,0 +1,176 @@
+/* Moved from plan-editor — unlock/delete/text/save overlays (as-is) */
+
+.delete-error{color:#b3261e;font-weight:700;font-size:13px}
+.alarm-dialog{border:3px solid #b3261e}
+.alarm-icon{width:72px;height:72px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:#b3261e;color:#fff;font-size:48px;font-weight:900}
+.alarm-eyebrow,.alarm-dialog h2{color:#b3261e}
+.danger-confirm{font-weight:900}
+
+.dialog-backdrop{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:99999 !important;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  width:100vw;
+  height:100vh;
+
+  box-sizing:border-box;
+  padding:12px;
+
+  background:rgba(45,30,22,.38);
+  backdrop-filter:blur(4px);
+
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+/* =========================================================
+   OTROS DIALOGOS
+   ========================================================= */
+
+.save-dialog,
+.text-dialog{
+  width:min(380px,calc(100vw - 40px));
+
+  background:#fffaf7;
+  border:1px solid #e2d5cc;
+  border-radius:20px;
+  overflow:hidden;
+
+  box-shadow:0 25px 70px rgba(45,30,22,.25);
+
+  animation:dialogIn .18s ease-out;
+}
+
+.text-dialog{
+  width:min(420px,calc(100vw - 40px));
+}
+
+.dialog-icon{
+  width:54px;
+  height:54px;
+
+  margin:28px auto 0;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:#e9f3ec;
+  color:#4c8b62;
+
+  font-size:25px;
+  font-weight:900;
+}
+
+.dialog-icon.text-icon{
+  background:#f1e5dc;
+  color:#6b4430;
+}
+
+.dialog-content{
+  padding:18px 28px 26px;
+  text-align:center;
+}
+
+.dialog-eyebrow{
+  display:block;
+
+  margin-bottom:7px;
+
+  color:#9a6749;
+
+  font-size:10px;
+  font-weight:900;
+
+  letter-spacing:.14em;
+}
+
+.dialog-content h2{
+  margin:0 0 8px;
+
+  color:#2d211b;
+  font-size:23px;
+}
+
+.dialog-content p{
+  margin:0 0 22px;
+
+  color:#81736b;
+
+  font-size:14px;
+  line-height:1.5;
+}
+
+.text-input{
+  display:block;
+
+  margin-bottom:20px;
+  text-align:left;
+
+  --background:#ffffff;
+  --border-color:#d8c4b6;
+  --border-radius:10px;
+  --color:#3d2a20;
+  --padding-start:12px;
+  --padding-end:12px;
+  --highlight-color-focused:#6b4430;
+}
+
+.dialog-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+}
+
+.dialog-button{
+  --background:#6b4430;
+  --background-hover:#593624;
+  --color:#fff;
+  --border-radius:10px;
+
+  font-weight:700;
+  margin:0;
+
+  flex:1;
+}
+
+.dialog-secondary{
+  --background:#f4e7de;
+  --background-hover:#ead8ca;
+  --color:#5b3928;
+  --border-radius:10px;
+
+  font-weight:700;
+  margin:0;
+}
+
+/* =========================================================
+   ANIMACION
+   ========================================================= */
+
+@keyframes dialogIn{
+  from{
+    opacity:0;
+    transform:translateY(8px) scale(.98);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+@media (max-width:800px){
+  .dialog-actions{flex-direction:column;}
+  .dialog-secondary,.dialog-button{width:100%;}
+}
+
+@media (max-width:480px){
+  .dialog-backdrop{padding:8px;}
+}

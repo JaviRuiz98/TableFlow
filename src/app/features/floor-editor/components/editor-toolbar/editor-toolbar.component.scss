@@ -1,0 +1,162 @@
+/* Moved from plan-editor — editor toolbar (as-is) */
+:host {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.editor-toolbar{
+  position:absolute;
+  z-index:20;
+  top:12px;
+  left:12px;
+  right:12px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+  pointer-events:none;
+}
+
+.editor-toolbar > *{
+  pointer-events:auto;
+}
+
+.tool-group{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  padding:5px;
+  background:rgba(255,252,249,.96);
+  border:1px solid #e2d5cc;
+  border-radius:12px;
+  box-shadow:0 5px 18px rgba(70,43,29,.10);
+  backdrop-filter:blur(8px);
+}
+
+.editor-button{
+  --background:#fffaf6;
+  --background-hover:#f4e7de;
+  --background-activated:#ead8ca;
+  --color:#5b3928;
+  --border-color:#d8c4b6;
+  --border-style:solid;
+  --border-width:1px;
+  --border-radius:9px;
+  --box-shadow:none;
+  font-weight:700;
+  font-size:12px;
+  margin:0;
+}
+
+.editor-button:hover{
+  --background:#f4e7de;
+}
+
+.editor-button.active{
+  --background:#704936;
+  --color:#ffffff;
+  --border-color:#704936;
+}
+
+.editor-button.lock-button.locked{--background:#35261f;--color:#fff;--border-color:#35261f}
+.editor-button.primary{
+  --background:#6b4430;
+  --color:#ffffff;
+  --border-color:#6b4430;
+}
+
+.editor-button.primary:hover{
+  --background:#593624;
+}
+
+.editor-button.danger{
+  --color:#8c3f3f;
+  --border-color:#d9b7b0;
+}
+
+.editor-button.danger:hover{
+  --background:#f8e8e5;
+  --color:#783333;
+}
+
+.editor-button.reserved-button{
+  --background:#7a4b2e;
+  --color:#ffffff;
+  --border-color:#7a4b2e;
+}
+
+.editor-button.reserved-button:hover{
+  --background:#653c24;
+}
+
+.editor-button.full{
+  width:100%;
+}
+
+.editor-button.icon-button{
+  min-width:38px;
+}
+
+.editor-button:disabled{
+  opacity:.38;
+  --background:#ece8e5;
+  --color:#9b928c;
+  --border-color:#d7d1cd;
+  pointer-events:none;
+}
+
+.tool-status{
+  background:rgba(255,252,249,.96);
+  padding:9px 12px;
+  border-radius:10px;
+  border:1px solid #e2d5cc;
+  color:#725e52;
+  font-size:12px;
+  box-shadow:0 5px 18px rgba(70,43,29,.08);
+}
+
+.tool-status strong{
+  color:#4f3021;
+}
+
+.selected-status{
+  color:#8b5a3c;
+  font-weight:700;
+}
+
+.text-size-control{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 10px;
+  border:1px solid #ddcfc5;
+  border-radius:12px;
+  background:#fffaf7;
+  color:#65412e;
+  font-size:12px;
+  font-weight:800;
+}
+.text-size-control input{
+  width:68px;
+  height:32px;
+  border:1px solid #d8c7bb;
+  border-radius:8px;
+  padding:0 8px;
+  background:#fff;
+  color:#2d211b;
+  font:inherit;
+  text-align:center;
+}
+.text-size-control input:focus{
+  outline:2px solid rgba(139,90,60,.24);
+  outline-offset:1px;
+}
+
+@media (max-width:800px){
+  .tool-status{display:none;}
+  .editor-toolbar{top:8px;left:8px;right:8px;}
+}

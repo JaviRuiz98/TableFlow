@@ -7,7 +7,6 @@ import { TableDeletionService } from '../tables';
 import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../../core/models/models';
 import { FloorPlanService } from '../floor-plans';
 import { OrderService } from '../orders';
-import { ProductService } from '../products';
 import { PlanEditorComponent } from './plan-editor.component';
 
 const plan = (partial: Partial<FloorPlan> = {}): FloorPlan => ({
@@ -71,7 +70,6 @@ describe('PlanEditorComponent history/permissions (characterization)', () => {
         { provide: GeometryService, useValue: {} },
         { provide: AuthService, useValue: auth },
         { provide: OrderService, useValue: orders },
-        { provide: ProductService, useValue: {} },
         { provide: TableDeletionService, useValue: {} },
         { provide: ChangeDetectorRef, useValue: { detectChanges: vi.fn() } },
       ],
@@ -204,12 +202,21 @@ describe('PlanEditorComponent history/permissions (characterization)', () => {
     cmp.mode = 'editor';
     await cmp.openOperationalTarget(target);
     expect(cmp.showOrderDialog).toBe(false);
+    expect(cmp.selectedOrderTarget).toBeNull();
 
     cmp.mode = 'operativo';
     await cmp.openOperationalTarget(target);
     expect(cmp.selectedOrderTarget?.id).toBe('op-1');
     expect(cmp.showOrderDialog).toBe(true);
-    expect(orders.forTable).toHaveBeenCalledWith('op-1');
+    expect(cmp.selectedTable?.id).toBe('op-1');
+  });
+
+  it('onOrderDialogClosed clears open state for Workspace contract', () => {
+    cmp.showOrderDialog = true;
+    cmp.selectedOrderTarget = table({ id: 'x', number: 1, type: 'TABLE' });
+    cmp.onOrderDialogClosed();
+    expect(cmp.showOrderDialog).toBe(false);
+    expect(cmp.selectedOrderTarget).toBeNull();
   });
 
   it('ngOnDestroy clears order overlay and tears down realtime/stage handles', () => {

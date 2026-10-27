@@ -2,35 +2,50 @@
 
 **Agent:** `tableflow-floor-editor`  
 **Path:** `src/app/features/floor-editor/`  
-**B8 status:** complete (B8.1–B8.6) · [../refactoring/B8_FLOOR_EDITOR.md](../refactoring/B8_FLOOR_EDITOR.md)
+**B8 status:** complete · **C1 status:** component split + helper extraction ([COMPONENT_REFACTOR_PLAN.md](../refactoring/COMPONENT_REFACTOR_PLAN.md))
 
 ## Purpose
 
 Konva plan editor + operational product panel. Persistence lives in `features/floor-plans/`.
 
-## Final layout
+## Layout (C1)
 
 ```text
 floor-editor/
   index.ts                      # PlanEditor + TableProductPanel
-  plan-editor.component.*       # coordinator (Stage owner)
+  plan-editor.component.*       # Stage coordinator (sole owner)
+  plan-editor-renderer.ts       # Konva node paint helpers (non-Angular)
+  plan-editor-viewport.ts       # zoom/fit/pinch helpers (non-Angular)
+  plan-editor-drawing.ts        # draft conversion helpers
+  plan-editor-delete.facade.ts  # password/served delete orchestration
+  plan-editor-host.ts           # host typing for helpers
   table-product-panel.component.*
-  geometry/                     # simplify/snap/segments + line helpers
-  canvas/                       # viewport math + stage teardown helpers
-  tools/                        # tool policy + wall/text builders
-  history/                      # undo/redo stack ops (pure)
+  geometry/  canvas/  tools/  history/
+  components/
+    editor-toolbar/
+    plan-editor-dialogs/
+    order-attention-dialog/
 ```
 
-## Responsibilities by folder
+## Responsibilities
 
-| Folder | Owns | Does not own |
-|--------|------|----------------|
-| `geometry/` | Drawing→segments, line endpoints/move | Konva, history |
-| `canvas/` | Zoom/fit/coords math, teardown helpers | Stage instance |
-| `tools/` | Tool transitions, wall/text model builders | Listeners, render |
-| `history/` | Snapshot push/undo/redo/materialize | `render()`, UI selection |
-| `PlanEditor` | Stage, layers, listeners, model arrays, history arrays, order UI, `render` | — |
-| Panel | List/assign products to tables | Canvas |
+| Unit | Owns | Does not own |
+|------|------|----------------|
+| `PlanEditorComponent` | Stage lifecycle, model arrays, history arrays, tool, wires children/helpers | Persistence RPCs |
+| `plan-editor-renderer` | `render` / table / reserved nodes | Stage create/destroy |
+| `plan-editor-viewport` | Zoom/fit/pinch math application | Stage ownership |
+| `editor-toolbar` | Toolbar chrome | Model mutations |
+| `plan-editor-dialogs` | Unlock/delete/text/save overlays UI | Service calls (parent/facade) |
+| `order-attention-dialog` | Operativo order modal + order mutations UI | Stage |
+| `geometry|canvas|tools|history` | Pure/policy utils | Stage instance |
+| Panel | List/assign products | Canvas |
+
+## Soft-cap / exception
+
+| Component | TS LOC (C4) | Cap |
+|-----------|------------:|-----|
+| `PlanEditorComponent` | **648** | **Approved exception** — sole Stage + Angular wiring; further split unsafe without Konva harness |
+| Other floor-editor components | ≤406 | Within 500 |
 
 ## Public API (stable)
 
@@ -52,46 +67,37 @@ floor-editor/
 | `@Input() plan` | Plan context |
 | `@Output() targetSelected` | Workspace → `openOperationalTarget` |
 
-## Event / data flow (summary)
+## Event / data flow
 
-1. Workspace sets `plan` + `mode` → `ngOnChanges` → `load` → `initStage` → fit view  
-2. Tools mutate model → `pushHistory` → `render`  
-3. Wheel/pinch → canvas math → Stage scale/position  
-4. Operativo orders → `OrderService` + Realtime channel `plan-editor-orders-*`  
-5. Save → snapshot `{ elements, tables, reserved }` (ids preserved)  
-6. Destroy → unsubscribe Realtime + `teardownStageResources`
+1. Workspace sets `plan` + `mode` → `load` → `initStage` → fit view  
+2. Tools mutate model → `pushHistory` → renderer.`render`  
+3. Wheel/pinch → viewport helpers → Stage scale/position  
+4. Operativo → `OrderAttentionDialog` + Realtime; parent refreshes pending map / render  
+5. Save → snapshot `{ elements, tables, reserved }`  
+6. Destroy → unsubscribe + `teardownStageResources`
 
 ## Konva lifecycle
 
-**Sole owner:** `PlanEditorComponent`.  
-Create in `initStage`, resize via `ResizeObserver` + `applyStageSizeIfChanged`, destroy in `ngOnDestroy` / before recreate. Never instantiate Stage from `canvas/` helpers.
+**Sole owner:** `PlanEditorComponent`. Helpers must not create Stage. Never instantiate Stage from `canvas/` helpers.
 
 ## Dependencies
 
 ```text
 floor-editor → floor-plans, orders, products, core/auth, features/tables (deletion)
-floor-editor/geometry|tools|history → core/models (+ geometry types)
-floor-editor/canvas → models + geometry Point; Konva types only in lifecycle util
 floor-plans ↛ floor-editor   (forbidden)
 ```
 
-## Tests (automated)
+## Tests
 
 - `geometry/*`, `canvas/*`, `tools/*`, `history/*`
-- `plan-editor.history.spec.ts` — history + Workspace contracts (`saveDesign`, `openOperationalTarget`, destroy)
-
-**Not covered by unit tests (manual QA required):** wheel/pinch feel, drag after zoom, endpoint handles, visual render, password delete UX.
-
-## Limitations
-
-- Attended/observation RPCs remain on `FloorPlanService` (see [tables.md](./tables.md))
-- `render()` still large; further split only with Konva harness + auth
-- Order item typing still uses `any` in places (B10 types)
+- `plan-editor.history.spec.ts`
+- `components/**/*.spec.ts`
+- Manual QA: wheel/pinch, drag after zoom, endpoints, password delete UX
 
 ## Agent rules
 
-1. Prefer module barrels (`./geometry`, `./canvas`, `./tools`, `./history`).  
-2. Do not change viewport/geometry/history algorithms without characterization tests.  
-3. Do not restyle HTML/SCSS without explicit UX authorization.  
-4. Do not import `floor-editor` from `floor-plans`.  
-5. Keep `PlanEditor.tool` / `history`+`historyIndex` as single sources of truth.
+1. Prefer barrels (`./geometry`, `./canvas`, `./tools`, `./history`).  
+2. Do not restyle without UX authorization.  
+3. Do not import `floor-editor` from `floor-plans`.  
+4. Keep `PlanEditor.tool` / history arrays as SSoT.  
+5. Do not create a second Stage owner component.
