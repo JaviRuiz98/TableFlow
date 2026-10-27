@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="470" viewBox="0 0 620 470" role="img" aria-label="TableFlow Gestión inteligente para tu discoteca">
+<g transform="translate(160 0)"><defs>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF4CF"/><stop offset="0.27" stop-color="#D8AB68"/><stop offset="0.55" stop-color="#F2CF8B"/><stop offset="1" stop-color="#A87439"/></linearGradient>
+</defs>
+<path d="M49 98 C63 49 106 24 150 24 C194 24 237 49 251 98" fill="none" stroke="url(#metal)" stroke-width="5" stroke-linecap="round"/>
+<path d="M59 127 C51 153 60 183 79 198" fill="none" stroke="url(#metal)" stroke-width="4" stroke-linecap="round"/>
+<path d="M241 127 C249 153 240 183 221 198" fill="none" stroke="url(#metal)" stroke-width="4" stroke-linecap="round"/>
+<path d="M150 45 Q154 59 168 63 Q154 67 150 81 Q146 67 132 63 Q146 59 150 45Z" fill="url(#metal)"/>
+<path d="M150 10 L154 24 L146 24Z" fill="#F5DBA1"/>
+<!-- Full-width top crossbar, carved space at centre, two elegant downward branches -->
+<path d="M39 111 H122 Q145 112 148 131 L148 225 L119 205 L119 147 Q117 132 99 129 L39 117Z" fill="url(#metal)"/>
+<path d="M261 111 H178 Q155 112 152 131 L152 225 L181 205 L181 147 Q183 132 201 129 L261 117Z" fill="url(#metal)"/>
+</g>
+<text x="310" y="320" font-family="Arial,Helvetica,sans-serif" font-size="78" font-weight="700" text-anchor="middle" letter-spacing="-3"><tspan fill="#F4EFE6">Table</tspan><tspan fill="#D4AF7C">Flow</tspan></text>
+<text x="310" y="380" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#F4EFE6" text-anchor="middle" letter-spacing="5">GESTIÓN INTELIGENTE</text>
+<text x="310" y="409" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#F4EFE6" text-anchor="middle" letter-spacing="5">PARA TU DISCOTECA</text>
+</svg>

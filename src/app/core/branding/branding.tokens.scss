@@ -1,0 +1,16 @@
+/* TableFlow platform brand tokens (VIP Premium).
+   Values mirror TABLEFLOW_DEFAULT_BRANDING — prefer setting vars from config at runtime on .login-page. */
+:root {
+  --tf-brand-primary: #d4af7c;
+  --tf-brand-secondary: #3b2a4a;
+  --tf-brand-surface: #121218;
+  --tf-brand-surface-muted: #0b0b0f;
+  --tf-brand-text: #f4efe6;
+  --tf-brand-text-muted: #9a948a;
+  --tf-brand-on-primary: #0b0b0f;
+  --tf-brand-danger: #e07a7a;
+  --tf-brand-login-bg: none;
+  --tf-brand-border: rgba(212, 175, 124, 0.22);
+  --tf-brand-field-bg: #121218;
+  --tf-brand-field-border: rgba(244, 239, 230, 0.16);
+}

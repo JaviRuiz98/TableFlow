@@ -1,0 +1,83 @@
+<ion-content [fullscreen]="true" class="login-page">
+  <main class="login-shell" [attr.aria-label]="branding.accessLabel" [ngStyle]="brandCssVars()">
+    <div class="login-ambiance" aria-hidden="true"></div>
+
+    <section class="login-card">
+      <header class="brand">
+        <div class="brand-halo" aria-hidden="true"></div>
+        <img
+          class="brand-logo"
+          [src]="branding.assets.logoPrimaryUrl"
+          [alt]="branding.productName"
+          width="280"
+          height="212"
+        />
+      </header>
+
+      <form class="login-form" (ngSubmit)="submit()">
+        <ion-input
+          class="login-field"
+          label="Usuario"
+          labelPlacement="stacked"
+          type="text"
+          autocomplete="username"
+          fill="outline"
+          [(ngModel)]="username"
+          name="username"
+          required
+        >
+          <ion-icon slot="start" name="mail-outline" aria-hidden="true"></ion-icon>
+        </ion-input>
+
+        <ion-input
+          class="login-field"
+          label="Contraseña"
+          labelPlacement="stacked"
+          type="password"
+          autocomplete="current-password"
+          fill="outline"
+          [(ngModel)]="password"
+          name="password"
+          required
+        >
+          <ion-icon slot="start" name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+
+        @if (error()) {
+          <ion-text class="error-message" role="alert">
+            <p>{{ error() }}</p>
+          </ion-text>
+        }
+
+        <ion-button
+          class="submit-button"
+          type="submit"
+          expand="block"
+          size="large"
+          [disabled]="loading() || !username || !password"
+        >
+          @if (loading()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Iniciar sesión
+          }
+        </ion-button>
+      </form>
+
+      <footer class="login-secondary">
+        <div class="login-secondary-rule" aria-hidden="true"></div>
+        <p class="login-secondary-copy">¿Tu empresa aún no usa TableFlow?</p>
+        <ion-button
+          class="register-button"
+          type="button"
+          expand="block"
+          fill="outline"
+          [routerLink]="companyRegisterPath"
+        >
+          Registrar empresa
+        </ion-button>
+      </footer>
+    </section>
+  </main>
+</ion-content>

@@ -1,3 +1,5 @@
+@use './app/core/branding/branding.tokens';
+
 :root {
   --ion-font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ion-background-color: #f7f4f1;
@@ -233,4 +235,23 @@ ion-modal.danger-plan-modal .plan-dialog {
     max-height: calc(100vh - 20px);
     border-radius: 18px;
   }
+}
+
+/* Login VIP: prevent browser autofill from painting white/blue field backgrounds */
+.login-page input.native-input,
+.login-page input.native-input:focus,
+.login-page input.native-input:hover {
+  background-color: transparent !important;
+  color: var(--tf-brand-text, #f4efe6) !important;
+  -webkit-text-fill-color: var(--tf-brand-text, #f4efe6);
+  caret-color: var(--tf-brand-text, #f4efe6);
+}
+
+.login-page input.native-input:-webkit-autofill,
+.login-page input.native-input:-webkit-autofill:hover,
+.login-page input.native-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--tf-brand-text, #f4efe6) !important;
+  caret-color: var(--tf-brand-text, #f4efe6);
+  box-shadow: 0 0 0 1000px var(--tf-brand-field-bg, #121218) inset !important;
+  transition: background-color 99999s ease-out 0s;
 }
