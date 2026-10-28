@@ -16,7 +16,7 @@ describe('workspace-transient.util', () => {
     expect(ui.catalogDeleteDialog).toBe(false);
     expect(ui.catalogDeleteBlocked).toBe(false);
     expect(ui.verifiedAdminPassword).toBe('');
-    expect(ui.newUserRole).toBe('USER');
+    expect(ui.newUserRole).toBe('RECEPTOR');
     expect(ui.userAlertTitle).toBe(NEW_ORDER_ALERT.title);
     expect(ui.planToCopy).toBeNull();
     expect(ui.categoryToDelete).toBeNull();

@@ -5,7 +5,7 @@ describe('workspace-user-form.util', () => {
     fullName: 'Ana',
     username: 'ana.user',
     password: 'secret1',
-    role: 'USER' as const,
+    role: 'RECEPTOR' as const,
     verifiedAdminPassword: 'admin',
   };
 

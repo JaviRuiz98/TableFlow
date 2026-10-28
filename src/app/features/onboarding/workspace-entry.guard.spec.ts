@@ -67,7 +67,7 @@ describe('workspaceEntryGuard', () => {
     expect(onboarding.refresh).not.toHaveBeenCalled();
   });
 
-  it('allows USER without checking onboarding progress', async () => {
+  it('allows non-ADMIN (RECEPTOR/staff) without checking onboarding progress', async () => {
     auth.session.mockReturnValue({});
     auth.hasRole.mockReturnValue(false);
 

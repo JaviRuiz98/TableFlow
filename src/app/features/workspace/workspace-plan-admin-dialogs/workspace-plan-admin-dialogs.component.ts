@@ -44,7 +44,7 @@ export class WorkspacePlanAdminDialogsComponent {
   ) {}
 
   private get isAdmin(): boolean {
-    return this.auth.hasRole('ADMIN');
+    return this.auth.hasRole('USER', 'ADMIN');
   }
 
   /** Public API for shell: open create-plan dialog. */

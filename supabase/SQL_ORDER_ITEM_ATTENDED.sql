@@ -26,7 +26,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if auth.uid() is null or public.current_role() not in ('ADMIN','USER') then
+  if auth.uid() is null or public.current_role() not in ('USER','RECEPTOR') then
     raise exception 'No autorizado';
   end if;
 
@@ -74,7 +74,7 @@ declare
   v_quantity integer;
   v_order_item_id uuid;
 begin
-  if auth.uid() is null or public.current_role() <> 'ADMIN' then
+  if auth.uid() is null or not public.is_admin() then
     raise exception 'No autorizado';
   end if;
 

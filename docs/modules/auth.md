@@ -22,7 +22,7 @@ Session, profile/role loading, login UI, route guard, username↔internal email 
 3. Resend SMTP sends confirm email; login blocked until confirmed.
 4. `/registro-empresa/activar` only reports confirmation success — no second activation RPC.
 
-Staff / future USER workers: Auth metadata without `establishment_name` → profile `USER` (create-user Edge).
+Staff / RECEPTOR workers: Auth metadata without `establishment_name` → profile `RECEPTOR` (create-user Edge; migration `0022`). Enum also keeps reserved `USER` for a future operational view.
 
 ## Dependencies
 

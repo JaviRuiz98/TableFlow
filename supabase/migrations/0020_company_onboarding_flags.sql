@@ -20,7 +20,7 @@ comment on column public.companies.onboarding_plan_done is
 comment on column public.companies.onboarding_products_done is
   'Initial setup: first product(s) configured for this company.';
 comment on column public.companies.onboarding_users_done is
-  'Initial setup: first staff USER configured for this company.';
+  'Initial setup: first staff RECEPTOR configured for this company.';
 
 -- Allow authenticated UPDATE; RLS still scopes rows to the caller's company.
 grant update on table public.companies to authenticated;

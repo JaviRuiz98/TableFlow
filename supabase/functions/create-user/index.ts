@@ -5,7 +5,7 @@ interface CreateUserPayload {
   full_name: string;
   username: string;
   password: string;
-  role: "ADMIN" | "USER";
+  role: "ADMIN" | "USER" | "RECEPTOR";
   /** Optional when caller is already an authenticated ADMIN (e.g. onboarding). */
   admin_password?: string;
 }
@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (role !== "ADMIN" && role !== "USER") {
+    if (role !== "ADMIN" && role !== "USER" && role !== "RECEPTOR") {
       return jsonResponse({ error: "Rol no válido." }, 400);
     }
 

@@ -20,12 +20,22 @@ export const fixtureProfileAdmin: Profile = {
   updated_at: '2026-01-01T00:00:00Z',
 };
 
+/** Day-to-day management (former ADMIN shell). */
 export const fixtureProfileUser: Profile = {
+  ...fixtureProfileAdmin,
+  id: 'user-manager',
+  full_name: 'Manager',
+  username: 'manager',
+  role: 'USER',
+};
+
+/** Operative staff that receives order alerts (former USER responsibilities). */
+export const fixtureProfileReceptor: Profile = {
   ...fixtureProfileAdmin,
   id: 'user-staff',
   full_name: 'Staff',
   username: 'staff',
-  role: 'USER',
+  role: 'RECEPTOR',
 };
 
 export const fixturePlan: FloorPlan = {

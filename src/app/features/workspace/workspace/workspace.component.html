@@ -45,7 +45,7 @@
         </div>
         <div class="top-actions">
           <div class="connection"><span></span>Conectado</div>
-          @if (isAdmin) {
+          @if (shellVisibility.showUsersButton) {
             <ion-button fill="outline" class="users-button" (click)="openUserAccessDialog()"
               ><ion-icon name="person-add-outline" slot="start"></ion-icon>Usuarios</ion-button
             >
@@ -61,7 +61,7 @@
 
 <app-workspace-user-admin
   #userAdmin
-  [lockRoleToUser]="onboardingMode() && setupIntent === 'users'"
+  [skipAdminPassword]="onboardingMode() && setupIntent === 'users'"
   (toastMessage)="onChildToast($event)"
   (userCreated)="onOnboardingUserCreated()"
 ></app-workspace-user-admin>
@@ -74,16 +74,18 @@
 ></app-workspace-plan-admin-dialogs>
 
 <ion-content>
-  @if (!onboardingMode()) {
+  @if (!onboardingMode() && (shellVisibility.showPlanosTab || shellVisibility.showOperativaTab || shellVisibility.showProductosTab)) {
     <div class="nav-wrap">
       <ion-segment [value]="activeTab()" (ionChange)="activeTab.set($any($event.detail.value))">
-        @if (isAdmin) {
+        @if (shellVisibility.showPlanosTab) {
           <ion-segment-button value="planos"><ion-label>Planos</ion-label></ion-segment-button>
         }
-        <ion-segment-button value="operativo">
-          <ion-label>Operativa</ion-label>
-        </ion-segment-button>
-        @if (isAdmin) {
+        @if (shellVisibility.showOperativaTab) {
+          <ion-segment-button value="operativo">
+            <ion-label>Operativa</ion-label>
+          </ion-segment-button>
+        }
+        @if (shellVisibility.showProductosTab) {
           <ion-segment-button value="productos"><ion-label>Productos</ion-label></ion-segment-button>
         }
       </ion-segment>
@@ -97,10 +99,18 @@
       <div class="empty">
         <div>◎</div>
         <h2>Configurar usuarios</h2>
-        <p>Da de alta al personal que trabajará con TableFlow.</p>
+        <p>Da de alta al personal que trabajará con TableFlow. Elige el rol: ADMIN, USER o RECEPTOR.</p>
       </div>
     </main>
-  } @else if (activeTab() === 'planos' && isAdmin && (!onboardingMode() || setupIntent === 'plan')) {
+  } @else if (!onboardingMode() && shellVisibility.showAdminPlaceholder) {
+    <main class="page">
+      <div class="empty">
+        <div>◎</div>
+        <h2>Panel de administración</h2>
+        <p>Las responsabilidades de este rol se configurarán más adelante. Mientras tanto puedes gestionar usuarios.</p>
+      </div>
+    </main>
+  } @else if (activeTab() === 'planos' && canManageFloor && (!onboardingMode() || setupIntent === 'plan')) {
     <main class="page">
       <div class="page-head">
         <div>
@@ -156,7 +166,7 @@
         }
       </div>
     </main>
-  } @else if (activeTab() === 'operativo' && (!onboardingMode() || setupIntent === 'plan')) {
+  } @else if (activeTab() === 'operativo' && (canManageFloor || isReceptor) && (!onboardingMode() || setupIntent === 'plan')) {
     <main class="page operative-page">
       <div class="page-head compact">
         <div>
@@ -183,12 +193,12 @@
               }
             </ion-select>
           }
-          @if (isAdmin && selectedPlan()) {
+          @if (canManageFloor && selectedPlan()) {
             @if (onboardingMode()) {
               <ion-button class="primary-button" [disabled]="savingOnboardingPlan()" (click)="saveOnboardingPlanAndContinue()">
                 {{ savingOnboardingPlan() ? 'Guardando…' : 'Guardar y continuar' }}
               </ion-button>
-            } @else {
+            } @else if (isManager) {
               <ion-button fill="outline" (click)="toggleEditorMode()">
                 {{ editorMode() === 'editor' ? 'Ver operativa' : 'Editar plano' }}
               </ion-button>
@@ -206,16 +216,16 @@
         <div
           class="operative-layout"
           [class.editor-layout]="editorMode() === 'editor' || onboardingMode()"
-          [class.list-only]="!onboardingMode() && editorMode() === 'operativo' && (!isAdmin || !showMap())"
+          [class.list-only]="!onboardingMode() && editorMode() === 'operativo' && (!isManager || !showMap())"
         >
           <div
             class="plan-column"
-            [class.dialog-host-only]="!onboardingMode() && editorMode() === 'operativo' && (!isAdmin || !showMap())"
+            [class.dialog-host-only]="!onboardingMode() && editorMode() === 'operativo' && (!isManager || !showMap())"
           >
             <app-plan-editor
               [plan]="selectedPlan()!"
               [mode]="onboardingMode() ? 'editor' : editorMode()"
-              [hideSurface]="!onboardingMode() && editorMode() === 'operativo' && (!isAdmin || !showMap())"
+              [hideSurface]="!onboardingMode() && editorMode() === 'operativo' && (!isManager || !showMap())"
               (pendingChanged)="pendingCount.set($event)"
             >
             </app-plan-editor>
@@ -238,7 +248,7 @@
     </main>
   }
 
-  @if (isAdmin && (!onboardingMode() || setupIntent === 'products')) {
+  @if (canManageFloor && (!onboardingMode() || setupIntent === 'products')) {
     <div [hidden]="activeTab() !== 'productos'">
       <app-workspace-catalog-panel
         #catalogPanel

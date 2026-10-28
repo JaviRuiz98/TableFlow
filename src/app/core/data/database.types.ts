@@ -9,7 +9,7 @@
  */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type AppRole = 'ADMIN' | 'USER';
+export type AppRole = 'ADMIN' | 'USER' | 'RECEPTOR';
 export type TableShape = 'circle' | 'rectangle';
 export type TableType = 'TABLE' | 'RESERVED';
 export type FloorElementKind = 'wall' | 'zone' | 'door' | 'text';

@@ -5,5 +5,7 @@
 - ADMIN: en Operativa puede alternar entre `Editar plano` / `Ver operativa`.
 - ADMIN: en Operativa puede `Ocultar mapa` / `Mostrar mapa`.
 - ADMIN: el listado de mesas y reservados sigue siendo táctil y cada elemento abre el mismo diálogo operativo.
-- USER: solo ve el listado de mesas y reservados; el mapa y el editor permanecen ocultos.
+- USER: gestión de planos/mapa/editor/productos (ex-ADMIN).
+- RECEPTOR: solo listado de mesas/reservados; mapa y editor ocultos (ex-USER operativo).
+- ADMIN: sin operativa de sala por ahora (solo Usuarios).
 - Los botones `+ Mesa`, `+ Reservado` y `+ Agregar producto` continúan disponibles para ADMIN en el listado operativo.

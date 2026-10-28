@@ -77,7 +77,7 @@ export function emptyWorkspaceTransientUi(): WorkspaceTransientUi {
     newUserFullName: '',
     newUserUsername: '',
     newUserPassword: '',
-    newUserRole: 'USER',
+    newUserRole: 'RECEPTOR',
     planToCopy: null,
     copyPlanName: '',
     planToRename: null,

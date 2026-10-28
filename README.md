@@ -19,8 +19,8 @@ Se entrega como **PWA** (Angular + Ionic) y puede empaquetarse para **Android / 
 | **Operativa y pedidos** | Pedidos por mesa/reservado, cantidades, estados PENDING/PLACED, marcado `attended` |
 | **Observaciones** | Notas por mesa/reservado visibles en operativa |
 | **Catálogo** | Categorías y productos activos; alta/edición y borrado seguro vía RPC |
-| **Usuarios y roles** | `ADMIN` (gestión) y `USER` (operativa); alta de usuarios por Edge Function `create-user` |
-| **Realtime** | Canales Supabase para pedidos/observaciones y avisos al rol USER |
+| **Usuarios y roles** | `ADMIN` (alta de usuarios), `USER` (gestión de sala), `RECEPTOR` (recepción); alta solo por ADMIN vía `create-user` |
+| **Realtime** | Canales Supabase para pedidos/observaciones y avisos al rol RECEPTOR |
 | **Historial del editor** | Pila de snapshots locales con undo/redo durante la sesión de diseño |
 | **PWA y móvil** | Service Worker / build web; Capacitor para Android e iOS |
 
@@ -74,14 +74,14 @@ El código de aplicación se organiza por **features** (dominio) y **core** (tra
 
 | Módulo | Responsabilidad |
 |--------|-----------------|
-| `features/workspace` | Shell: pestañas, composición del editor, diálogos de planos/catálogo, alertas USER |
+| `features/workspace` | Shell: pestañas, composición del editor, diálogos de planos/catálogo, alertas RECEPTOR |
 | `features/floor-editor` | Editor Konva (Stage único), herramientas, historial, panel de productos en mesa |
 | `features/floor-plans` | Persistencia de planos: listado, snapshot, duplicado, lock, attended/observation RPC |
 | `features/tables` | Validación y borrado de mesas/reservados con contraseña |
 | `features/orders` | Pedidos abiertos, asignación de productos, mapas de cantidades, suscripción realtime |
 | `features/products` | Catálogo (categorías/productos) y RPC de historial/borrado seguro |
 | `features/users` | Cliente de verifyAccess / create-user |
-| `features/notifications` | Debounce y canales de alerta para USER |
+| `features/notifications` | Debounce y canales de alerta para RECEPTOR |
 | `features/auth` | Pantalla de login |
 | `core/auth` + `core/guards` | Sesión, roles, `authGuard` |
 | `core/infrastructure` | `SupabaseService`, errores |

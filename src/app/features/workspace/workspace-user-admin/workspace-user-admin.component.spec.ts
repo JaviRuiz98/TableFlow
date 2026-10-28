@@ -35,9 +35,9 @@ describe('WorkspaceUserAdminComponent', () => {
     expect(cmp.userAccessError()).toBe('');
   });
 
-  it('openAccess skips password gate when lockRoleToUser (onboarding)', () => {
+  it('openAccess skips password gate when skipAdminPassword (onboarding)', () => {
     const cmp = create();
-    cmp.lockRoleToUser = true;
+    cmp.skipAdminPassword = true;
     cmp.openAccess();
     expect(cmp.userAccessDialog()).toBe(false);
     expect(cmp.createUserDialog()).toBe(true);
@@ -79,7 +79,7 @@ describe('WorkspaceUserAdminComponent', () => {
     cmp.newUserFullName = 'Ana';
     cmp.newUserUsername = 'ana.user';
     cmp.newUserPassword = 'Password1';
-    cmp.newUserRole = 'USER';
+    cmp.newUserRole = 'RECEPTOR';
     await cmp.createUser();
     expect(userAdmin.createUser).toHaveBeenCalled();
     expect(cmp.createUserDialog()).toBe(false);

@@ -19,6 +19,7 @@ import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form
 /**
  * Owns user-access + create-user dialog state (single owner).
  * Parent only opens via openAccess() and receives toastMessage.
+ * Caller must be ADMIN (Edge enforces again).
  */
 @Component({
   selector: 'app-workspace-user-admin',
@@ -38,8 +39,8 @@ import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form
   styleUrl: './workspace-user-admin.component.scss',
 })
 export class WorkspaceUserAdminComponent {
-  /** When true (onboarding step 3), force role USER and hide role picker. */
-  @Input() lockRoleToUser = false;
+  /** When true (onboarding step 3), skip management-password gate; role picker stays visible. */
+  @Input() skipAdminPassword = false;
 
   @Output() toastMessage = new EventEmitter<string>();
   @Output() userCreated = new EventEmitter<void>();
@@ -56,7 +57,7 @@ export class WorkspaceUserAdminComponent {
   newUserFullName = '';
   newUserUsername = '';
   newUserPassword = '';
-  newUserRole: Role = 'USER';
+  newUserRole: Role = 'RECEPTOR';
   private verifiedAdminPassword = '';
   private unlockTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -71,12 +72,12 @@ export class WorkspaceUserAdminComponent {
 
   /**
    * Public API for shell (ADMIN only — parent must gate the button).
-   * Onboarding (`lockRoleToUser`) skips the management-password gate.
+   * Onboarding (`skipAdminPassword`) skips the management-password gate.
    */
   openAccess(): void {
     this.adminAccessPassword = '';
     this.userAccessError.set('');
-    if (this.lockRoleToUser) {
+    if (this.skipAdminPassword) {
       this.verifiedAdminPassword = '';
       this.openCreateUserDialog();
       return;
@@ -170,8 +171,8 @@ export class WorkspaceUserAdminComponent {
         full_name: this.newUserFullName.trim(),
         username: normalizeUsername(this.newUserUsername),
         password: this.newUserPassword,
-        role: this.lockRoleToUser ? 'USER' : this.newUserRole,
-        ...(this.lockRoleToUser ? {} : { admin_password: this.verifiedAdminPassword }),
+        role: this.newUserRole,
+        ...(this.skipAdminPassword ? {} : { admin_password: this.verifiedAdminPassword }),
       });
       const username = normalizeUsername(this.newUserUsername);
       this.closeCreateUserDialog();
@@ -188,7 +189,7 @@ export class WorkspaceUserAdminComponent {
     this.newUserFullName = '';
     this.newUserUsername = '';
     this.newUserPassword = '';
-    this.newUserRole = 'USER';
+    this.newUserRole = 'RECEPTOR';
     this.createUserError.set('');
   }
 
@@ -197,9 +198,9 @@ export class WorkspaceUserAdminComponent {
       fullName: this.newUserFullName,
       username: this.newUserUsername,
       password: this.newUserPassword,
-      role: this.lockRoleToUser ? ('USER' as Role) : this.newUserRole,
+      role: this.newUserRole,
       verifiedAdminPassword: this.verifiedAdminPassword,
-      requireAdminPassword: !this.lockRoleToUser,
+      requireAdminPassword: !this.skipAdminPassword,
     };
   }
 }

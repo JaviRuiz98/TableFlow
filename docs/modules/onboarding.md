@@ -28,7 +28,7 @@ Progress is persisted on `public.companies` (migration `0020_company_onboarding_
 |--------|-----------------|----------------|
 | `plan` | Create-plan dialog → Konva editor + «Guardar y continuar» | Snapshot saved + `onboarding_plan_done = true` |
 | `products` | Catalog panel only + «Finalizar productos» | Explicit finish CTA (≥1 product) → `onboarding_products_done = true` |
-| `users` | Create-user dialog (role locked to USER; **no** management-password gate) | `onboarding_users_done = true` (staff needs `0019` + redeployed `create-user`) |
+| `users` | Create-user dialog (role locked to RECEPTOR; **no** management-password gate) | `onboarding_users_done = true` (staff needs `0019`/`0022` + redeployed `create-user`) |
 
 «Volver a la configuración» warns if the plan editor has undoable edits (`historyIndex > 0`).
 

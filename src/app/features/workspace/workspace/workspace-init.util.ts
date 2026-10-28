@@ -8,31 +8,44 @@ export interface WorkspacePresentationInit {
   editorMode: EditorMode;
   showMap: boolean;
   selectedPlan: FloorPlan | null;
-  subscribeUserOrderAlerts: boolean;
+  /** Realtime order/observation alerts — RECEPTOR only. */
+  subscribeReceptorOrderAlerts: boolean;
 }
 
 /**
- * Presentación inicial tras cargar planos: ADMIN entra en listado;
- * USER en operativa del primer plano (si existe) con alertas de pedidos.
+ * Presentación inicial:
+ * ADMIN → placeholder (sin tabs operativos).
+ * USER (manager) → listado de planos (ex-ADMIN).
+ * RECEPTOR → operativa del primer plano + alertas.
  */
 export function initialWorkspacePresentation(
-  isAdmin: boolean,
+  input: { isAdmin: boolean; isManager: boolean; isReceptor: boolean },
   plans: FloorPlan[],
 ): WorkspacePresentationInit {
-  if (isAdmin) {
+  if (input.isManager) {
     return {
       activeTab: 'planos',
       editorMode: 'operativo',
       showMap: true,
       selectedPlan: null,
-      subscribeUserOrderAlerts: false,
+      subscribeReceptorOrderAlerts: false,
     };
   }
+  if (input.isReceptor) {
+    return {
+      activeTab: 'operativo',
+      editorMode: 'operativo',
+      showMap: false,
+      selectedPlan: plans.length ? plans[0] : null,
+      subscribeReceptorOrderAlerts: true,
+    };
+  }
+  // ADMIN (or unknown): empty shell — users button is outside this presentation.
   return {
-    activeTab: 'operativo',
+    activeTab: 'planos',
     editorMode: 'operativo',
     showMap: false,
-    selectedPlan: plans.length ? plans[0] : null,
-    subscribeUserOrderAlerts: true,
+    selectedPlan: null,
+    subscribeReceptorOrderAlerts: false,
   };
 }

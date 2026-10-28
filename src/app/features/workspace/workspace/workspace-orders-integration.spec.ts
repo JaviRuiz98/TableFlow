@@ -7,7 +7,7 @@ import { buildOpenOrderQuantityMaps } from '../../orders';
 import { fixtureTable } from '../../../../testing/fixtures';
 
 /**
- * Cross-module wiring: workspace-style order badges + USER alert subscription.
+ * Cross-module wiring: workspace-style order badges + RECEPTOR alert subscription.
  * All Supabase I/O mocked — no remote mutations.
  */
 describe('Workspace ↔ orders ↔ notifications (integration, mocked)', () => {

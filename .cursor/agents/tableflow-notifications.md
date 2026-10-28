@@ -1,6 +1,6 @@
 ---
 name: tableflow-notifications
-description: Use for TableFlow Realtime order/observation alert logic (debounce, channels) under features/notifications for USER role. Do not use for OrderService mutations, workspace alert modal layout without auth, or remote Realtime policy changes.
+description: Use for TableFlow Realtime order/observation alert logic (debounce, channels) under features/notifications for RECEPTOR role. Do not use for OrderService mutations, workspace alert modal layout without auth, or remote Realtime policy changes.
 ---
 
 # Notifications

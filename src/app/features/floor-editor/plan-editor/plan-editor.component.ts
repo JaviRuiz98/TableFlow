@@ -139,7 +139,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     this._panMode = value;
   }
   get isAdmin(): boolean {
-    return this.auth.hasRole('ADMIN');
+    return this.auth.hasRole('USER', 'ADMIN');
   }
   get canEditGeometry(): boolean {
     return canEditPlanGeometry({

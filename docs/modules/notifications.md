@@ -5,7 +5,7 @@
 
 ## Purpose
 
-USER-facing realtime alerts for new pending order activity and observation changes (debounced).
+RECEPTOR-facing realtime alerts for new pending order activity and observation changes (debounced). Workspace only subscribes when `hasRole('RECEPTOR')`.
 
 ## Responsibilities
 

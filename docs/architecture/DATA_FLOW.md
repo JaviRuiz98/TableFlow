@@ -14,15 +14,15 @@ Workspace (ADMIN) → `ProductService` / `FloorPlanService` → PostgREST with R
 
 ## Assign products to table
 
-ADMIN UI → `OrderService.assignProductsToTable` → RPC `assign_products_to_table` → sets table `attended=false` → Realtime notifies USER.
+ADMIN UI → `OrderService.assignProductsToTable` → RPC `assign_products_to_table` → sets table `attended=false` → Realtime notifies RECEPTOR.
 
 ## Mark attended
 
-USER/ADMIN → `FloorPlanService.setTableAttended` → RPC `set_table_attended` → PENDING open items → PLACED + `attended=true`.
+RECEPTOR/ADMIN → `FloorPlanService.setTableAttended` → RPC `set_table_attended` → PENDING open items → PLACED + `attended=true`.
 
 ## Observations
 
-ADMIN → `set_table_observation` → may clear attended when non-empty → Realtime `tables` UPDATE with replica identity FULL → USER alert.
+ADMIN → `set_table_observation` → may clear attended when non-empty → Realtime `tables` UPDATE with replica identity FULL → RECEPTOR alert.
 
 ## Floor save
 

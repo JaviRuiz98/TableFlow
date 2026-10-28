@@ -31,7 +31,9 @@ countAdditionalCompanyUsers(params: { companyId: string | null | undefined; curr
 createUser(request: CreateUserRequest): Promise<void>
 ```
 
-`CreateUserRequest`: `full_name`, `username`, `password`, `role` (`ADMIN`|`USER`), optional `admin_password` (omit during onboarding; Edge still requires JWT ADMIN).
+`CreateUserRequest`: `full_name`, `username`, `password`, `role` (`ADMIN`|`USER`|`RECEPTOR`), optional `admin_password` (omit during onboarding; Edge still requires JWT ADMIN).
+
+Only ADMIN may invoke create-user. Role picker exposes the three roles. `countAdditionalCompanyUsers` counts any other company profile.
 
 ## Dependencies
 

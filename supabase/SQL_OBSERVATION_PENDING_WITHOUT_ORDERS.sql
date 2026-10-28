@@ -13,7 +13,7 @@ as $$
 declare
   v_observation text := nullif(btrim(p_observation), '');
 begin
-  if auth.uid() is null or public.current_role() <> 'ADMIN' then
+  if auth.uid() is null or not public.is_admin() then
     raise exception 'No autorizado';
   end if;
 

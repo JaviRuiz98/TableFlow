@@ -22,4 +22,4 @@ Workspace shell, utils, and `components/*` (plan-admin, catalog-panel, user-aler
 
 ## Forbidden
 
-Visual/HTML/SCSS/navigation changes without authorization; breaking ADMIN Planos/Productos/Usuarios vs USER Operativa gates
+Visual/HTML/SCSS/navigation changes without authorization; breaking USER management vs RECEPTOR receive vs ADMIN placeholder/Usuarios gates

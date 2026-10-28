@@ -10,13 +10,13 @@ UI shell after login: tabs, plan list, operativa composition, product catalog UI
 ## Responsibilities
 
 - Compose `PlanEditorComponent` + `TableProductPanelComponent` + workspace child panels
-- Navigate tabs (`planos` / `operativo` / `productos`) by role
-- Presentation state (toast, editor mode, map visibility, USER alert copy)
+- Navigate tabs by role: USER → Planos/Operativa/Productos; RECEPTOR → Operativa; ADMIN → placeholder + Usuarios
+- Presentation state (toast, editor mode, map visibility, RECEPTOR alert copy)
 - Orchestrate → `floor-plans` / `products` / `orders` / `notifications` / `auth`
 - User admin dialogs → child `WorkspaceUserAdminComponent` → `users`
 - Plan create/copy/rename/delete → `WorkspacePlanAdminDialogsComponent`
 - Catalog list + dialogs → `WorkspaceCatalogPanelComponent` → `ProductService`
-- USER alert modal → `WorkspaceUserAlertModalComponent` (presentation)
+- RECEPTOR alert modal → `WorkspaceUserAlertModalComponent` (presentation)
 - Init + teardown Realtime; reset transient UI on init/logout (delegates child `reset()`)
 
 ## Not this module
@@ -48,7 +48,7 @@ workspace/
 | `workspace-user-admin/` | User access + create-user dialogs + form util (B11) |
 | `workspace-plan-admin-dialogs/` | Create/copy/rename/delete plan dialogs (C2) |
 | `workspace-catalog-panel/` | Productos tab + catalog dialogs + catalog util (C2) |
-| `workspace-user-alert-modal/` | USER alert modal + alert copy util (C2) |
+| `workspace-user-alert-modal/` | RECEPTOR alert modal + alert copy util (C2) |
 | `styles/` | Shared modal SCSS |
 | `index.ts` | Exports `WorkspaceComponent` |
 
@@ -60,7 +60,7 @@ workspace/
 | plan create/copy/rename/delete dialogs | `WorkspacePlanAdminDialogsComponent` |
 | categories, products, catalog dialogs | `WorkspaceCatalogPanelComponent` |
 | user access + create-user forms/dialogs | `WorkspaceUserAdminComponent` |
-| USER alert open + copy | Workspace (modal child is presentation) |
+| RECEPTOR alert open + copy | Workspace (modal child is presentation) |
 | toast | Workspace (receives child toasts) |
 | Realtime channels | Workspace |
 
@@ -70,7 +70,7 @@ workspace/
 2. Resolve optional onboarding setup intent (`tf_setup` / session)
 3. Load plans
 4. `initialWorkspacePresentation(isAdmin, plans)`
-5. USER → order/observation alerts; always → orders subscribe
+5. RECEPTOR → order/observation alerts; always → orders subscribe
 6. Apply setup intent (plan dialog / productos / users) + onboarding return banner when relevant
 7. Catalog child loads categories/products on its own init
 8. Destroy/logout → unsubscribe + reset
@@ -79,7 +79,7 @@ Incomplete ADMIN tenants are redirected to `/onboarding` by `workspaceEntryGuard
 
 ## Tests
 
-- `workspace.component.spec.ts` — ADMIN/USER init, visibility, plans navigation, logout, child delegates
+- `workspace.component.spec.ts` — ADMIN/RECEPTOR init, visibility, plans navigation, logout, child delegates
 - `workspace-user-admin.component.spec.ts`
 - `components/workspace-plan-admin-dialogs/*.spec.ts`
 - `components/workspace-catalog-panel/*.spec.ts`

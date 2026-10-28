@@ -8,7 +8,7 @@
 2. Trigger `handle_new_user` creates `companies` + `profiles` as `ADMIN` with `company_id` **immediately** (same transaction as `auth.users` insert).
 3. User confirms email (Resend SMTP via Supabase Auth — no Resend API in Angular). Login is blocked until confirmed.
 4. `/#/registro-empresa/activar` only shows “correo confirmado” + link to login. **No** post-confirm company insert.
-5. Staff path (create-user): metadata without `establishment_name` → profile `USER`.
+5. Staff path (create-user): metadata without `establishment_name` → profile `RECEPTOR` (after `0022`).
 
 ## Auth callback / PKCE note
 
@@ -42,7 +42,7 @@ Existing RLS on floor plans / tables / orders is still largely “any authentica
 
 **Products:** migration `0018_products_company_id.sql` adds `products.company_id`, company-scoped RLS, and the Angular catalog inserts/lists by company. Still pending: `product_categories` tenancy and full operational RLS.
 
-**Staff users:** migration `0019_staff_profile_company_id.sql` (pending apply) + redeploy Edge `create-user` so new USER profiles inherit the ADMIN `company_id` from trusted metadata on INSERT.
+**Staff users:** migrations `0019_staff_profile_company_id.sql` + `0021`/`0022` (RECEPTOR) + redeploy Edge `create-user` so new RECEPTOR profiles inherit the ADMIN `company_id` from trusted metadata on INSERT.
 
 ## App routes
 

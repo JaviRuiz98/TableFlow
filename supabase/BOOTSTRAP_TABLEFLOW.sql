@@ -27,7 +27,7 @@ create extension if not exists pgcrypto with schema extensions;
 -- Enums (forma final)
 -- -----------------------------------------------------------------------------
 do $$ begin
-  create type public.app_role as enum ('ADMIN', 'USER');
+  create type public.app_role as enum ('ADMIN', 'USER', 'RECEPTOR');
 exception when duplicate_object then null;
 end $$;
 
@@ -62,7 +62,7 @@ end $$;
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   full_name text,
-  role public.app_role not null default 'USER',
+  role public.app_role not null default 'RECEPTOR',
   username text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -134,7 +134,7 @@ create table if not exists public.tables (
 );
 
 comment on column public.tables.observation is
-  'Observación operativa visible al personal USER y editable únicamente por ADMIN.';
+  'Observación operativa visible al personal RECEPTOR y editable únicamente por ADMIN.';
 
 -- Paridad con crearSala: reservas por fecha (legacy; la app actual usa tables.type=RESERVED
 -- para reservados en plano). Se incluye para no divergir del esquema de producción.
@@ -307,7 +307,8 @@ create trigger app_secrets_updated
   for each row execute function public.set_updated_at();
 
 -- -----------------------------------------------------------------------------
--- Auth: nuevo usuario → profile USER (nunca privilegios desde metadata)
+-- Auth: nuevo usuario → profile RECEPTOR (nunca privilegios desde metadata)
+-- Nota: en DB migrada, handle_new_user real está en 0017/0019/0022 (company + staff).
 -- -----------------------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger
@@ -317,7 +318,7 @@ set search_path = public
 as $$
 begin
   insert into public.profiles (id, full_name, role)
-  values (new.id, new.raw_user_meta_data->>'full_name', 'USER');
+  values (new.id, new.raw_user_meta_data->>'full_name', 'RECEPTOR');
   return new;
 end;
 $$;
@@ -347,7 +348,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select public.current_role() = 'ADMIN'
+  select public.current_role() in ('ADMIN', 'USER')
 $$;
 
 -- Alias de compatibilidad
@@ -451,7 +452,7 @@ as $$
 declare
   v_hash text;
 begin
-  if auth.uid() is null or public.current_role() <> 'ADMIN' then
+  if auth.uid() is null or not public.is_admin() then
     return false;
   end if;
 
@@ -483,7 +484,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if auth.uid() is null or public.current_role() not in ('ADMIN', 'USER') then
+  if auth.uid() is null or public.current_role() not in ('USER', 'RECEPTOR') then
     raise exception 'No autorizado';
   end if;
 
@@ -528,7 +529,7 @@ declare
   v_quantity integer;
   v_order_item_id uuid;
 begin
-  if auth.uid() is null or public.current_role() <> 'ADMIN' then
+  if auth.uid() is null or not public.is_admin() then
     raise exception 'No autorizado';
   end if;
 
@@ -614,7 +615,7 @@ as $$
 declare
   v_observation text := nullif(btrim(p_observation), '');
 begin
-  if auth.uid() is null or public.current_role() <> 'ADMIN' then
+  if auth.uid() is null or not public.is_admin() then
     raise exception 'No autorizado';
   end if;
 
@@ -648,7 +649,7 @@ declare
   v_has_products boolean;
   v_hash text;
 begin
-  if auth.uid() is null or public.current_role() <> 'ADMIN' then
+  if auth.uid() is null or not public.is_admin() then
     raise exception 'No autorizado';
   end if;
 

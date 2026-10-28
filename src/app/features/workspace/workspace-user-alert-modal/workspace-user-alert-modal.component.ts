@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonButton, IonModal } from '@ionic/angular/standalone';
 
 /**
- * USER new-order / observation alert modal (presentation only).
+ * RECEPTOR new-order / observation alert modal (presentation only).
  * Parent owns open flag + copy strings and handles acknowledge navigation.
  */
 @Component({

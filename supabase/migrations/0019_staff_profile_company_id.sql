@@ -8,7 +8,7 @@
 -- ADMIN's company_id on the INSERT path (handle_new_user), reading it from
 -- user_metadata.company_id. Never trusts metadata.role.
 --
--- Needed for onboarding step 3 (staff USER belonging to the same company).
+-- Needed for onboarding step 3 (staff belonging to the same company; role → RECEPTOR in 0022).
 -- protect_profile_privileged_columns still blocks client-side company_id updates.
 -- =============================================================================
 

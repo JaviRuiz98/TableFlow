@@ -1,25 +1,48 @@
 import { workspaceShellVisibility } from './workspace-shell-visibility.util';
 
 describe('workspaceShellVisibility', () => {
-  it('ADMIN sees planos, productos, usuarios and plan admin controls', () => {
-    expect(workspaceShellVisibility(true)).toEqual({
+  it('USER (manager) sees Planos + Operativa + Productos, not Usuarios', () => {
+    expect(
+      workspaceShellVisibility({ isAdmin: false, isManager: true, isReceptor: false }),
+    ).toEqual({
       showPlanosTab: true,
       showProductosTab: true,
-      showUsersButton: true,
+      showOperativaTab: true,
+      showUsersButton: false,
       showPlanAdminActions: true,
       showEditorToggle: true,
       showMapToggle: true,
+      showAdminPlaceholder: false,
     });
   });
 
-  it('USER only keeps operativa shell (no admin tabs/controls)', () => {
-    expect(workspaceShellVisibility(false)).toEqual({
+  it('ADMIN only sees Usuarios + placeholder', () => {
+    expect(
+      workspaceShellVisibility({ isAdmin: true, isManager: false, isReceptor: false }),
+    ).toEqual({
       showPlanosTab: false,
       showProductosTab: false,
+      showOperativaTab: false,
+      showUsersButton: true,
+      showPlanAdminActions: false,
+      showEditorToggle: false,
+      showMapToggle: false,
+      showAdminPlaceholder: true,
+    });
+  });
+
+  it('RECEPTOR only keeps operativa shell', () => {
+    expect(
+      workspaceShellVisibility({ isAdmin: false, isManager: false, isReceptor: true }),
+    ).toEqual({
+      showPlanosTab: false,
+      showProductosTab: false,
+      showOperativaTab: true,
       showUsersButton: false,
       showPlanAdminActions: false,
       showEditorToggle: false,
       showMapToggle: false,
+      showAdminPlaceholder: false,
     });
   });
 });

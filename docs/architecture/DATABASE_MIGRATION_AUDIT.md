@@ -33,8 +33,12 @@
 | `0016_observation_pending_without_orders.sql` | Observación vacía no cambia `attended`; no vacía sí |
 | `0017_company_registration.sql` | `companies` + `profiles.company_id` + `handle_new_user` registro empresa |
 | `0018_products_company_id.sql` | `products.company_id` + RLS por empresa + unique por tenant |
+| `0019_staff_profile_company_id.sql` | Staff `handle_new_user` copia `company_id` desde metadata |
+| `0020_company_onboarding_flags.sql` | Flags onboarding en `companies` |
+| `0021_app_role_add_receptor.sql` | Enum `app_role` + valor `RECEPTOR` (apply separado) |
+| `0022_app_role_receptor_responsibilities.sql` | USER→RECEPTOR data/default; staff path + `set_table_attended` |
 
-**Total:** 19 archivos (incluye `0017`/`0018`). **Conflicto de numeración:** dos migraciones comparten prefijo `0007`.
+**Total:** incluye `0017`–`0022`. **Conflicto de numeración:** dos migraciones comparten prefijo `0007`.
 
 ### 1.2 SQL complementarios (no gestionados por CLI)
 

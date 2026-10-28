@@ -1,40 +1,61 @@
 import { initialWorkspacePresentation } from './workspace-init.util';
 import type { FloorPlan } from '../../../core/models/models';
 
-const plan = (id: string): FloorPlan => ({
-  id,
-  name: id,
-  width: 100,
-  height: 100,
-  is_active: false,
-  is_locked: false,
-  created_by: 'u',
-  created_at: '',
-  updated_at: '',
-});
+function plan(id: string): FloorPlan {
+  return {
+    id,
+    name: id,
+    width: 100,
+    height: 100,
+    is_active: true,
+    is_locked: false,
+    created_by: 'u1',
+    created_at: 't',
+    updated_at: 't',
+  };
+}
 
 describe('initialWorkspacePresentation', () => {
-  it('ADMIN opens planos with map and no selected plan', () => {
-    const init = initialWorkspacePresentation(true, [plan('a')]);
+  it('USER (manager) opens planos without receptor alerts', () => {
+    const init = initialWorkspacePresentation(
+      { isAdmin: false, isManager: true, isReceptor: false },
+      [plan('a')],
+    );
     expect(init).toEqual({
       activeTab: 'planos',
       editorMode: 'operativo',
       showMap: true,
       selectedPlan: null,
-      subscribeUserOrderAlerts: false,
+      subscribeReceptorOrderAlerts: false,
     });
   });
 
-  it('USER opens operativa on first plan and enables order alerts', () => {
+  it('RECEPTOR opens operativa with alerts on first plan', () => {
     const plans = [plan('a'), plan('b')];
-    const init = initialWorkspacePresentation(false, plans);
+    const init = initialWorkspacePresentation(
+      { isAdmin: false, isManager: false, isReceptor: true },
+      plans,
+    );
     expect(init.activeTab).toBe('operativo');
     expect(init.showMap).toBe(false);
     expect(init.selectedPlan).toBe(plans[0]);
-    expect(init.subscribeUserOrderAlerts).toBe(true);
+    expect(init.subscribeReceptorOrderAlerts).toBe(true);
   });
 
-  it('USER with empty plans selects null', () => {
-    expect(initialWorkspacePresentation(false, []).selectedPlan).toBeNull();
+  it('ADMIN opens empty placeholder without alerts', () => {
+    const init = initialWorkspacePresentation(
+      { isAdmin: true, isManager: false, isReceptor: false },
+      [plan('a')],
+    );
+    expect(init.subscribeReceptorOrderAlerts).toBe(false);
+    expect(init.selectedPlan).toBeNull();
+    expect(init.showMap).toBe(false);
+  });
+
+  it('RECEPTOR with empty plans keeps selectedPlan null', () => {
+    expect(
+      initialWorkspacePresentation({ isAdmin: false, isManager: false, isReceptor: true }, [])
+        .selectedPlan,
+    ).toBeNull();
   });
 });

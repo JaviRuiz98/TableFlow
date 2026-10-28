@@ -50,7 +50,7 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
   ) {}
 
   private get isAdmin(): boolean {
-    return this.auth.hasRole('ADMIN');
+    return this.auth.hasRole('USER', 'ADMIN');
   }
 
   async ngOnInit(): Promise<void> {

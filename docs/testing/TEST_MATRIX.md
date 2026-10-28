@@ -8,7 +8,7 @@ Legend: **U** unit · **I** integration (mocked) · **E** E2E · **M** manual ·
 | Logout / cleanup | ✓ workspace | ✓ auth.signOut | — | |
 | authGuard redirect | | ✓ | ✓ unauth → login | |
 | ADMIN tabs Planos/Productos/Usuarios | ✓ visibility + workspace | | — | Characterize in Vitest; UI brand manual |
-| USER operativa only | ✓ | | — | |
+| RECEPTOR operativa only | ✓ | | — | |
 | Plan list/create/select | ✓ workspace / floors | ✓ FloorPlanService | — | |
 | Snapshot save (RPC args) | | ✓ | — | Mocked RPC only |
 | Load snapshot + RESERVED split | | ✓ | — | |

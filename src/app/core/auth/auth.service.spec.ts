@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { ErrorMessageService, SupabaseService } from '../infrastructure';
 import { AuthService } from './auth.service';
-import { fixtureProfileAdmin, fixtureProfileUser } from '../../../testing/fixtures';
+import { fixtureProfileAdmin, fixtureProfileReceptor, fixtureProfileUser } from '../../../testing/fixtures';
 import { createQueryBuilder } from '../../../testing/supabase-query-mock';
 
 describe('AuthService (integration with mocked Supabase)', () => {
@@ -90,6 +90,21 @@ describe('AuthService (integration with mocked Supabase)', () => {
     expect(localStorage.getItem('tableflow.sessionStartedAt')).toBeTruthy();
   });
 
+  it('hasRole RECEPTOR only when profile is RECEPTOR', async () => {
+    const session = {
+      access_token: 'tok',
+      user: { id: fixtureProfileReceptor.id },
+    };
+    signInWithPassword.mockResolvedValue({ data: { session }, error: null });
+    fromMock.mockReturnValue(createQueryBuilder({ data: fixtureProfileReceptor, error: null }));
+
+    const service = await readyService();
+    await service.signIn('staff', 'secret');
+    expect(service.hasRole('RECEPTOR')).toBe(true);
+    expect(service.hasRole('ADMIN')).toBe(false);
+    expect(service.hasRole('USER')).toBe(false);
+  });
+
   it('hasRole USER only when profile is USER', async () => {
     const session = {
       access_token: 'tok',
@@ -99,8 +114,9 @@ describe('AuthService (integration with mocked Supabase)', () => {
     fromMock.mockReturnValue(createQueryBuilder({ data: fixtureProfileUser, error: null }));
 
     const service = await readyService();
-    await service.signIn('staff', 'secret');
+    await service.signIn('manager', 'secret');
     expect(service.hasRole('USER')).toBe(true);
+    expect(service.hasRole('RECEPTOR')).toBe(false);
     expect(service.hasRole('ADMIN')).toBe(false);
   });
 

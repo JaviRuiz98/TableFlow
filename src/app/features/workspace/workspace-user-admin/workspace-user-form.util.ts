@@ -1,6 +1,9 @@
 import { isValidUsername } from '../../../core/auth/auth-identity';
 import type { Role } from '../../../core/models/models';
 
+/** Roles selectable when ADMIN creates a user. */
+const CREATABLE_ROLES: ReadonlySet<Role> = new Set(['ADMIN', 'USER', 'RECEPTOR']);
+
 export interface NewUserFormState {
   fullName: string;
   username: string;
@@ -17,7 +20,7 @@ export function canSubmitNewUserForm(state: NewUserFormState): boolean {
     !!state.fullName.trim() &&
     isValidUsername(state.username) &&
     state.password.length >= 6 &&
-    (state.role === 'ADMIN' || state.role === 'USER') &&
+    CREATABLE_ROLES.has(state.role) &&
     (!requireAdminPassword || !!state.verifiedAdminPassword)
   );
 }
@@ -31,7 +34,7 @@ export function validateNewUserForm(state: NewUserFormState): string | null {
   }
   if (!state.password) return 'Introduce una contraseña para el nuevo usuario.';
   if (state.password.length < 6) return 'La contraseña debe tener al menos 6 caracteres.';
-  if (state.role !== 'ADMIN' && state.role !== 'USER') return 'Selecciona un rol válido.';
+  if (!CREATABLE_ROLES.has(state.role)) return 'Selecciona un rol válido.';
   if (requireAdminPassword && !state.verifiedAdminPassword) {
     return 'Vuelve a validar la contraseña de administración.';
   }

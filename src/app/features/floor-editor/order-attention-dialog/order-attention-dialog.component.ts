@@ -73,7 +73,7 @@ export class OrderAttentionDialogComponent implements OnChanges {
   ) {}
 
   get isAdmin(): boolean {
-    return this.auth.hasRole('ADMIN');
+    return this.auth.hasRole('USER', 'ADMIN');
   }
 
   get canManageOrders(): boolean {

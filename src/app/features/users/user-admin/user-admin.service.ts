@@ -36,11 +36,11 @@ export class UserAdminService {
     companyId: string | null | undefined;
     currentUserId: string;
   }): Promise<number> {
+    // Any other company member counts (ADMIN may create USER or RECEPTOR in step 3).
     let query = this.db.client
       .from('profiles')
       .select('id', { count: 'exact', head: true })
-      .neq('id', params.currentUserId)
-      .eq('role', 'USER');
+      .neq('id', params.currentUserId);
 
     if (params.companyId) {
       query = query.eq('company_id', params.companyId);

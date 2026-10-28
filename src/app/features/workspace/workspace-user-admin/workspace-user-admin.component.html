@@ -47,14 +47,8 @@
       <div class="dialog-header">
         <div>
           <span class="dialog-eyebrow">ADMINISTRACIÓN</span>
-          <h2>{{ lockRoleToUser ? 'Crear trabajador' : 'Crear usuario' }}</h2>
-          <p>
-            {{
-              lockRoleToUser
-                ? 'Se creará una cuenta USER asociada a tu empresa.'
-                : 'La cuenta se creará en Supabase con el rol seleccionado.'
-            }}
-          </p>
+          <h2>{{ skipAdminPassword ? 'Crear trabajador' : 'Crear usuario' }}</h2>
+          <p>La cuenta se creará en Supabase con el rol seleccionado (ADMIN, USER o RECEPTOR).</p>
         </div>
         <button type="button" class="dialog-close" (click)="closeCreateUserDialog()"><ion-icon name="close-outline"></ion-icon></button>
       </div>
@@ -131,23 +125,22 @@
             </ion-input>
           </div>
 
-          @if (!lockRoleToUser) {
-            <div class="field">
-              <label class="field-label" for="newUserRole">Rol</label>
-              <ion-select
-                id="newUserRole"
-                class="auth-select"
-                labelPlacement="stacked"
-                fill="outline"
-                interface="popover"
-                [(ngModel)]="newUserRole"
-                name="tf_staff_role"
-              >
-                <ion-select-option value="USER">Usuario (USER)</ion-select-option>
-                <ion-select-option value="ADMIN">Administrador (ADMIN)</ion-select-option>
-              </ion-select>
-            </div>
-          }
+          <div class="field">
+            <label class="field-label" for="newUserRole">Rol</label>
+            <ion-select
+              id="newUserRole"
+              class="auth-select"
+              labelPlacement="stacked"
+              fill="outline"
+              interface="popover"
+              [(ngModel)]="newUserRole"
+              name="tf_staff_role"
+            >
+              <ion-select-option value="ADMIN">Administrador (ADMIN)</ion-select-option>
+              <ion-select-option value="USER">Usuario (USER)</ion-select-option>
+              <ion-select-option value="RECEPTOR">Receptor (RECEPTOR)</ion-select-option>
+            </ion-select>
+          </div>
 
           @if (createUserError()) {
             <p class="form-error">{{ createUserError() }}</p>

@@ -1,6 +1,6 @@
 ---
 name: tableflow-auth
-description: Use for TableFlow login, sessions, roles (ADMIN/USER), AuthService, authGuard, and identity helpers under core/auth, core/guards, features/auth. Do not use for workspace shell tabs, user-admin Edge create-user, or remote Auth provider/policy changes without explicit authorization.
+description: Use for TableFlow login, sessions, roles (ADMIN/USER/RECEPTOR), AuthService, authGuard, and identity helpers under core/auth, core/guards, features/auth. Do not use for workspace shell tabs, user-admin Edge create-user, or remote Auth provider/policy changes without explicit authorization.
 ---
 
 # Auth
@@ -22,4 +22,4 @@ Those paths. Coordinate with `/tableflow-workspace` before changing logout UX in
 
 ## Forbidden
 
-Altering 12h session policy, Auth providers, or ADMIN/USER semantics without authorization
+Altering 12h session policy, Auth providers, or ADMIN/USER/RECEPTOR semantics without authorization

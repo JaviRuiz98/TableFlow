@@ -50,7 +50,7 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
   ) {}
 
   get isAdmin(): boolean {
-    return this.auth.hasRole('ADMIN');
+    return this.auth.hasRole('USER', 'ADMIN');
   }
 
 

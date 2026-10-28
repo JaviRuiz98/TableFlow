@@ -37,8 +37,8 @@ describe('database.types contracts', () => {
     ];
     expect(tables).toHaveLength(11);
 
-    const roles: Enums<'app_role'>[] = ['ADMIN', 'USER'];
-    expect(roles).toEqual(['ADMIN', 'USER']);
+    const roles: Enums<'app_role'>[] = ['ADMIN', 'USER', 'RECEPTOR'];
+    expect(roles).toEqual(['ADMIN', 'USER', 'RECEPTOR']);
 
     const orderStatuses: Enums<'order_status'>[] = ['OPEN', 'CLOSED', 'CANCELLED'];
     expect(orderStatuses).toContain('OPEN');
@@ -49,14 +49,14 @@ describe('database.types contracts', () => {
       id: 'u1',
       full_name: null,
       phone: null,
-      role: 'USER',
+      role: 'RECEPTOR',
       username: 'alice',
       company_id: null,
       created_at: 't',
       updated_at: 't',
     };
     const profile: Profile = profileRow;
-    expect(profile.role).toBe('USER');
+    expect(profile.role).toBe('RECEPTOR');
 
     const tableRow: Tables<'tables'> = {
       id: 't1',
