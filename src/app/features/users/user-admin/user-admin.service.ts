@@ -79,6 +79,15 @@ export class UserAdminService {
         }
       }
       const normalized = detail.toLowerCase();
+      if (
+        normalized.includes('failed to send a request to the edge function') ||
+        normalized.includes('cors') ||
+        normalized.includes('failed to fetch')
+      ) {
+        throw new Error(
+          'No se pudo contactar la función create-user (CORS/preflight). Redespliégala en TableFlow con verify_jwt desactivado: supabase/functions/create-user.',
+        );
+      }
       if (normalized.includes('faltan datos obligatorios') || normalized.includes('completa todos los campos obligatorios')) {
         throw new Error(
           'La función create-user desplegada en Supabase está desactualizada. Actualízala con supabase/functions/create-user/index.ts de este proyecto.',

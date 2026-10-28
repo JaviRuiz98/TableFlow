@@ -53,6 +53,7 @@ createUser(request: CreateUserRequest): Promise<void>
 - Never add service_role / `sb_secret_*` to Angular
 - Do not weaken ADMIN checks in the Edge Function from the client
 - UI still gates ADMIN; server enforces again
+- `create-user/config.toml` sets `verify_jwt = false` so browser OPTIONS preflight works; the function still validates JWT + ADMIN role
 
 ## Restrictions
 

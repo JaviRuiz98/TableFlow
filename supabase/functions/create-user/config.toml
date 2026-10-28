@@ -1,0 +1,3 @@
+# Gateway JWT check breaks browser CORS preflight (OPTIONS has no Authorization).
+# Authz stays in the function: getUser() + profiles.role === ADMIN.
+verify_jwt = false
