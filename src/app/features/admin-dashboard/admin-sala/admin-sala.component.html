@@ -1,0 +1,36 @@
+<section class="section">
+  <header class="page-head">
+    <span class="eyebrow">Operaciones</span>
+    <h1>Gestión de sala</h1>
+    <p class="lede">Accede a las herramientas de organización y funcionamiento de tu establecimiento.</p>
+  </header>
+
+  <div class="grid">
+    <a class="card link-card" routerLink="/sala" [queryParams]="{ tab: 'planos' }">
+      <div class="icon"><ion-icon name="map-outline"></ion-icon></div>
+      <div class="copy">
+        <h2>Planos</h2>
+        <p>Organiza y diseña los planos de mesas y reservados.</p>
+      </div>
+      <ion-icon name="open-outline" class="open"></ion-icon>
+    </a>
+
+    <a class="card link-card" routerLink="/sala" [queryParams]="{ tab: 'operativo' }">
+      <div class="icon"><ion-icon name="restaurant-outline"></ion-icon></div>
+      <div class="copy">
+        <h2>Operativa</h2>
+        <p>Atiende mesas, reservados y el flujo de pedidos en sala.</p>
+      </div>
+      <ion-icon name="open-outline" class="open"></ion-icon>
+    </a>
+
+    <a class="card link-card" routerLink="/sala" [queryParams]="{ tab: 'productos' }">
+      <div class="icon"><ion-icon name="cube-outline"></ion-icon></div>
+      <div class="copy">
+        <h2>Productos</h2>
+        <p>Gestiona el catálogo disponible para los pedidos.</p>
+      </div>
+      <ion-icon name="open-outline" class="open"></ion-icon>
+    </a>
+  </div>
+</section>

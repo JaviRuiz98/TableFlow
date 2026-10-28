@@ -1,0 +1,74 @@
+@use '../admin-shared.scss';
+
+.banner {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.banner ion-icon {
+  font-size: 1.45rem;
+  color: var(--tf-gold);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.blocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.block {
+  padding: 1.1rem 1.15rem;
+}
+
+.block.wide {
+  grid-column: 1 / -1;
+}
+
+.metric-list {
+  list-style: none;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.metric-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(244, 239, 230, 0.03);
+  border: 1px solid var(--tf-border);
+}
+
+.metric-list span {
+  color: var(--tf-muted) !important;
+  font-size: 0.9rem;
+}
+
+.metric-list strong {
+  color: var(--tf-cream) !important;
+  font-size: 1rem;
+}
+
+.muted {
+  margin: 0.75rem 0 0;
+  color: var(--tf-muted) !important;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .blocks {
+    grid-template-columns: 1fr;
+  }
+
+  .block.wide {
+    grid-column: auto;
+  }
+}

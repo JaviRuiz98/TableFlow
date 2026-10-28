@@ -28,4 +28,9 @@ describe('workspace-user-form.util', () => {
   it('rejects invalid usernames', () => {
     expect(validateNewUserForm({ ...valid, username: 'ab' })).toContain('3 y 32');
   });
+
+  it('rejects reserved company-admin username', () => {
+    expect(validateNewUserForm({ ...valid, username: 'Administrador' })).toContain('reservado');
+    expect(canSubmitNewUserForm({ ...valid, username: 'administrador' })).toBe(false);
+  });
 });

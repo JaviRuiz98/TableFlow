@@ -5,12 +5,11 @@
 
 ## Purpose
 
-ADMIN-only user provisioning: verify management password and create users via Edge Function.
+ADMIN-only user provisioning via Edge Function (JWT + ADMIN). No UI management-password gate.
 
 ## Responsibilities
 
-- `verify_app_secret` for key `user_management`
-- Invoke `create-user` with caller JWT
+- Invoke `create-user` with caller JWT (optional `verify_app_secret` remains available if a client sends `admin_password`)
 - Humanize function/RPC errors for UI
 
 **Not in this module:** login/session (`AuthService` in `core/auth`), RLS, Edge Function source deploy.
@@ -31,7 +30,7 @@ countAdditionalCompanyUsers(params: { companyId: string | null | undefined; curr
 createUser(request: CreateUserRequest): Promise<void>
 ```
 
-`CreateUserRequest`: `full_name`, `username`, `password`, `role` (`ADMIN`|`USER`|`RECEPTOR`), optional `admin_password` (omit during onboarding; Edge still requires JWT ADMIN).
+`CreateUserRequest`: `full_name`, `username`, `password`, `role` (`ADMIN`|`USER`|`RECEPTOR`), optional `admin_password` (UI no longer sends it; Edge still requires JWT ADMIN).
 
 Only ADMIN may invoke create-user. Role picker exposes the three roles. `countAdditionalCompanyUsers` counts any other company profile.
 

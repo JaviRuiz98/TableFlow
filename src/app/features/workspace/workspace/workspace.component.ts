@@ -158,9 +158,6 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
     this.configured = this.supabase.configured;
   }
 
-  get activeLabel(): string {
-    return this.activeTab() === 'planos' ? 'Planos' : this.activeTab() === 'operativo' ? 'Operativa' : 'Productos';
-  }
   get isAdmin(): boolean {
     return this.auth.hasRole('ADMIN');
   }
@@ -174,9 +171,9 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
     return this.auth.hasRole('RECEPTOR');
   }
 
-  /** USER always; ADMIN only while guided onboarding still needs plan/products UI. */
+  /** USER day-to-day management; ADMIN retains operativa inside /sala (+ onboarding). */
   get canManageFloor(): boolean {
-    return this.isManager || (this.isAdmin && this.onboardingMode());
+    return this.isManager || this.isAdmin;
   }
 
   /** Role gates for tabs/actions (characterization + template parity). */
@@ -297,6 +294,10 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
         this.editorMode.set(presentation.editorMode);
         this.showMap.set(presentation.showMap);
         this.selectedPlan.set(presentation.selectedPlan);
+        const tabParam = this.route.snapshot.queryParamMap.get('tab');
+        if (tabParam === 'planos' || tabParam === 'operativo' || tabParam === 'productos') {
+          this.activeTab.set(tabParam);
+        }
         if (presentation.subscribeReceptorOrderAlerts) {
           this.userOrderChannel = this.notifications.subscribeToNewOrderItems(
             () => this.showUserAlert(NEW_ORDER_ALERT),
@@ -332,7 +333,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   async toggleEditorMode(): Promise<void> {
-    if (!this.isManager) return;
+    if (!this.canManageFloor) return;
 
     if (this.editorMode() === 'editor') {
       // Al salir del editor persistimos el diseño antes de mostrar el plano operativo.
@@ -351,7 +352,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
   }
 
   toggleMapVisibility(): void {
-    if (!this.isManager || this.editorMode() !== 'operativo') return;
+    if (!this.canManageFloor || this.editorMode() !== 'operativo') return;
     this.showMap.update((visible) => !visible);
   }
 
@@ -531,8 +532,12 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
   openPlan(plan: FloorPlan): void {
     this.selectedPlan.set(plan);
     this.editorMode.set('operativo');
-    this.showMap.set(this.isManager);
+    this.showMap.set(this.canManageFloor);
     this.activeTab.set('operativo');
+  }
+
+  goToAdminDashboard(): void {
+    void this.router.navigateByUrl('/admin');
   }
   openEditor(plan: FloorPlan): void {
     if (!this.canManageFloor) return;

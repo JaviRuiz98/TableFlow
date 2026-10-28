@@ -30,6 +30,16 @@ describe('initialWorkspacePresentation', () => {
     });
   });
 
+  it('ADMIN opens planos like manager (sala access)', () => {
+    const init = initialWorkspacePresentation(
+      { isAdmin: true, isManager: false, isReceptor: false },
+      [plan('a')],
+    );
+    expect(init.activeTab).toBe('planos');
+    expect(init.showMap).toBe(true);
+    expect(init.subscribeReceptorOrderAlerts).toBe(false);
+  });
+
   it('RECEPTOR opens operativa with alerts on first plan', () => {
     const plans = [plan('a'), plan('b')];
     const init = initialWorkspacePresentation(
@@ -40,16 +50,6 @@ describe('initialWorkspacePresentation', () => {
     expect(init.showMap).toBe(false);
     expect(init.selectedPlan).toBe(plans[0]);
     expect(init.subscribeReceptorOrderAlerts).toBe(true);
-  });
-
-  it('ADMIN opens empty placeholder without alerts', () => {
-    const init = initialWorkspacePresentation(
-      { isAdmin: true, isManager: false, isReceptor: false },
-      [plan('a')],
-    );
-    expect(init.subscribeReceptorOrderAlerts).toBe(false);
-    expect(init.selectedPlan).toBeNull();
-    expect(init.showMap).toBe(false);
   });
 
   it('RECEPTOR with empty plans keeps selectedPlan null', () => {

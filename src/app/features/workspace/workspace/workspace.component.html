@@ -41,10 +41,12 @@
         </div>
       } @else {
         <div class="topbar-title">
-          <span>Gestión de sala</span><small>{{ activeLabel }}</small>
+          <span>Gestión de sala</span>
         </div>
         <div class="top-actions">
-          <div class="connection"><span></span>Conectado</div>
+          @if (shellVisibility.showAdminDashboardLink) {
+            <ion-button fill="outline" class="users-button" (click)="goToAdminDashboard()">Dashboard</ion-button>
+          }
           @if (shellVisibility.showUsersButton) {
             <ion-button fill="outline" class="users-button" (click)="openUserAccessDialog()"
               ><ion-icon name="person-add-outline" slot="start"></ion-icon>Usuarios</ion-button
@@ -100,14 +102,6 @@
         <div>◎</div>
         <h2>Configurar usuarios</h2>
         <p>Da de alta al personal que trabajará con TableFlow. Elige el rol: ADMIN, USER o RECEPTOR.</p>
-      </div>
-    </main>
-  } @else if (!onboardingMode() && shellVisibility.showAdminPlaceholder) {
-    <main class="page">
-      <div class="empty">
-        <div>◎</div>
-        <h2>Panel de administración</h2>
-        <p>Las responsabilidades de este rol se configurarán más adelante. Mientras tanto puedes gestionar usuarios.</p>
       </div>
     </main>
   } @else if (activeTab() === 'planos' && canManageFloor && (!onboardingMode() || setupIntent === 'plan')) {
@@ -198,7 +192,7 @@
               <ion-button class="primary-button" [disabled]="savingOnboardingPlan()" (click)="saveOnboardingPlanAndContinue()">
                 {{ savingOnboardingPlan() ? 'Guardando…' : 'Guardar y continuar' }}
               </ion-button>
-            } @else if (isManager) {
+            } @else if (canManageFloor) {
               <ion-button fill="outline" (click)="toggleEditorMode()">
                 {{ editorMode() === 'editor' ? 'Ver operativa' : 'Editar plano' }}
               </ion-button>
@@ -216,16 +210,16 @@
         <div
           class="operative-layout"
           [class.editor-layout]="editorMode() === 'editor' || onboardingMode()"
-          [class.list-only]="!onboardingMode() && editorMode() === 'operativo' && (!isManager || !showMap())"
+          [class.list-only]="!onboardingMode() && editorMode() === 'operativo' && (!canManageFloor || !showMap())"
         >
           <div
             class="plan-column"
-            [class.dialog-host-only]="!onboardingMode() && editorMode() === 'operativo' && (!isManager || !showMap())"
+            [class.dialog-host-only]="!onboardingMode() && editorMode() === 'operativo' && (!canManageFloor || !showMap())"
           >
             <app-plan-editor
               [plan]="selectedPlan()!"
               [mode]="onboardingMode() ? 'editor' : editorMode()"
-              [hideSurface]="!onboardingMode() && editorMode() === 'operativo' && (!isManager || !showMap())"
+              [hideSurface]="!onboardingMode() && editorMode() === 'operativo' && (!canManageFloor || !showMap())"
               (pendingChanged)="pendingCount.set($event)"
             >
             </app-plan-editor>

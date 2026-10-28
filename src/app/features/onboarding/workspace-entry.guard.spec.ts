@@ -35,9 +35,10 @@ describe('workspaceEntryGuard', () => {
     clearSetupIntent();
   });
 
-  function routeWithQuery(value: string | null): ActivatedRouteSnapshot {
+  function routeWith(path: string, query: string | null = null): ActivatedRouteSnapshot {
     return {
-      queryParamMap: { get: vi.fn().mockReturnValue(value) },
+      routeConfig: { path },
+      queryParamMap: { get: vi.fn().mockReturnValue(query) },
     } as unknown as ActivatedRouteSnapshot;
   }
 
@@ -48,10 +49,36 @@ describe('workspaceEntryGuard', () => {
     onboarding.isInitialSetup.mockReturnValue(true);
 
     const result = await TestBed.runInInjectionContext(() =>
-      workspaceEntryGuard(routeWithQuery(null), {} as never),
+      workspaceEntryGuard(routeWith(''), {} as never),
     );
 
     expect(result).toEqual({ commands: ['/onboarding'] });
+  });
+
+  it('sends onboarded ADMIN on / to /admin dashboard', async () => {
+    auth.session.mockReturnValue({});
+    auth.hasRole.mockReturnValue(true);
+    onboarding.refresh.mockResolvedValue({ isComplete: true });
+    onboarding.isInitialSetup.mockReturnValue(false);
+
+    const result = await TestBed.runInInjectionContext(() =>
+      workspaceEntryGuard(routeWith(''), {} as never),
+    );
+
+    expect(result).toEqual({ commands: ['/admin'] });
+  });
+
+  it('allows onboarded ADMIN on /sala', async () => {
+    auth.session.mockReturnValue({});
+    auth.hasRole.mockReturnValue(true);
+    onboarding.refresh.mockResolvedValue({ isComplete: true });
+    onboarding.isInitialSetup.mockReturnValue(false);
+
+    const result = await TestBed.runInInjectionContext(() =>
+      workspaceEntryGuard(routeWith('sala'), {} as never),
+    );
+
+    expect(result).toBe(true);
   });
 
   it('allows incomplete ADMIN when a setup intent is present', async () => {
@@ -60,7 +87,7 @@ describe('workspaceEntryGuard', () => {
     beginSetupIntent('products');
 
     const result = await TestBed.runInInjectionContext(() =>
-      workspaceEntryGuard(routeWithQuery(null), {} as never),
+      workspaceEntryGuard(routeWith(''), {} as never),
     );
 
     expect(result).toBe(true);
@@ -72,7 +99,7 @@ describe('workspaceEntryGuard', () => {
     auth.hasRole.mockReturnValue(false);
 
     const result = await TestBed.runInInjectionContext(() =>
-      workspaceEntryGuard(routeWithQuery(null), {} as never),
+      workspaceEntryGuard(routeWith(''), {} as never),
     );
 
     expect(result).toBe(true);

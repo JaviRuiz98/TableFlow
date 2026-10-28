@@ -19,7 +19,7 @@ Se entrega como **PWA** (Angular + Ionic) y puede empaquetarse para **Android / 
 | **Operativa y pedidos** | Pedidos por mesa/reservado, cantidades, estados PENDING/PLACED, marcado `attended` |
 | **Observaciones** | Notas por mesa/reservado visibles en operativa |
 | **Catálogo** | Categorías y productos activos; alta/edición y borrado seguro vía RPC |
-| **Usuarios y roles** | `ADMIN` (alta de usuarios), `USER` (gestión de sala), `RECEPTOR` (recepción); alta solo por ADMIN vía `create-user` |
+| **Usuarios y roles** | `ADMIN` (dashboard empresarial + alta de usuarios), `USER` (gestión de sala), `RECEPTOR` (recepción); alta solo por ADMIN vía `create-user` |
 | **Realtime** | Canales Supabase para pedidos/observaciones y avisos al rol RECEPTOR |
 | **Historial del editor** | Pila de snapshots locales con undo/redo durante la sesión de diseño |
 | **PWA y móvil** | Service Worker / build web; Capacitor para Android e iOS |

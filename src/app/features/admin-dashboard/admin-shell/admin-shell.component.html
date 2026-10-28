@@ -1,0 +1,59 @@
+<div class="admin-app" (click)="closeUserMenu()">
+  <header class="admin-topbar">
+    <div class="brand-block">
+      <img
+        class="brand-logo"
+        [src]="branding.assets.logoCompactUrl"
+        [alt]="branding.productName"
+        width="56"
+        height="46"
+      />
+      <div class="brand-copy">
+        <strong class="company" [title]="companyName()">{{ companyName() }}</strong>
+      </div>
+    </div>
+
+    <nav class="admin-nav" aria-label="Navegación administración">
+      <a routerLink="/admin/resumen" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
+      <a routerLink="/admin/actividad" routerLinkActive="active">Actividad</a>
+      <a routerLink="/admin/sala" routerLinkActive="active">Gestión de sala</a>
+      <a routerLink="/admin/personal" routerLinkActive="active">Personal</a>
+      <a routerLink="/admin/configuracion" routerLinkActive="active">Configuración</a>
+    </nav>
+
+    <div class="top-actions" (click)="$event.stopPropagation()">
+      <div class="user-menu">
+        <button type="button" class="user-trigger" (click)="toggleUserMenu()">
+          <span>{{ adminLabel() }}</span>
+          <ion-icon name="chevron-down-outline"></ion-icon>
+        </button>
+        @if (userMenuOpen()) {
+          <div class="user-dropdown">
+            <button type="button" (click)="openSala()">
+              <ion-icon name="grid-outline"></ion-icon>
+              Abrir gestión de sala
+            </button>
+            <button type="button" class="danger" (click)="logout()">
+              <ion-icon name="log-out-outline"></ion-icon>
+              Cerrar sesión
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  <nav class="admin-nav-mobile" aria-label="Secciones">
+    <a routerLink="/admin/resumen" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
+    <a routerLink="/admin/actividad" routerLinkActive="active">Actividad</a>
+    <a routerLink="/admin/sala" routerLinkActive="active">Sala</a>
+    <a routerLink="/admin/personal" routerLinkActive="active">Personal</a>
+    <a routerLink="/admin/configuracion" routerLinkActive="active">Config</a>
+  </nav>
+
+  <ion-content class="admin-content" [fullscreen]="true">
+    <div class="admin-page">
+      <router-outlet />
+    </div>
+  </ion-content>
+</div>

@@ -1,0 +1,114 @@
+<section class="overview">
+  <header class="page-head">
+    <span class="eyebrow">Panel de dirección</span>
+    <h1>{{ companyName() }}</h1>
+    <p class="lede">Resumen de la actividad y el estado de tu establecimiento.</p>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-strip">Cargando indicadores…</div>
+  } @else if (snapshot(); as snap) {
+    <div class="kpi-grid">
+      <article class="kpi-card">
+        <div class="kpi-icon"><ion-icon name="grid-outline"></ion-icon></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Mesas y reservados</span>
+          <strong class="kpi-value">{{ displayValue(snap.tablesConfigured) }}</strong>
+          @if (statusLabel(snap.tablesConfigured)) {
+            <small>{{ statusLabel(snap.tablesConfigured) }}</small>
+          }
+          @if (snap.tablesConfigured.detail) {
+            <p class="kpi-detail">{{ snap.tablesConfigured.detail }}</p>
+          }
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon"><ion-icon name="restaurant-outline"></ion-icon></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Pedidos pendientes</span>
+          <strong class="kpi-value">{{ displayValue(snap.pendingOrders) }}</strong>
+          @if (statusLabel(snap.pendingOrders)) {
+            <small>{{ statusLabel(snap.pendingOrders) }}</small>
+          }
+          @if (snap.pendingOrders.detail) {
+            <p class="kpi-detail">{{ snap.pendingOrders.detail }}</p>
+          }
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon"><ion-icon name="cube-outline"></ion-icon></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Productos activos</span>
+          <strong class="kpi-value">{{ displayValue(snap.activeProducts) }}</strong>
+          @if (statusLabel(snap.activeProducts)) {
+            <small>{{ statusLabel(snap.activeProducts) }}</small>
+          }
+          @if (snap.activeProducts.detail) {
+            <p class="kpi-detail">{{ snap.activeProducts.detail }}</p>
+          }
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-icon"><ion-icon name="people-outline"></ion-icon></div>
+        <div class="kpi-body">
+          <span class="kpi-label">Trabajadores registrados</span>
+          <strong class="kpi-value">{{ displayValue(snap.workers) }}</strong>
+          @if (statusLabel(snap.workers)) {
+            <small>{{ statusLabel(snap.workers) }}</small>
+          }
+          @if (snap.workers.detail) {
+            <p class="kpi-detail">{{ snap.workers.detail }}</p>
+          }
+        </div>
+      </article>
+    </div>
+
+    <div class="panels">
+      <section class="panel activity-panel">
+        <header class="panel-head">
+          <h2>Actividad reciente</h2>
+        </header>
+        <div class="empty-state">
+          <ion-icon name="time-outline"></ion-icon>
+          <h3>Actividad no disponible</h3>
+          <p>
+            Las estadísticas de actividad estarán disponibles cuando se complete la configuración de
+            este módulo.
+          </p>
+          <a routerLink="/admin/actividad">Ir a Actividad</a>
+        </div>
+      </section>
+
+      <section class="panel quick-panel">
+        <header class="panel-head">
+          <h2>Accesos rápidos</h2>
+        </header>
+        <div class="quick-grid">
+          <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'planos' }">
+            <ion-icon name="map-outline"></ion-icon>
+            <span>Planos</span>
+            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+          </a>
+          <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'operativo' }">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>Operativa</span>
+            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+          </a>
+          <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'productos' }">
+            <ion-icon name="cube-outline"></ion-icon>
+            <span>Productos</span>
+            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+          </a>
+          <a class="quick-card" routerLink="/admin/personal">
+            <ion-icon name="people-outline"></ion-icon>
+            <span>Personal</span>
+            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+          </a>
+        </div>
+      </section>
+    </div>
+  }
+</section>

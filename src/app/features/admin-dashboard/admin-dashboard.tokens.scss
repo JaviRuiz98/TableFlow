@@ -1,0 +1,40 @@
+/* TableFlow ADMIN — Sello VIP (WCAG-oriented contrast on dark surfaces) */
+:host {
+  --tf-bg: #0b0b0f;
+  --tf-surface: #19191f;
+  --tf-surface-2: #22222a;
+  --tf-surface-hover: #2a2a33;
+  --tf-gold: #d4af7c;
+  --tf-gold-soft: rgba(212, 175, 124, 0.16);
+  --tf-gold-border: rgba(212, 175, 124, 0.38);
+  --tf-cream: #f4efe6;
+  --tf-muted: #c4beb3;
+  --tf-muted-soft: #9a948a;
+  --tf-border: rgba(244, 239, 230, 0.12);
+  --tf-positive: #7db88a;
+  --tf-danger: #e89595;
+  --tf-radius: 14px;
+  --tf-radius-sm: 10px;
+  --tf-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --tf-max: 1180px;
+  color: var(--tf-cream);
+}
+
+:host h1,
+:host h2,
+:host h3,
+:host strong {
+  color: var(--tf-cream);
+}
+
+:host p,
+:host small,
+:host li,
+:host dd,
+:host dt {
+  color: var(--tf-muted);
+}
+
+:host a {
+  color: var(--tf-gold);
+}

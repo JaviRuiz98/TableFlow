@@ -118,12 +118,24 @@
 }
 
 .auth-like-form ion-input-password-toggle {
-  --color: var(--tf-brand-text-muted, #9a948a);
+  --color: #c4b8a8;
+  --color-hover: #d4af7c;
+  --color-focused: #d4af7c;
   --padding-start: 0;
   --padding-end: 4px;
-  color: var(--tf-brand-text-muted, #9a948a);
+  color: #c4b8a8;
   margin: 0;
   height: 52px;
+}
+
+.auth-like-form ion-input-password-toggle::part(native) {
+  color: #c4b8a8;
+  background: transparent;
+}
+
+.auth-like-form ion-input-password-toggle::part(native):hover,
+.auth-like-form ion-input-password-toggle::part(native):focus {
+  color: #d4af7c;
 }
 
 .auth-like-form ion-select.auth-select {
@@ -136,6 +148,11 @@
   --padding-start: 14px;
   --padding-end: 12px;
   min-height: 52px;
+}
+
+.auth-like-form ion-select.auth-select::part(icon) {
+  color: var(--tf-brand-primary, #d4af7c);
+  opacity: 1;
 }
 
 .form-error {

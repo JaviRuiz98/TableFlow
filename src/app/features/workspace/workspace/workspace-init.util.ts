@@ -14,15 +14,14 @@ export interface WorkspacePresentationInit {
 
 /**
  * Presentación inicial:
- * ADMIN → placeholder (sin tabs operativos).
- * USER (manager) → listado de planos (ex-ADMIN).
+ * ADMIN / USER (manager) → listado de planos.
  * RECEPTOR → operativa del primer plano + alertas.
  */
 export function initialWorkspacePresentation(
   input: { isAdmin: boolean; isManager: boolean; isReceptor: boolean },
   plans: FloorPlan[],
 ): WorkspacePresentationInit {
-  if (input.isManager) {
+  if (input.isManager || input.isAdmin) {
     return {
       activeTab: 'planos',
       editorMode: 'operativo',
@@ -40,7 +39,6 @@ export function initialWorkspacePresentation(
       subscribeReceptorOrderAlerts: true,
     };
   }
-  // ADMIN (or unknown): empty shell — users button is outside this presentation.
   return {
     activeTab: 'planos',
     editorMode: 'operativo',

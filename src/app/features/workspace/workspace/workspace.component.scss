@@ -101,20 +101,6 @@ ion-button {
   gap: 10px;
 }
 
-.connection {
-  font-size: 12px;
-  color: var(--tf-brand-text-muted);
-}
-
-.connection span {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #6fce8f;
-  margin-right: 5px;
-}
-
 .logout-button {
   --color: var(--tf-brand-text-muted);
 }
@@ -398,8 +384,7 @@ ion-button {
     padding: 0 12px;
   }
 
-  .topbar-title,
-  .connection {
+  .topbar-title {
     display: none;
   }
 

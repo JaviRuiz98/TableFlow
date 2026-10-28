@@ -1,7 +1,7 @@
 /**
  * What the shell exposes by role.
- * ADMIN — Usuarios only (placeholder until enterprise view).
- * USER — former ADMIN management (Planos / Operativa / Productos).
+ * ADMIN — full management + Usuarios (enterprise home is /admin).
+ * USER — management (Planos / Operativa / Productos).
  * RECEPTOR — Operativa receive only.
  */
 export interface WorkspaceShellVisibility {
@@ -12,7 +12,7 @@ export interface WorkspaceShellVisibility {
   showPlanAdminActions: boolean;
   showEditorToggle: boolean;
   showMapToggle: boolean;
-  showAdminPlaceholder: boolean;
+  showAdminDashboardLink: boolean;
 }
 
 export function workspaceShellVisibility(input: {
@@ -21,14 +21,15 @@ export function workspaceShellVisibility(input: {
   isReceptor: boolean;
 }): WorkspaceShellVisibility {
   const { isAdmin, isManager, isReceptor } = input;
+  const canManage = isManager || isAdmin;
   return {
-    showPlanosTab: isManager,
-    showProductosTab: isManager,
-    showOperativaTab: isManager || isReceptor,
+    showPlanosTab: canManage,
+    showProductosTab: canManage,
+    showOperativaTab: canManage || isReceptor,
     showUsersButton: isAdmin,
-    showPlanAdminActions: isManager,
-    showEditorToggle: isManager,
-    showMapToggle: isManager,
-    showAdminPlaceholder: isAdmin && !isManager,
+    showPlanAdminActions: canManage,
+    showEditorToggle: canManage,
+    showMapToggle: canManage,
+    showAdminDashboardLink: isAdmin,
   };
 }

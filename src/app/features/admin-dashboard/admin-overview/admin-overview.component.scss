@@ -1,0 +1,161 @@
+@use '../admin-shared.scss';
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.kpi-card {
+  display: flex;
+  gap: 0.9rem;
+  padding: 1.05rem 1.1rem;
+  border-radius: var(--tf-radius);
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  box-shadow: var(--tf-shadow);
+  min-height: 138px;
+}
+
+.kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--tf-gold-soft);
+  color: var(--tf-gold);
+  flex-shrink: 0;
+  font-size: 1.15rem;
+}
+
+.kpi-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--tf-muted) !important;
+}
+
+.kpi-value {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--tf-cream) !important;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.kpi-body small {
+  display: inline-block;
+  margin-top: 0.25rem;
+  color: var(--tf-positive) !important;
+  font-size: 0.72rem;
+}
+
+.kpi-detail {
+  margin: 0.45rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--tf-muted) !important;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.panel {
+  padding: 1.05rem 1.15rem 1.2rem;
+}
+
+.panel-head {
+  margin-bottom: 0.85rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.15rem 0 0.1rem;
+}
+
+.empty-state ion-icon {
+  font-size: 1.45rem;
+  color: var(--tf-gold);
+}
+
+.empty-state h3 {
+  margin: 0.15rem 0 0;
+  color: var(--tf-cream) !important;
+  font-size: 1rem;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--tf-muted) !important;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  max-width: 34rem;
+}
+
+.empty-state a {
+  margin-top: 0.35rem;
+  color: var(--tf-gold);
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.quick-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.72rem 0.8rem;
+  border-radius: var(--tf-radius-sm);
+  background: rgba(244, 239, 230, 0.03);
+  border: 1px solid var(--tf-border);
+  color: var(--tf-cream) !important;
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.quick-card:hover {
+  border-color: var(--tf-gold-border);
+  background: var(--tf-gold-soft);
+}
+
+.quick-card ion-icon:first-child {
+  color: var(--tf-gold);
+  font-size: 1.05rem;
+}
+
+.quick-card .chev {
+  color: var(--tf-muted-soft);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 980px) {
+  .kpi-grid,
+  .panels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid,
+  .panels,
+  .quick-grid {
+    grid-template-columns: 1fr;
+  }
+}

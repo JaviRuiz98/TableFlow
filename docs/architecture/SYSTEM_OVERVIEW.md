@@ -26,7 +26,7 @@ TableFlow is a PWA / Capacitor app (Angular 20 + Ionic 8) for nightclub floor op
 ## Roles
 
 - `ADMIN` — plans, catalog, assign products, observations, user creation, deletions.
-- `ADMIN` — provisioning only (create-user); day-to-day floor UI deferred (placeholder).
+- `ADMIN` — enterprise dashboard (`/admin`) + create-user; operativa via `/sala`.
 - `USER` — former ADMIN management shell (planos / operativa write / catálogo).
 - `RECEPTOR` — former USER receive view; mark attended; realtime alerts.
 

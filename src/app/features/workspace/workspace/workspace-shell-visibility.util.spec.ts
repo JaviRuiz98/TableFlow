@@ -12,22 +12,22 @@ describe('workspaceShellVisibility', () => {
       showPlanAdminActions: true,
       showEditorToggle: true,
       showMapToggle: true,
-      showAdminPlaceholder: false,
+      showAdminDashboardLink: false,
     });
   });
 
-  it('ADMIN only sees Usuarios + placeholder', () => {
+  it('ADMIN sees management tabs + Usuarios + link to dashboard', () => {
     expect(
       workspaceShellVisibility({ isAdmin: true, isManager: false, isReceptor: false }),
     ).toEqual({
-      showPlanosTab: false,
-      showProductosTab: false,
-      showOperativaTab: false,
+      showPlanosTab: true,
+      showProductosTab: true,
+      showOperativaTab: true,
       showUsersButton: true,
-      showPlanAdminActions: false,
-      showEditorToggle: false,
-      showMapToggle: false,
-      showAdminPlaceholder: true,
+      showPlanAdminActions: true,
+      showEditorToggle: true,
+      showMapToggle: true,
+      showAdminDashboardLink: true,
     });
   });
 
@@ -42,7 +42,7 @@ describe('workspaceShellVisibility', () => {
       showPlanAdminActions: false,
       showEditorToggle: false,
       showMapToggle: false,
-      showAdminPlaceholder: false,
+      showAdminDashboardLink: false,
     });
   });
 });

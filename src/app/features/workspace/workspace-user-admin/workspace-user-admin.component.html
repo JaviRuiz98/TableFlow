@@ -1,56 +1,12 @@
-<ion-modal [isOpen]="userAccessDialog()" [backdropDismiss]="false" class="create-plan-modal" (didDismiss)="closeUserAccessDialog()">
-  <ng-template>
-    <div class="plan-dialog">
-      <div class="dialog-header">
-        <div>
-          <span class="dialog-eyebrow">ADMINISTRACIÓN</span>
-          <h2>Acceso a usuarios</h2>
-          <p>Introduce la contraseña adicional para gestionar usuarios.</p>
-        </div>
-        <button type="button" class="dialog-close" (click)="closeUserAccessDialog()"><ion-icon name="close-outline"></ion-icon></button>
-      </div>
-      <div class="dialog-body">
-        <form class="auth-like-form" autocomplete="off" (ngSubmit)="verifyUserAccess()">
-          <div class="field">
-            <label class="field-label" for="adminAccessPassword">Contraseña de administración</label>
-            <ion-input
-              id="adminAccessPassword"
-              class="auth-field"
-              type="password"
-              name="tf_admin_access_password"
-              autocomplete="off"
-              fill="outline"
-              [(ngModel)]="adminAccessPassword"
-              placeholder="Contraseña"
-            >
-              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-            </ion-input>
-          </div>
-          @if (userAccessError()) {
-            <p class="form-error">{{ userAccessError() }}</p>
-          }
-        </form>
-      </div>
-      <div class="dialog-actions">
-        <ion-button fill="outline" class="secondary-button" (click)="closeUserAccessDialog()">Cancelar</ion-button>
-        <ion-button class="primary-button" [disabled]="!adminAccessPassword || verifyingUserAccess()" (click)="verifyUserAccess()">{{
-          verifyingUserAccess() ? 'Comprobando…' : 'Acceder'
-        }}</ion-button>
-      </div>
-    </div>
-  </ng-template>
-</ion-modal>
-
 <ion-modal [isOpen]="createUserDialog()" [backdropDismiss]="false" class="user-create-modal" (didDismiss)="closeCreateUserDialog()">
   <ng-template>
     <div class="plan-dialog">
       <div class="dialog-header">
         <div>
           <span class="dialog-eyebrow">ADMINISTRACIÓN</span>
-          <h2>{{ skipAdminPassword ? 'Crear trabajador' : 'Crear usuario' }}</h2>
+          <h2>Crear usuario</h2>
           <p>La cuenta se creará en Supabase con el rol seleccionado (ADMIN, USER o RECEPTOR).</p>
         </div>
-        <button type="button" class="dialog-close" (click)="closeCreateUserDialog()"><ion-icon name="close-outline"></ion-icon></button>
       </div>
       <div class="dialog-body">
         <form class="auth-like-form user-form" autocomplete="off" (ngSubmit)="createUser()">
@@ -121,7 +77,7 @@
               placeholder="Mín. 6 caracteres"
               (ionFocus)="unlockFields()"
             >
-              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+              <ion-input-password-toggle slot="end" color="medium"></ion-input-password-toggle>
             </ion-input>
           </div>
 
@@ -133,6 +89,7 @@
               labelPlacement="stacked"
               fill="outline"
               interface="popover"
+              [interfaceOptions]="roleSelectOptions"
               [(ngModel)]="newUserRole"
               name="tf_staff_role"
             >

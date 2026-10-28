@@ -459,6 +459,23 @@ export interface Database {
         Returns: boolean;
       };
 
+      /** Pending remote apply: `0023_update_own_company_name.sql`. */
+      update_own_company_name: {
+        Args: {
+          p_name: string;
+        };
+        Returns: string;
+      };
+
+      /** Pending remote apply: `0025_update_own_admin_profile.sql`. */
+      update_own_admin_profile: {
+        Args: {
+          p_full_name: string;
+          p_phone: string;
+        };
+        Returns: Json;
+      };
+
       assign_products_to_table: {
         Args: {
           p_table_id: string;

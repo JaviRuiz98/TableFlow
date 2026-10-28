@@ -43,6 +43,17 @@ export const routes: Routes = [
       import('./features/onboarding/onboarding.component').then((m) => m.OnboardingComponent),
   },
   {
+    path: 'admin',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./features/admin-dashboard/admin-dashboard.routes').then((m) => m.ADMIN_DASHBOARD_ROUTES),
+  },
+  {
+    path: 'sala',
+    canActivate: [authGuard, workspaceEntryGuard],
+    component: WorkspaceComponent,
+  },
+  {
     path: '',
     canActivate: [authGuard, workspaceEntryGuard],
     component: WorkspaceComponent,

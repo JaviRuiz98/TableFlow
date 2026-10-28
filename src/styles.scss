@@ -237,6 +237,70 @@ ion-modal.danger-plan-modal .plan-dialog {
   }
 }
 
+/* Create-user modal: password eye uses ion-button color tokens (default was primary/blue) */
+ion-modal.user-create-modal {
+  --ion-color-medium: #c4b8a8;
+  --ion-color-medium-rgb: 196, 184, 168;
+  --ion-color-medium-contrast: #0b0b0f;
+  --ion-color-medium-contrast-rgb: 11, 11, 15;
+  --ion-color-medium-shade: #d4af7c;
+  --ion-color-medium-tint: #e4c79a;
+}
+
+ion-modal.user-create-modal ion-input-password-toggle,
+ion-modal.user-create-modal ion-input-password-toggle ion-button {
+  --color: #c4b8a8;
+  --color-hover: #d4af7c;
+  --color-activated: #d4af7c;
+  --background-hover: transparent;
+  --background-activated: transparent;
+  --background-focused: transparent;
+  --ripple-color: rgba(212, 175, 124, 0.25);
+}
+
+ion-modal.user-create-modal .auth-like-form ion-select.auth-select::part(icon) {
+  color: #d4af7c;
+  opacity: 1;
+}
+
+/* Role select popover (create-user) — overlay is outside component encapsulation */
+.tf-role-select-popover {
+  --background: #19191f;
+  --color: #f4efe6;
+  --width: min(320px, calc(100vw - 48px));
+  border: 1px solid rgba(212, 175, 124, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.tf-role-select-popover ion-list {
+  background: #19191f;
+  padding: 0.35rem 0;
+}
+
+.tf-role-select-popover ion-item {
+  --background: #19191f;
+  --color: #f4efe6;
+  --background-hover: rgba(212, 175, 124, 0.12);
+  --background-focused: rgba(212, 175, 124, 0.14);
+  --background-activated: rgba(212, 175, 124, 0.18);
+  --border-color: transparent;
+  --inner-border-width: 0;
+  --min-height: 44px;
+  font-size: 0.92rem;
+}
+
+.tf-role-select-popover ion-radio {
+  --color: #9a948a;
+  --color-checked: #d4af7c;
+}
+
+.tf-role-select-popover .item-radio-checked {
+  --color: #d4af7c;
+  color: #d4af7c;
+}
+
 /* Auth VIP pages: prevent browser autofill from painting white/blue field backgrounds */
 .login-page input.native-input,
 .login-page input.native-input:focus,

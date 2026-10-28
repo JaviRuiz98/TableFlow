@@ -1,0 +1,61 @@
+<section class="section">
+  <header class="page-head head-row">
+    <div>
+      <span class="eyebrow">Equipo</span>
+      <h1>Personal</h1>
+      <p class="lede">Trabajadores de tu establecimiento. Alta exclusiva del administrador.</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn-secondary" (click)="refresh()" [disabled]="loading()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Actualizar
+      </button>
+      <button type="button" class="btn-primary" (click)="openCreate()">
+        <ion-icon name="person-add-outline"></ion-icon>
+        Crear usuario
+      </button>
+    </div>
+  </header>
+
+  <app-workspace-user-admin
+    #userAdmin
+    (toastMessage)="onToast($event)"
+    (userCreated)="onCreated()"
+  ></app-workspace-user-admin>
+
+  @if (loading()) {
+    <div class="loading-strip">Cargando personal…</div>
+  } @else if (!rows().length) {
+    <div class="state-box">
+      <h2>Sin personal todavía</h2>
+      <p>{{ detail() || 'Crea el primer trabajador con el rol adecuado.' }}</p>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre completo</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Teléfono</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td class="name">{{ row.full_name || '—' }}</td>
+              <td class="meta">{{ row.username || '—' }}</td>
+              <td><span class="role-pill" [attr.data-role]="row.role">{{ roleLabel(row.role) }}</span></td>
+              <td class="meta">{{ row.phone || '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (toast()) {
+    <p class="toast">{{ toast() }}</p>
+  }
+</section>

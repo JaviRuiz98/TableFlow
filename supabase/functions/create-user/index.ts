@@ -46,6 +46,11 @@ function validUsername(value: string): boolean {
   return /^[a-z0-9][a-z0-9._-]{2,31}$/.test(value);
 }
 
+/** Reserved for company-registration ADMIN (migration 0024). */
+function isReservedUsername(value: string): boolean {
+  return value === "administrador";
+}
+
 function humanizeAuthError(message: string): string {
   const text = message.toLowerCase();
   if (text.includes("already registered") || text.includes("already exists") || text.includes("duplicate")) {
@@ -131,6 +136,13 @@ Deno.serve(async (req: Request) => {
 
     if (!fullName || !username || !password || !role) {
       return jsonResponse({ error: "Completa todos los campos obligatorios." }, 400);
+    }
+
+    if (isReservedUsername(username)) {
+      return jsonResponse(
+        { error: "El nombre de usuario «Administrador» está reservado para el titular del registro de empresa." },
+        400,
+      );
     }
 
     if (!validUsername(username)) {

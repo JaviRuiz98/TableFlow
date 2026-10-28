@@ -1,4 +1,4 @@
-import { isValidUsername } from '../../../core/auth/auth-identity';
+import { isReservedUsername, isValidUsername } from '../../../core/auth/auth-identity';
 import type { Role } from '../../../core/models/models';
 
 /** Roles selectable when ADMIN creates a user. */
@@ -29,6 +29,9 @@ export function validateNewUserForm(state: NewUserFormState): string | null {
   const requireAdminPassword = state.requireAdminPassword !== false;
   if (!state.fullName.trim()) return 'Introduce el nombre del usuario.';
   if (!state.username.trim()) return 'Introduce un nombre de usuario.';
+  if (isReservedUsername(state.username)) {
+    return 'El nombre de usuario «Administrador» está reservado para el titular del registro de empresa.';
+  }
   if (!isValidUsername(state.username)) {
     return 'El nombre de usuario debe tener entre 3 y 32 caracteres y solo puede contener letras, números, punto, guion o guion bajo.';
   }

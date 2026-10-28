@@ -9,6 +9,7 @@
 |----------------|--------------------------|-----------------|
 | Authentication | `core/auth/*`, `features/auth/login.component.ts`, `core/guards/` | Keep; optional rename later |
 | Workspace shell | `features/workspace/` (~316 TS + components/ + user-admin) | **B11 + C2** — [../modules/workspace.md](../modules/workspace.md) |
+| Admin dashboard | `features/admin-dashboard/` (ADMIN enterprise shell) | [../modules/admin-dashboard.md](../modules/admin-dashboard.md) |
 | Floor plans (data) | `features/floor-plans/` services + utils | **B6 done**; editor removed in **B7.5** |
 | Floor editor (UI) | `features/floor-editor/` (components/ + helpers + geometry/…) | **B8 + C1** — [../modules/floor-editor.md](../modules/floor-editor.md) |
 | Geometry | `features/floor-editor/geometry/` | **Done (B8.2)** — see [../modules/floor-editor.md](../modules/floor-editor.md) |

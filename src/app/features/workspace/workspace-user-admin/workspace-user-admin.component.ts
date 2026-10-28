@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
-  IonIcon,
   IonInput,
   IonInputPasswordToggle,
   IonModal,
@@ -17,9 +16,10 @@ import { UserAdminService } from '../../users';
 import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form.util';
 
 /**
- * Owns user-access + create-user dialog state (single owner).
- * Parent only opens via openAccess() and receives toastMessage.
- * Caller must be ADMIN (Edge enforces again).
+ * Owns create-user dialog state (single owner).
+ * Parent opens via openAccess() and receives toastMessage / userCreated.
+ * Caller must be ADMIN (Edge enforces again). No management-password gate —
+ * Auth JWT + ADMIN role is sufficient.
  */
 @Component({
   selector: 'app-workspace-user-admin',
@@ -28,7 +28,6 @@ import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form
     CommonModule,
     FormsModule,
     IonButton,
-    IonIcon,
     IonInput,
     IonInputPasswordToggle,
     IonModal,
@@ -39,26 +38,26 @@ import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form
   styleUrl: './workspace-user-admin.component.scss',
 })
 export class WorkspaceUserAdminComponent {
-  /** When true (onboarding step 3), skip management-password gate; role picker stays visible. */
-  @Input() skipAdminPassword = false;
+  /**
+   * @deprecated Management-password gate removed; kept for parent bindings.
+   */
+  @Input() skipAdminPassword = true;
 
   @Output() toastMessage = new EventEmitter<string>();
   @Output() userCreated = new EventEmitter<void>();
 
-  userAccessDialog = signal(false);
   createUserDialog = signal(false);
-  verifyingUserAccess = signal(false);
   creatingUser = signal(false);
-  userAccessError = signal('');
   createUserError = signal('');
   /** Starts false so browsers cannot autofill into readonly staff fields. */
   fieldsInteractive = signal(false);
-  adminAccessPassword = '';
   newUserFullName = '';
   newUserUsername = '';
   newUserPassword = '';
   newUserRole: Role = 'RECEPTOR';
-  private verifiedAdminPassword = '';
+  readonly roleSelectOptions = {
+    cssClass: 'tf-role-select-popover',
+  };
   private unlockTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -70,19 +69,9 @@ export class WorkspaceUserAdminComponent {
     return canSubmitNewUserForm(this.newUserFormState());
   }
 
-  /**
-   * Public API for shell (ADMIN only — parent must gate the button).
-   * Onboarding (`skipAdminPassword`) skips the management-password gate.
-   */
+  /** Public API for shell (ADMIN only — parent must gate the button). */
   openAccess(): void {
-    this.adminAccessPassword = '';
-    this.userAccessError.set('');
-    if (this.skipAdminPassword) {
-      this.verifiedAdminPassword = '';
-      this.openCreateUserDialog();
-      return;
-    }
-    this.userAccessDialog.set(true);
+    this.openCreateUserDialog();
   }
 
   unlockFields(): void {
@@ -92,50 +81,17 @@ export class WorkspaceUserAdminComponent {
   /** Clears overlays/forms — called from Workspace resetTransientUi / logout. */
   reset(): void {
     this.clearUnlockTimer();
-    this.userAccessDialog.set(false);
     this.createUserDialog.set(false);
-    this.verifyingUserAccess.set(false);
     this.creatingUser.set(false);
     this.fieldsInteractive.set(false);
-    this.userAccessError.set('');
     this.createUserError.set('');
-    this.adminAccessPassword = '';
-    this.verifiedAdminPassword = '';
     this.resetNewUserForm();
-  }
-
-  closeUserAccessDialog(): void {
-    this.userAccessDialog.set(false);
-    this.adminAccessPassword = '';
-    this.userAccessError.set('');
-  }
-
-  async verifyUserAccess(): Promise<void> {
-    if (!this.adminAccessPassword || this.verifyingUserAccess()) return;
-    this.verifyingUserAccess.set(true);
-    this.userAccessError.set('');
-    try {
-      const ok = await this.userAdmin.verifyAccess(this.adminAccessPassword);
-      if (!ok) {
-        this.userAccessError.set('Contraseña incorrecta');
-        return;
-      }
-      this.verifiedAdminPassword = this.adminAccessPassword;
-      this.userAccessDialog.set(false);
-      this.adminAccessPassword = '';
-      this.openCreateUserDialog();
-    } catch (error) {
-      this.userAccessError.set(error instanceof Error ? error.message : 'No se pudo verificar la contraseña');
-    } finally {
-      this.verifyingUserAccess.set(false);
-    }
   }
 
   closeCreateUserDialog(): void {
     this.clearUnlockTimer();
     this.createUserDialog.set(false);
     this.fieldsInteractive.set(false);
-    this.verifiedAdminPassword = '';
     this.resetNewUserForm();
   }
 
@@ -172,7 +128,6 @@ export class WorkspaceUserAdminComponent {
         username: normalizeUsername(this.newUserUsername),
         password: this.newUserPassword,
         role: this.newUserRole,
-        ...(this.skipAdminPassword ? {} : { admin_password: this.verifiedAdminPassword }),
       });
       const username = normalizeUsername(this.newUserUsername);
       this.closeCreateUserDialog();
@@ -199,8 +154,8 @@ export class WorkspaceUserAdminComponent {
       username: this.newUserUsername,
       password: this.newUserPassword,
       role: this.newUserRole,
-      verifiedAdminPassword: this.verifiedAdminPassword,
-      requireAdminPassword: !this.skipAdminPassword,
+      verifiedAdminPassword: '',
+      requireAdminPassword: false,
     };
   }
 }

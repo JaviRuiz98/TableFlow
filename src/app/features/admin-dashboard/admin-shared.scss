@@ -1,0 +1,124 @@
+@use './admin-dashboard.tokens.scss';
+
+.page-head {
+  margin-bottom: 1.35rem;
+}
+
+.page-head .eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tf-gold);
+  margin-bottom: 0.4rem;
+}
+
+.page-head h1 {
+  margin: 0;
+  font-size: clamp(1.55rem, 2.2vw, 1.9rem);
+  font-weight: 650;
+  color: var(--tf-cream) !important;
+  letter-spacing: -0.02em;
+}
+
+.page-head .company-title {
+  margin: 0.35rem 0 0;
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  font-weight: 600;
+  color: var(--tf-cream) !important;
+}
+
+.page-head .lede {
+  margin: 0.45rem 0 0;
+  max-width: 42rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--tf-muted) !important;
+}
+
+.panel,
+.card {
+  border-radius: var(--tf-radius);
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  box-shadow: var(--tf-shadow);
+  color: var(--tf-cream);
+}
+
+.panel-head h2,
+.card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--tf-cream) !important;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--tf-gold);
+  color: var(--tf-bg);
+  border-color: var(--tf-gold);
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--tf-cream);
+  border-color: var(--tf-border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--tf-gold-border);
+  background: var(--tf-gold-soft);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.state-box {
+  border-radius: var(--tf-radius);
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  padding: 1.25rem 1.2rem;
+}
+
+.state-box h2,
+.state-box h3 {
+  margin: 0.4rem 0 0;
+  color: var(--tf-cream) !important;
+  font-size: 1.05rem;
+}
+
+.state-box p {
+  margin: 0.45rem 0 0;
+  color: var(--tf-muted) !important;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.loading-strip {
+  padding: 1rem 1.1rem;
+  border-radius: var(--tf-radius);
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+  color: var(--tf-muted);
+}

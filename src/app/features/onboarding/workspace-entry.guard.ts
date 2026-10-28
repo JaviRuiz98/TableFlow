@@ -5,8 +5,12 @@ import { isSetupIntent, peekSetupIntent, TF_SETUP_QUERY } from './onboarding-set
 import { OnboardingService } from './onboarding.service';
 
 /**
- * Incomplete ADMIN tenants land on /onboarding instead of Planos.
- * Explicit setup intents (CTA from onboarding) may enter the workspace.
+ * Post-login workspace (/ and /sala):
+ * - USER / RECEPTOR → workspace
+ * - ADMIN + setup intent → workspace (onboarding steps)
+ * - ADMIN + incomplete onboarding → /onboarding
+ * - ADMIN onboarded on `/` → /admin dashboard
+ * - ADMIN onboarded on `/sala` → workspace (gestión de sala)
  */
 export const workspaceEntryGuard: CanActivateFn = async (route) => {
   const auth = inject(AuthService);
@@ -24,11 +28,18 @@ export const workspaceEntryGuard: CanActivateFn = async (route) => {
 
   try {
     await onboarding.refresh();
-    if (!onboarding.isInitialSetup()) return true;
+    if (onboarding.isInitialSetup()) {
+      return router.createUrlTree(['/onboarding']);
+    }
   } catch {
-    // If progress cannot be loaded, do not block the operational shell.
+    // If progress cannot be loaded, do not block operational entry.
+  }
+
+  const path = route.routeConfig?.path ?? '';
+  if (path === 'sala') {
     return true;
   }
 
-  return router.createUrlTree(['/onboarding']);
+  // Default home for onboarded ADMIN is the enterprise dashboard.
+  return router.createUrlTree(['/admin']);
 };

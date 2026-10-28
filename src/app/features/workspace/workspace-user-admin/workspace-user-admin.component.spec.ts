@@ -25,46 +25,13 @@ describe('WorkspaceUserAdminComponent', () => {
     return TestBed.createComponent(WorkspaceUserAdminComponent).componentInstance;
   }
 
-  it('openAccess clears password error and opens gate dialog', () => {
+  it('openAccess opens create dialog without management-password gate', () => {
     const cmp = create();
-    cmp.adminAccessPassword = 'x';
-    cmp.userAccessError.set('old');
     cmp.openAccess();
-    expect(cmp.userAccessDialog()).toBe(true);
-    expect(cmp.adminAccessPassword).toBe('');
-    expect(cmp.userAccessError()).toBe('');
-  });
-
-  it('openAccess skips password gate when skipAdminPassword (onboarding)', () => {
-    const cmp = create();
-    cmp.skipAdminPassword = true;
-    cmp.openAccess();
-    expect(cmp.userAccessDialog()).toBe(false);
     expect(cmp.createUserDialog()).toBe(true);
     expect(cmp.newUserFullName).toBe('');
     expect(cmp.newUserUsername).toBe('');
     expect(cmp.newUserPassword).toBe('');
-  });
-
-  it('verifyUserAccess opens create dialog when password ok', async () => {
-    userAdmin.verifyAccess.mockResolvedValue(true);
-    const cmp = create();
-    cmp.openAccess();
-    cmp.adminAccessPassword = 'secret';
-    await cmp.verifyUserAccess();
-    expect(cmp.userAccessDialog()).toBe(false);
-    expect(cmp.createUserDialog()).toBe(true);
-  });
-
-  it('verifyUserAccess keeps gate open on bad password', async () => {
-    userAdmin.verifyAccess.mockResolvedValue(false);
-    const cmp = create();
-    cmp.openAccess();
-    cmp.adminAccessPassword = 'bad';
-    await cmp.verifyUserAccess();
-    expect(cmp.userAccessDialog()).toBe(true);
-    expect(cmp.userAccessError()).toBe('Contraseña incorrecta');
-    expect(cmp.createUserDialog()).toBe(false);
   });
 
   it('createUser validates then emits toast on success', async () => {
@@ -73,15 +40,19 @@ describe('WorkspaceUserAdminComponent', () => {
     const toast = vi.fn();
     cmp.toastMessage.subscribe(toast);
     cmp.openAccess();
-    cmp.adminAccessPassword = 'admin';
-    userAdmin.verifyAccess.mockResolvedValue(true);
-    await cmp.verifyUserAccess();
     cmp.newUserFullName = 'Ana';
     cmp.newUserUsername = 'ana.user';
     cmp.newUserPassword = 'Password1';
     cmp.newUserRole = 'RECEPTOR';
     await cmp.createUser();
-    expect(userAdmin.createUser).toHaveBeenCalled();
+    expect(userAdmin.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        full_name: 'Ana',
+        username: 'ana.user',
+        role: 'RECEPTOR',
+      }),
+    );
+    expect(userAdmin.createUser.mock.calls[0][0].admin_password).toBeUndefined();
     expect(cmp.createUserDialog()).toBe(false);
     expect(toast).toHaveBeenCalledWith(expect.stringContaining('ana.user'));
   });
@@ -92,7 +63,6 @@ describe('WorkspaceUserAdminComponent', () => {
     cmp.newUserFullName = 'x';
     cmp.reset();
     expect(cmp.createUserDialog()).toBe(false);
-    expect(cmp.userAccessDialog()).toBe(false);
     expect(cmp.newUserFullName).toBe('');
   });
 });

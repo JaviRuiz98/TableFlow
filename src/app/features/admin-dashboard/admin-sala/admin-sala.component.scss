@@ -1,0 +1,51 @@
+@use '../admin-shared.scss';
+
+.grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.link-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.95rem;
+  align-items: center;
+  padding: 1.15rem 1.2rem;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.link-card:hover {
+  border-color: var(--tf-gold-border);
+  background: var(--tf-surface-2);
+}
+
+.icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--tf-gold-soft);
+  color: var(--tf-gold);
+  font-size: 1.3rem;
+}
+
+.copy h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--tf-cream) !important;
+}
+
+.copy p {
+  margin: 0.3rem 0 0;
+  color: var(--tf-muted) !important;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.open {
+  color: var(--tf-muted-soft);
+  font-size: 1.15rem;
+}

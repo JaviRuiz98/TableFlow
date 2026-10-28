@@ -171,17 +171,18 @@ describe('WorkspaceComponent (characterization)', () => {
     return { cmp: fixture.componentInstance, fixture, userAdmin, planAdmin, catalogPanel };
   }
 
-  it('ADMIN init: placeholder shell, Usuarios only, no receptor alerts', async () => {
+  it('ADMIN init: management shell + Usuarios, no receptor alerts', async () => {
     const { cmp } = await create();
     expect(cmp.isAdmin).toBe(true);
     expect(cmp.isManager).toBe(false);
-    expect(cmp.selectedPlan()).toBeNull();
-    expect(cmp.showMap()).toBe(false);
+    expect(cmp.canManageFloor).toBe(true);
+    expect(cmp.activeTab()).toBe('planos');
+    expect(cmp.showMap()).toBe(true);
     expect(cmp.shellVisibility).toEqual(
       workspaceShellVisibility({ isAdmin: true, isManager: false, isReceptor: false }),
     );
     expect(cmp.shellVisibility.showUsersButton).toBe(true);
-    expect(cmp.shellVisibility.showAdminPlaceholder).toBe(true);
+    expect(cmp.shellVisibility.showAdminDashboardLink).toBe(true);
     expect(notifications.subscribeToNewOrderItems).not.toHaveBeenCalled();
     expect(orders.subscribe).toHaveBeenCalledWith(expect.any(Function), 'workspace-orders');
   });

@@ -175,8 +175,8 @@ export class AuthService {
 
   /**
    * Public company registration via Auth signUp.
-   * Never sends role/company_id. Server handle_new_user creates company + ADMIN
-   * from establishment_name metadata. Login remains blocked until email confirm.
+   * Never sends role/company_id/username. Server handle_new_user creates company + ADMIN
+   * (username Administrador) from establishment_name metadata. Login blocked until email confirm.
    */
   async signUpCompany(input: CompanySignUpInput): Promise<CompanySignUpResult> {
     if (!this.supabase.configured) {
@@ -241,6 +241,48 @@ export class AuthService {
     const session = this.session();
     if (!session?.user) return;
     await this.loadProfile(session.user);
+  }
+
+  /**
+   * Requests Auth email change for the signed-in user.
+   * Supabase may require confirmation on the new address before it becomes definitive.
+   */
+  async updateAccountEmail(email: string): Promise<{ email: string; confirmationRequired: boolean }> {
+    if (!this.supabase.configured) {
+      throw new Error('Supabase no está configurado.');
+    }
+    const next = email.trim().toLowerCase();
+    if (!next || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next) || next.length > 120) {
+      throw new Error('Introduce un correo electrónico válido.');
+    }
+    const current = this.session()?.user?.email?.trim().toLowerCase() ?? '';
+    if (next === current) {
+      return { email: current, confirmationRequired: false };
+    }
+
+    const { data, error } = await this.supabase.client.auth.updateUser({ email: next });
+    if (error) {
+      throw new Error(this.errors.humanize(error, 'No se pudo actualizar el correo'));
+    }
+
+    const { data: sessionData } = await this.supabase.client.auth.getSession();
+    if (sessionData.session) {
+      this.session.set(sessionData.session);
+    }
+
+    const effective =
+      sessionData.session?.user?.email?.trim().toLowerCase() ??
+      data.user?.email?.trim().toLowerCase() ??
+      current;
+    const pendingNew =
+      typeof (data.user as { new_email?: string } | null)?.new_email === 'string'
+        ? String((data.user as { new_email?: string }).new_email).trim().toLowerCase()
+        : '';
+
+    return {
+      email: effective || current,
+      confirmationRequired: !!pendingNew || effective !== next,
+    };
   }
 
   async signOut(): Promise<void> {
