@@ -18,7 +18,7 @@ describe('PlanDuplicationService', () => {
       height: 900,
       is_active: false,
       is_locked: true,
-      created_by: 'u1',
+      company_id: 'company-1',
       created_at: '',
       updated_at: '',
     };
@@ -44,10 +44,10 @@ describe('PlanDuplicationService', () => {
     });
 
     const service = TestBed.inject(PlanDuplicationService);
-    const result = await service.duplicate(original, 'u1', 'Copia');
+    const result = await service.duplicate(original, 'Copia');
 
     expect(floors.load).toHaveBeenCalledWith('src');
-    expect(floors.create).toHaveBeenCalledWith('Copia', 1800, 900, 'u1');
+    expect(floors.create).toHaveBeenCalledWith('Copia', 1800, 900, 'company-1');
     expect(floors.saveSnapshot).toHaveBeenCalledWith('copy', expect.any(Object));
     expect(floors.setLocked).toHaveBeenCalledWith('copy', true);
     expect(result.is_locked).toBe(true);

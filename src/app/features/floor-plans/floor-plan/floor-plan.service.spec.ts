@@ -36,12 +36,12 @@ describe('FloorPlanService', () => {
     const created = { id: 'p2', name: 'Nueva', width: 2000, height: 1200 };
     const builder = createQueryBuilder({ data: created, error: null });
     fromMock.mockReturnValue(builder);
-    await expect(service.create('Nueva', 2000, 1200, 'user-1')).resolves.toEqual(created);
+    await expect(service.create('Nueva', 2000, 1200, 'company-1')).resolves.toEqual(created);
     expect(builder['insert']).toHaveBeenCalledWith({
       name: 'Nueva',
       width: 2000,
       height: 1200,
-      created_by: 'user-1',
+      company_id: 'company-1',
     });
   });
 

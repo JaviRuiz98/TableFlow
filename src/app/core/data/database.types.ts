@@ -122,7 +122,8 @@ export interface Database {
           height: number;
           is_active: boolean;
           is_locked: boolean;
-          created_by: string;
+          /** Present after 0027. Ownership key (created_by removed). */
+          company_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -133,7 +134,7 @@ export interface Database {
           height?: number;
           is_active?: boolean;
           is_locked?: boolean;
-          created_by: string;
+          company_id: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -144,7 +145,7 @@ export interface Database {
           height?: number;
           is_active?: boolean;
           is_locked?: boolean;
-          created_by?: string;
+          company_id?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -440,6 +441,28 @@ export interface Database {
     Views: Record<string, never>;
 
     Functions: {
+      /** Pending remote apply: `0027_floor_plans_company_id.sql`. */
+      current_company_id: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
+
+      /** Pending remote apply: `0028_operational_tenant_rls.sql`. */
+      floor_plan_belongs_to_current_company: {
+        Args: {
+          p_floor_plan_id: string;
+        };
+        Returns: boolean;
+      };
+
+      /** Pending remote apply: `0028_operational_tenant_rls.sql`. */
+      table_belongs_to_current_company: {
+        Args: {
+          p_table_id: string;
+        };
+        Returns: boolean;
+      };
+
       replace_floor_plan_snapshot: {
         Args: {
           p_floor_plan_id: string;
@@ -459,12 +482,20 @@ export interface Database {
         Returns: boolean;
       };
 
-      /** Pending remote apply: `0023_update_own_company_name.sql`. */
+      /** Pending remote apply: `0023_update_own_company_name.sql` (+ uniqueness in `0026`). */
       update_own_company_name: {
         Args: {
           p_name: string;
         };
         Returns: string;
+      };
+
+      /** Pending remote apply: `0026_unique_company_name.sql`. */
+      is_company_name_available: {
+        Args: {
+          p_name: string;
+        };
+        Returns: boolean;
       };
 
       /** Pending remote apply: `0025_update_own_admin_profile.sql`. */

@@ -12,7 +12,7 @@ const samplePlan: FloorPlan = {
   height: 1200,
   is_active: false,
   is_locked: false,
-  created_by: 'u1',
+  company_id: 'company-1',
   created_at: '',
   updated_at: '',
 };
@@ -27,12 +27,14 @@ describe('WorkspacePlanAdminDialogsComponent', () => {
   const auth = {
     hasRole: vi.fn().mockReturnValue(true),
     session: vi.fn().mockReturnValue({ user: { id: 'u1' } }),
+    profile: vi.fn().mockReturnValue({ id: 'u1', company_id: 'company-1' }),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     auth.hasRole.mockReturnValue(true);
     auth.session.mockReturnValue({ user: { id: 'u1' } });
+    auth.profile.mockReturnValue({ id: 'u1', company_id: 'company-1' });
     TestBed.configureTestingModule({
       imports: [WorkspacePlanAdminDialogsComponent],
       providers: [

@@ -7,9 +7,10 @@ import { buildDuplicatedSnapshot } from '../floor-plan-snapshot/floor-plan-snaps
 export class PlanDuplicationService {
   constructor(private readonly floors: FloorPlanService) {}
 
-  async duplicate(plan: FloorPlan, userId: string, copyName: string): Promise<FloorPlan> {
+  /** Duplicate geometry into a new plan owned by the same company as the source. */
+  async duplicate(plan: FloorPlan, copyName: string): Promise<FloorPlan> {
     const source = await this.floors.load(plan.id);
-    const copy = await this.floors.create(copyName, plan.width, plan.height, userId);
+    const copy = await this.floors.create(copyName, plan.width, plan.height, plan.company_id);
     const clone: FloorSnapshot = buildDuplicatedSnapshot(source, copy.id);
     await this.floors.saveSnapshot(copy.id, clone);
     if (plan.is_locked) {

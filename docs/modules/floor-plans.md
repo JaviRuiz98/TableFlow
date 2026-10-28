@@ -32,9 +32,11 @@ Persist and manage floor plans, snapshots (elements + tables/reserved), lock fla
 
 ## Public API (`FloorPlanService`)
 
-`list`, `create`, `update`, `remove`, `load`, `saveSnapshot`, `setTableAttended`, `loadTableAttentionStates`, `setTableObservation`, `createOperationalTarget`, `setLocked`
+`list`, `create(name, width, height, companyId)`, `update`, `remove`, `load`, `saveSnapshot`, `setTableAttended`, `loadTableAttentionStates`, `setTableObservation`, `createOperationalTarget`, `setLocked`
 
-`PlanDuplicationService.duplicate(plan, userId, copyName)`
+`PlanDuplicationService.duplicate(plan, copyName)` — copy inherits `plan.company_id`
+
+Ownership: `floor_plans.company_id` only (migration `0027`; `created_by` removed). Tenant RLS/RPC hardening: `0028` / `0029` (pending apply).
 
 ## Duplication behaviour (do not “improve” casually)
 

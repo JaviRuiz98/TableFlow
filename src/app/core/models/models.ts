@@ -51,7 +51,8 @@ export interface FloorPlan {
   height: number;
   is_active: boolean;
   is_locked: boolean;
-  created_by: string;
+  /** Tenant owner after migration 0027 (replaces created_by). */
+  company_id: string;
   created_at: string;
   updated_at: string;
 }

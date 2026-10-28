@@ -13,6 +13,7 @@ describe('AuthService (integration with mocked Supabase)', () => {
   let exchangeCodeForSession: ReturnType<typeof vi.fn>;
   let onAuthStateChange: ReturnType<typeof vi.fn>;
   let fromMock: ReturnType<typeof vi.fn>;
+  let rpcMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     localStorage.clear();
@@ -23,6 +24,7 @@ describe('AuthService (integration with mocked Supabase)', () => {
     exchangeCodeForSession = vi.fn().mockResolvedValue({ data: { session: null }, error: null });
     onAuthStateChange = vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
     fromMock = vi.fn();
+    rpcMock = vi.fn().mockResolvedValue({ data: true, error: null });
 
     TestBed.configureTestingModule({
       providers: [
@@ -41,6 +43,7 @@ describe('AuthService (integration with mocked Supabase)', () => {
                 onAuthStateChange,
               },
               from: fromMock,
+              rpc: rpcMock,
             },
           },
         },
@@ -163,6 +166,7 @@ describe('AuthService (integration with mocked Supabase)', () => {
       email: 'boss@club.test',
       confirmationRequired: true,
     });
+    expect(rpcMock).toHaveBeenCalledWith('is_company_name_available', { p_name: 'Club Test' });
     expect(localStorage.getItem('tableflow.sessionStartedAt')).toBeNull();
     expect(signUp).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -178,5 +182,20 @@ describe('AuthService (integration with mocked Supabase)', () => {
     );
     const meta = signUp.mock.calls[0][0].options.data as Record<string, unknown>;
     expect(meta['role']).toBeUndefined();
+  });
+
+  it('signUpCompany blocks when commercial name is already taken', async () => {
+    rpcMock.mockResolvedValue({ data: false, error: null });
+    const service = await readyService();
+    await expect(
+      service.signUpCompany({
+        email: 'boss@club.test',
+        password: 'secreto123',
+        adminFullName: 'Boss Club',
+        establishmentName: 'Sala Chocolatte',
+        phone: '+34 600 000 000',
+      }),
+    ).rejects.toThrow(/Ya existe una empresa/);
+    expect(signUp).not.toHaveBeenCalled();
   });
 });

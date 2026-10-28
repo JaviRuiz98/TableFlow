@@ -84,7 +84,7 @@ describe('database.types contracts', () => {
       height: 1200,
       is_active: true,
       is_locked: false,
-      created_by: 'u1',
+      company_id: 'co1',
       created_at: 't',
       updated_at: 't',
     };

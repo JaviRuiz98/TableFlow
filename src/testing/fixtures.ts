@@ -45,7 +45,7 @@ export const fixturePlan: FloorPlan = {
   height: 1200,
   is_active: true,
   is_locked: false,
-  created_by: 'user-admin',
+  company_id: 'company-1',
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };

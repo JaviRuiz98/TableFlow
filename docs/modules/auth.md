@@ -17,8 +17,8 @@ Session, profile/role loading, login UI, route guard, username↔internal email 
 
 ## Company registration flow
 
-1. Angular `signUpCompany` → Auth `signUp` with metadata `full_name`, `establishment_name`, `phone` (never `role` / `company_id` / `username`).
-2. Trigger `handle_new_user` creates `companies` + `profiles` as `ADMIN` with fixed `username = Administrador` (migration `0024`; base path in `0017`/`0022`). Login remains the real email.
+1. Angular `signUpCompany` checks `is_company_name_available` then Auth `signUp` with metadata `full_name`, `establishment_name`, `phone` (never `role` / `company_id` / `username`).
+2. Trigger `handle_new_user` creates `companies` + `profiles` as `ADMIN` with fixed `username = Administrador` (migration `0024`; unique commercial name in `0026`). Login remains the real email.
 3. Resend SMTP sends confirm email; login blocked until confirmed.
 4. `/registro-empresa/activar` only reports confirmation success — no second activation RPC.
 5. Staff create-user must not use reserved username `administrador` (Angular + Edge).

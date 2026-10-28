@@ -188,6 +188,8 @@ export class AuthService {
     const establishmentName = input.establishmentName.trim();
     const phone = input.phone.trim();
 
+    await this.assertCompanyNameAvailable(establishmentName);
+
     const { data, error } = await this.supabase.client.auth.signUp({
       email,
       password: input.password,
@@ -237,10 +239,45 @@ export class AuthService {
     }
   }
 
+  /**
+   * Public pre-check for company registration (RPC `is_company_name_available`).
+   * Server unique index remains the real enforcement.
+   */
+  async assertCompanyNameAvailable(name: string): Promise<void> {
+    if (!this.supabase.configured) {
+      throw new Error('Supabase no está configurado.');
+    }
+    const trimmed = name.trim();
+    if (trimmed.length < 2) {
+      throw new Error('Introduce un nombre comercial de al menos 2 caracteres.');
+    }
+
+    const { data, error } = await this.supabase.client.rpc('is_company_name_available', {
+      p_name: trimmed,
+    });
+
+    if (error) {
+      // RPC not deployed yet — signup may still fail on unique index after 0026.
+      if (this.isMissingCompanyNameRpc(error.message)) {
+        return;
+      }
+      throw new Error(this.errors.humanize(error, 'No se pudo comprobar el nombre comercial'));
+    }
+
+    if (data !== true) {
+      throw new Error('Ya existe una empresa con ese nombre. Elige otro nombre comercial.');
+    }
+  }
+
   async refreshProfile(): Promise<void> {
     const session = this.session();
     if (!session?.user) return;
     await this.loadProfile(session.user);
+  }
+
+  private isMissingCompanyNameRpc(message: string): boolean {
+    const t = message.toLowerCase();
+    return t.includes('could not find the function') || t.includes('is_company_name_available');
   }
 
   /**

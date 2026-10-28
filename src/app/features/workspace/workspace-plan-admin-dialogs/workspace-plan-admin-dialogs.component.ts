@@ -98,13 +98,14 @@ export class WorkspacePlanAdminDialogsComponent {
   async createPlan(): Promise<void> {
     if (!this.isAdmin) return;
     const name = this.newPlanName.trim();
-    const session = this.auth.session();
-    if (!name || !session) {
-      this.toastMessage.emit('No hay una sesión activa');
+    const companyId = this.auth.profile()?.company_id?.trim();
+    if (!name) return;
+    if (!companyId) {
+      this.toastMessage.emit('No hay una empresa asociada a tu cuenta');
       return;
     }
     try {
-      const plan = await this.floors.create(name, 2000, 1200, session.user.id);
+      const plan = await this.floors.create(name, 2000, 1200, companyId);
       this.plansUpdated.emit([...this.plans, plan]);
       this.closeCreatePlanDialog();
       this.toastMessage.emit('Plano creado correctamente');
@@ -122,11 +123,10 @@ export class WorkspacePlanAdminDialogsComponent {
 
   async confirmDuplicate(): Promise<void> {
     const plan = this.planToCopy();
-    const session = this.auth.session();
     const name = this.copyPlanName.trim();
-    if (!this.isAdmin || !plan || !session || !name) return;
+    if (!this.isAdmin || !plan || !name) return;
     try {
-      const copy = await this.duplication.duplicate(plan, session.user.id, name);
+      const copy = await this.duplication.duplicate(plan, name);
       this.plansUpdated.emit([...this.plans, copy].sort((a, b) => a.name.localeCompare(b.name)));
       this.closeCopyDialog();
       this.toastMessage.emit('Plano copiado correctamente');

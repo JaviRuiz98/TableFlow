@@ -14,6 +14,13 @@ export class ErrorMessageService {
     if (text.includes('already registered') || text.includes('user already registered')) {
       return 'Ese correo ya está registrado.';
     }
+    if (
+      text.includes('ya existe una empresa') ||
+      text.includes('companies_name_unique') ||
+      (text.includes('nombre comercial') && text.includes('existe'))
+    ) {
+      return 'Ya existe una empresa con ese nombre. Elige otro nombre comercial.';
+    }
     if (text.includes('already exists') || text.includes('duplicate')) {
       return 'Ese nombre de usuario ya existe.';
     }

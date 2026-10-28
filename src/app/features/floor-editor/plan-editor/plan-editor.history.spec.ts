@@ -16,7 +16,7 @@ const plan = (partial: Partial<FloorPlan> = {}): FloorPlan => ({
   height: 1200,
   is_active: false,
   is_locked: false,
-  created_by: 'u1',
+  company_id: 'company-1',
   created_at: '',
   updated_at: '',
   ...partial,

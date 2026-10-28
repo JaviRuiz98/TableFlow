@@ -21,14 +21,14 @@ export class FloorPlanService {
     return data ?? [];
   }
 
-  async create(name: string, width = 2000, height = 1200, userId: string): Promise<FloorPlan> {
+  async create(name: string, width = 2000, height = 1200, companyId: string): Promise<FloorPlan> {
     const { data, error } = await this.db.client
       .from('floor_plans')
       .insert({
         name,
         width,
         height,
-        created_by: userId,
+        company_id: companyId,
       })
       .select()
       .single();

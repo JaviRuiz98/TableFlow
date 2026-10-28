@@ -23,4 +23,10 @@ describe('ErrorMessageService', () => {
   it('returns fallback for empty input', () => {
     expect(service.humanize('', 'Fallback')).toBe('Fallback');
   });
+
+  it('humanizes duplicate company commercial names', () => {
+    expect(service.humanize(new Error('Ya existe una empresa con ese nombre'))).toContain(
+      'empresa con ese nombre',
+    );
+  });
 });

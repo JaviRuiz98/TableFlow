@@ -9,7 +9,7 @@ function plan(id: string): FloorPlan {
     height: 100,
     is_active: true,
     is_locked: false,
-    created_by: 'u1',
+    company_id: 'company-1',
     created_at: 't',
     updated_at: 't',
   };

@@ -23,8 +23,8 @@ Onboarding and `tf_setup` intents are unchanged.
 | Nombre empresa | `companies` by `profiles.company_id` | Real + editable (RPC `0023` or RLS `0020`) |
 | Productos activos | `ProductService.products()` + `company_id` | Real (needs `0018` applied) |
 | Trabajadores | `profiles` count/list by `company_id` | Real |
-| Mesas/reservados | UI placeholder (0) | Safe empty copy until tenant column + RLS |
-| Pedidos pendientes / actividad | UI placeholder / “no disponible” | Until `orders` tenant column + RLS |
+| Mesas/reservados | UI placeholder (0) | Enable after `0027`–`0029` (`floor_plans.company_id` + RLS/RPC) |
+| Pedidos pendientes / actividad | UI placeholder / “no disponible” | Same — join via `tables → floor_plans.company_id` |
 | Facturación | — | Not in schema (future) |
 
 Never runs global cross-tenant aggregates. Schema/RLS reasons stay in docs, not in ADMIN UI copy.
