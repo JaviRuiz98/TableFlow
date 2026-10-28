@@ -1,35 +1,266 @@
-/* Shared modal/dialog look — identical rules previously inlined in workspace.component.scss.
-   Imported by Workspace + WorkspaceUserAdmin; do not restyle without authorization. */
-.primary-button { --background:#65412e; --color:#fff; }
-.secondary-button { --border-color:#d7c7bc; --color:#65412e; --background:#fff; }
-.create-plan-modal{--width:min(460px,calc(100vw - 32px));--height:auto;--max-height:none;--border-radius:22px}
-.user-create-modal{--width:min(520px,calc(100vw - 32px));--height:auto;--max-height:none;--border-radius:22px}
-.user-form{display:grid;gap:14px}
-.form-error{margin:4px 0 0;color:#b3261e;font-size:13px;font-weight:600}
-.plan-dialog{width:100%;background:#fff;border-radius:22px;overflow:hidden}
-.dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:25px 26px 18px;border-bottom:1px solid #eee5df}
-.dialog-eyebrow{font-size:10px;font-weight:900;letter-spacing:.14em;color:#9a6749}
-.dialog-header h2{margin:5px 0;font-size:25px}
-.dialog-header p{margin:0;color:#8a7d75;font-size:13px}
-.dialog-close{width:34px;height:34px;border:0;border-radius:10px;background:#f5f0ec;color:#65412e;display:grid;place-items:center;cursor:pointer}
-.dialog-body{padding:22px 26px 8px}
-.dialog-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 26px 24px}
-.order-alert-card{border:2px solid #b3261e}
-.alert-symbol{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;margin:24px auto 0;background:#b3261e;color:#fff;font-size:44px;font-weight:900}
-.alert-header{text-align:center;justify-content:center}
-.alert-header h2{color:#9d1c16;letter-spacing:.02em}
-.confirm-dialog .dialog-actions{padding-top:24px}
-.danger-plan-modal { --width:min(480px,calc(100vw - 32px)); }
-.danger-dialog { border:2px solid #b3261e; }
+/* Shared modal/dialog look — TableFlow VIP Premium (antracita + champagne).
+   Imported by Workspace + plan/user-admin dialogs. */
+
+.primary-button {
+  --background: var(--tf-brand-primary, #d4af7c);
+  --background-activated: #b8925e;
+  --background-hover: #d9bd91;
+  --color: var(--tf-brand-on-primary, #0b0b0f);
+  --border-radius: 12px;
+  --box-shadow: 0 10px 28px rgba(212, 175, 124, 0.18);
+  font-weight: 600;
+}
+
+.secondary-button {
+  --border-color: rgba(212, 175, 124, 0.35);
+  --border-width: 1px;
+  --color: var(--tf-brand-primary, #d4af7c);
+  --background: transparent;
+  --border-radius: 12px;
+}
+
+.create-plan-modal,
+.user-create-modal {
+  --width: min(460px, calc(100vw - 32px));
+  --height: auto;
+  --max-height: none;
+  --border-radius: 20px;
+  --background: transparent;
+  --box-shadow: none;
+}
+
+.user-create-modal {
+  --width: min(520px, calc(100vw - 32px));
+}
+
+.user-form {
+  display: grid;
+  gap: 14px;
+}
+
+/* Match login / registro-empresa field chrome */
+.auth-like-form {
+  --tf-brand-field-bg: #121218;
+  --tf-brand-field-border: rgba(244, 239, 230, 0.16);
+  display: grid;
+  gap: 14px;
+  text-align: left;
+}
+
+.auth-like-form .field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.auth-like-form .field-label {
+  color: var(--tf-brand-text-muted, #9a948a);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.auth-like-form .field-help {
+  margin: 0;
+  color: var(--tf-brand-text-muted, #9a948a);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.auth-like-form .autofill-decoy {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-like-form ion-input.auth-field {
+  --background: var(--tf-brand-field-bg);
+  --color: var(--tf-brand-text, #f4efe6);
+  --placeholder-color: rgba(154, 148, 138, 0.85);
+  --border-color: var(--tf-brand-field-border);
+  --border-radius: 12px;
+  --highlight-color: var(--tf-brand-primary, #d4af7c);
+  --highlight-color-focused: var(--tf-brand-primary, #d4af7c);
+  --padding-start: 14px;
+  --padding-end: 12px;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --min-height: 52px;
+  box-sizing: border-box;
+  height: 52px;
+  min-height: 52px;
+  max-height: 52px;
+  color: var(--tf-brand-text, #f4efe6);
+}
+
+.auth-like-form ion-input.auth-field::part(native) {
+  box-sizing: border-box;
+  height: 52px;
+  min-height: 52px;
+  max-height: 52px;
+  line-height: 52px;
+  background: transparent;
+  color: var(--tf-brand-text, #f4efe6);
+  border-radius: inherit;
+}
+
+.auth-like-form ion-input.auth-field::part(native):-webkit-autofill,
+.auth-like-form ion-input.auth-field::part(native):-webkit-autofill:hover,
+.auth-like-form ion-input.auth-field::part(native):-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--tf-brand-text, #f4efe6);
+  caret-color: var(--tf-brand-text, #f4efe6);
+  box-shadow: 0 0 0 1000px var(--tf-brand-field-bg) inset;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.auth-like-form ion-input-password-toggle {
+  --color: var(--tf-brand-text-muted, #9a948a);
+  --padding-start: 0;
+  --padding-end: 4px;
+  color: var(--tf-brand-text-muted, #9a948a);
+  margin: 0;
+  height: 52px;
+}
+
+.auth-like-form ion-select.auth-select {
+  --background: var(--tf-brand-field-bg);
+  --color: var(--tf-brand-text, #f4efe6);
+  --placeholder-color: var(--tf-brand-text-muted, #9a948a);
+  --border-color: var(--tf-brand-field-border);
+  --border-radius: 12px;
+  --highlight-color: var(--tf-brand-primary, #d4af7c);
+  --padding-start: 14px;
+  --padding-end: 12px;
+  min-height: 52px;
+}
+
+.form-error {
+  margin: 4px 0 0;
+  color: var(--tf-brand-danger, #e07a7a);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.plan-dialog {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(212, 175, 124, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 34%),
+    rgba(18, 18, 24, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(11, 11, 15, 0.55) inset,
+    0 28px 80px rgba(0, 0, 0, 0.5);
+  color: var(--tf-brand-text, #f4efe6);
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 25px 26px 18px;
+  border-bottom: 1px solid rgba(212, 175, 124, 0.12);
+}
+
+.dialog-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--tf-brand-primary, #d4af7c);
+}
+
+.dialog-header h2 {
+  margin: 5px 0;
+  font-size: 25px;
+  color: var(--tf-brand-text, #f4efe6);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dialog-header p {
+  margin: 0;
+  color: var(--tf-brand-text-muted, #9a948a);
+  font-size: 13px;
+}
+
+.dialog-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(212, 175, 124, 0.2);
+  border-radius: 10px;
+  background: rgba(244, 239, 230, 0.04);
+  color: var(--tf-brand-text-muted, #9a948a);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.dialog-body {
+  padding: 22px 26px 8px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 26px 24px;
+}
+
+.order-alert-card {
+  border: 2px solid var(--tf-brand-danger, #e07a7a);
+}
+
+.alert-symbol {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 24px auto 0;
+  background: var(--tf-brand-danger, #e07a7a);
+  color: #fff;
+  font-size: 44px;
+  font-weight: 900;
+}
+
+.alert-header {
+  text-align: center;
+  justify-content: center;
+}
+
+.alert-header h2 {
+  color: var(--tf-brand-danger, #e07a7a);
+  letter-spacing: 0.02em;
+}
+
+.confirm-dialog .dialog-actions {
+  padding-top: 24px;
+}
+
+.danger-plan-modal {
+  --width: min(480px, calc(100vw - 32px));
+}
+
+.danger-dialog {
+  border: 1px solid rgba(224, 122, 122, 0.45);
+}
+
 .danger-symbol {
-  width:64px;
-  height:64px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  margin:22px auto 0;
-  background:#b3261e;
-  color:#fff;
-  font-size:38px;
-  font-weight:900;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 22px auto 0;
+  background: rgba(224, 122, 122, 0.16);
+  color: var(--tf-brand-danger, #e07a7a);
+  border: 1px solid rgba(224, 122, 122, 0.35);
+  font-size: 38px;
+  font-weight: 900;
 }

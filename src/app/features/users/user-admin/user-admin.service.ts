@@ -7,7 +7,8 @@ export interface CreateUserRequest {
   username: string;
   password: string;
   role: Role;
-  admin_password: string;
+  /** Required outside onboarding; Edge re-checks via verify_app_secret when present. */
+  admin_password?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -38,7 +39,8 @@ export class UserAdminService {
     let query = this.db.client
       .from('profiles')
       .select('id', { count: 'exact', head: true })
-      .neq('id', params.currentUserId);
+      .neq('id', params.currentUserId)
+      .eq('role', 'USER');
 
     if (params.companyId) {
       query = query.eq('company_id', params.companyId);

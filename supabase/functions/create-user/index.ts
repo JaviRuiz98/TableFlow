@@ -6,7 +6,8 @@ interface CreateUserPayload {
   username: string;
   password: string;
   role: "ADMIN" | "USER";
-  admin_password: string;
+  /** Optional when caller is already an authenticated ADMIN (e.g. onboarding). */
+  admin_password?: string;
 }
 
 const INTERNAL_AUTH_DOMAIN = "usuarios.tableflow.app";
@@ -99,7 +100,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: profile, error: profileError } = await userClient
       .from("profiles")
-      .select("role")
+      .select("role, company_id")
       .eq("id", user.id)
       .single();
 
@@ -111,14 +112,22 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Solo un ADMIN puede crear usuarios." }, 403);
     }
 
+    const adminCompanyId = typeof profile.company_id === "string" ? profile.company_id : null;
+    if (!adminCompanyId) {
+      return jsonResponse(
+        { error: "Tu perfil de administrador no tiene empresa asociada. No se pueden crear trabajadores." },
+        403,
+      );
+    }
+
     const body = (await req.json()) as CreateUserPayload;
     const fullName = body.full_name?.trim();
     const username = normalizeUsername(body.username ?? "");
     const password = body.password;
     const role = body.role;
-    const adminPassword = body.admin_password;
+    const adminPassword = typeof body.admin_password === "string" ? body.admin_password.trim() : "";
 
-    if (!fullName || !username || !password || !role || !adminPassword) {
+    if (!fullName || !username || !password || !role) {
       return jsonResponse({ error: "Completa todos los campos obligatorios." }, 400);
     }
 
@@ -137,20 +146,24 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "La contraseña debe tener al menos 6 caracteres." }, 400);
     }
 
-    const { data: passwordOk, error: passwordError } = await userClient.rpc("verify_app_secret", {
-      p_key: "user_management",
-      p_secret: adminPassword,
-    });
+    // Extra app-secret gate when the client sends admin_password (normal Usuarios flow).
+    // Onboarding may omit it: caller was already verified as ADMIN via JWT + profiles.role.
+    if (adminPassword) {
+      const { data: passwordOk, error: passwordError } = await userClient.rpc("verify_app_secret", {
+        p_key: "user_management",
+        p_secret: adminPassword,
+      });
 
-    if (passwordError) {
-      return jsonResponse(
-        { error: "No se pudo verificar la contraseña de administración.", detail: passwordError.message },
-        500,
-      );
-    }
+      if (passwordError) {
+        return jsonResponse(
+          { error: "No se pudo verificar la contraseña de administración.", detail: passwordError.message },
+          500,
+        );
+      }
 
-    if (passwordOk !== true) {
-      return jsonResponse({ error: "La contraseña de administración es incorrecta." }, 403);
+      if (passwordOk !== true) {
+        return jsonResponse({ error: "La contraseña de administración es incorrecta." }, 403);
+      }
     }
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
@@ -169,6 +182,8 @@ Deno.serve(async (req: Request) => {
 
     const internalEmail = `${username}@${INTERNAL_AUTH_DOMAIN}`;
 
+    // company_id is taken from the calling ADMIN profile (server-side), never from the request body.
+    // Requires handle_new_user to copy metadata.company_id on staff INSERT (migration 0019).
     const { data: createdUser, error: createError } = await adminClient.auth.admin.createUser({
       email: internalEmail,
       password,
@@ -176,6 +191,7 @@ Deno.serve(async (req: Request) => {
       user_metadata: {
         full_name: fullName,
         username,
+        company_id: adminCompanyId,
       },
     });
 
@@ -200,9 +216,27 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const { data: createdProfile, error: createdProfileError } = await adminClient
+      .from("profiles")
+      .select("company_id, role")
+      .eq("id", newUserId)
+      .single();
+
+    if (createdProfileError || createdProfile?.company_id !== adminCompanyId) {
+      await adminClient.auth.admin.deleteUser(newUserId);
+      return jsonResponse(
+        {
+          error:
+            "No se pudo asociar el trabajador a tu empresa. Aplica la migración 0019_staff_profile_company_id.sql y vuelve a desplegar create-user.",
+          detail: createdProfileError?.message ?? `company_id=${createdProfile?.company_id ?? "null"}`,
+        },
+        500,
+      );
+    }
+
     return jsonResponse({
       success: true,
-      user: { id: newUserId, username, full_name: fullName, role },
+      user: { id: newUserId, username, full_name: fullName, role, company_id: adminCompanyId },
     });
   } catch (error) {
     console.error(error);

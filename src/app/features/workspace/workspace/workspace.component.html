@@ -1,24 +1,70 @@
 <ion-header>
   <ion-toolbar>
-    <div class="topbar">
-      <div class="brand-mini"><span>SALA</span><strong>CHOCOLATTE</strong></div>
-      <div class="topbar-title">
-        <span>Gestión de sala</span><small>{{ activeLabel }}</small>
+    <div class="topbar" [class.topbar--onboarding]="onboardingMode()">
+      <div class="brand-mini">
+        <img
+          [src]="branding.assets.logoCompactUrl"
+          [alt]="branding.productName"
+          width="132"
+          height="40"
+        />
       </div>
-      <div class="top-actions">
-        <div class="connection"><span></span>Conectado</div>
-        @if (isAdmin) {
-          <ion-button fill="outline" class="users-button" (click)="openUserAccessDialog()"
-            ><ion-icon name="person-add-outline" slot="start"></ion-icon>Usuarios</ion-button
+
+      @if (onboardingMode()) {
+        <div class="onboarding-step-meta">
+          <span class="onboarding-step-label">{{ onboardingStepLabel() }}</span>
+          <small>{{ onboardingProgressLabel() }}</small>
+        </div>
+        <div class="top-actions">
+          @if (setupIntent === 'products') {
+            <ion-button
+              class="primary-button"
+              size="small"
+              [disabled]="finishingOnboardingProducts()"
+              (click)="finishOnboardingProducts()"
+            >
+              {{ finishingOnboardingProducts() ? 'Finalizando…' : 'Finalizar productos' }}
+            </ion-button>
+          }
+          <ion-button
+            fill="outline"
+            size="small"
+            class="onboarding-return-button"
+            (click)="returnToOnboarding()"
           >
-        }
-        <ion-button fill="clear" class="logout-button" (click)="logout()"><ion-icon name="log-out-outline"></ion-icon></ion-button>
-      </div>
+            <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+            Volver a la configuración inicial
+          </ion-button>
+          <ion-button fill="clear" class="logout-button" (click)="logout()">
+            <ion-icon name="log-out-outline"></ion-icon>
+          </ion-button>
+        </div>
+      } @else {
+        <div class="topbar-title">
+          <span>Gestión de sala</span><small>{{ activeLabel }}</small>
+        </div>
+        <div class="top-actions">
+          <div class="connection"><span></span>Conectado</div>
+          @if (isAdmin) {
+            <ion-button fill="outline" class="users-button" (click)="openUserAccessDialog()"
+              ><ion-icon name="person-add-outline" slot="start"></ion-icon>Usuarios</ion-button
+            >
+          }
+          <ion-button fill="clear" class="logout-button" (click)="logout()"
+            ><ion-icon name="log-out-outline"></ion-icon
+          ></ion-button>
+        </div>
+      }
     </div>
   </ion-toolbar>
 </ion-header>
 
-<app-workspace-user-admin #userAdmin (toastMessage)="onChildToast($event)"></app-workspace-user-admin>
+<app-workspace-user-admin
+  #userAdmin
+  [lockRoleToUser]="onboardingMode() && setupIntent === 'users'"
+  (toastMessage)="onChildToast($event)"
+  (userCreated)="onOnboardingUserCreated()"
+></app-workspace-user-admin>
 <app-workspace-plan-admin-dialogs
   #planAdmin
   [plans]="plans()"
@@ -28,61 +74,77 @@
 ></app-workspace-plan-admin-dialogs>
 
 <ion-content>
-  <div class="nav-wrap">
-    <ion-segment [value]="activeTab()" (ionChange)="activeTab.set($any($event.detail.value))">
-      @if (isAdmin) {
-        <ion-segment-button value="planos"><ion-label>Planos</ion-label></ion-segment-button>
-      }
-      <ion-segment-button value="operativo">
-        <ion-label>Operativa</ion-label>
-      </ion-segment-button>
-      @if (isAdmin) {
-        <ion-segment-button value="productos"><ion-label>Productos</ion-label></ion-segment-button>
-      }
-    </ion-segment>
-  </div>
-
-  @if (showOnboardingReturn()) {
-    <div class="onboarding-return" role="status">
-      <p>Estás completando la configuración inicial de tu sala.</p>
-      <ion-button fill="outline" size="small" class="onboarding-return-button" (click)="returnToOnboarding()">
-        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-        Volver a la configuración
-      </ion-button>
+  @if (!onboardingMode()) {
+    <div class="nav-wrap">
+      <ion-segment [value]="activeTab()" (ionChange)="activeTab.set($any($event.detail.value))">
+        @if (isAdmin) {
+          <ion-segment-button value="planos"><ion-label>Planos</ion-label></ion-segment-button>
+        }
+        <ion-segment-button value="operativo">
+          <ion-label>Operativa</ion-label>
+        </ion-segment-button>
+        @if (isAdmin) {
+          <ion-segment-button value="productos"><ion-label>Productos</ion-label></ion-segment-button>
+        }
+      </ion-segment>
     </div>
   }
 
   @if (!configured) {
     <div class="notice">Configura Supabase en <code>.env</code>.</div>
-  } @else if (activeTab() === 'planos' && isAdmin) {
+  } @else if (onboardingMode() && setupIntent === 'users') {
+    <main class="page">
+      <div class="empty">
+        <div>◎</div>
+        <h2>Configurar usuarios</h2>
+        <p>Da de alta al personal que trabajará con TableFlow.</p>
+      </div>
+    </main>
+  } @else if (activeTab() === 'planos' && isAdmin && (!onboardingMode() || setupIntent === 'plan')) {
     <main class="page">
       <div class="page-head">
         <div>
-          <span class="eyebrow">GESTIÓN DE SALA</span>
-          <h1>Planos</h1>
-          <p>Crea y diseña los planos de mesas y reservados de la sala.</p>
+          <span class="eyebrow">{{ onboardingMode() ? 'PASO 1 DE 3' : 'GESTIÓN DE SALA' }}</span>
+          <h1>{{ onboardingMode() ? 'Crear primer plano' : 'Planos' }}</h1>
+          <p>
+            {{
+              onboardingMode()
+                ? 'Pon un nombre a tu plano y diseña mesas y reservados. Guarda para completar este paso.'
+                : 'Crea y diseña los planos de mesas y reservados de la sala.'
+            }}
+          </p>
         </div>
-        <ion-button class="primary-button" (click)="openCreatePlanDialog()"
-          ><ion-icon name="add-outline" slot="start"></ion-icon>Crear plano</ion-button
-        >
+        @if (!onboardingMode()) {
+          <ion-button class="primary-button" (click)="openCreatePlanDialog()"
+            ><ion-icon name="add-outline" slot="start"></ion-icon>Crear plano</ion-button
+          >
+        }
       </div>
       <div class="plans">
         @for (plan of plans(); track plan.id) {
-          <article class="plan-card" (click)="openPlan(plan)">
+          <article class="plan-card" (click)="onboardingMode() ? openEditor(plan) : openPlan(plan)">
             <div class="plan-preview">{{ plan.name.charAt(0).toUpperCase() }}</div>
             <div class="plan-info">
               <h2>{{ plan.name }}</h2>
-              <p>Plano de mesas y reservados</p>
+              <p>{{ onboardingMode() ? 'Continuar diseño' : 'Plano de mesas y reservados' }}</p>
             </div>
-            <div class="plan-actions">
-              <ion-button size="small" fill="outline" (click)="$event.stopPropagation(); openRenamePlanDialog(plan)">Nombre</ion-button>
-              <ion-button size="small" fill="outline" (click)="$event.stopPropagation(); askDuplicate(plan)"
-                ><ion-icon name="copy-outline" slot="start"></ion-icon>Copiar</ion-button
-              >
-              <ion-button size="small" fill="outline" color="danger" (click)="$event.stopPropagation(); askRemovePlan(plan)"
-                ><ion-icon name="trash-outline" slot="start"></ion-icon>Eliminar</ion-button
-              >
-            </div>
+            @if (!onboardingMode()) {
+              <div class="plan-actions">
+                <ion-button size="small" fill="outline" (click)="$event.stopPropagation(); openRenamePlanDialog(plan)"
+                  >Nombre</ion-button
+                >
+                <ion-button size="small" fill="outline" (click)="$event.stopPropagation(); askDuplicate(plan)"
+                  ><ion-icon name="copy-outline" slot="start"></ion-icon>Copiar</ion-button
+                >
+                <ion-button
+                  size="small"
+                  fill="outline"
+                  color="danger"
+                  (click)="$event.stopPropagation(); askRemovePlan(plan)"
+                  ><ion-icon name="trash-outline" slot="start"></ion-icon>Eliminar</ion-button
+                >
+              </div>
+            }
           </article>
         } @empty {
           <div class="empty">
@@ -94,33 +156,47 @@
         }
       </div>
     </main>
-  } @else if (activeTab() === 'operativo') {
+  } @else if (activeTab() === 'operativo' && (!onboardingMode() || setupIntent === 'plan')) {
     <main class="page operative-page">
       <div class="page-head compact">
         <div>
-          <span class="eyebrow">OPERATIVA</span>
-          <h1>Mesas, reservados y productos</h1>
-          <p>Pulsa una mesa o reservado para abrir su operativa.</p>
+          <span class="eyebrow">{{ onboardingMode() ? 'PASO 1 DE 3' : 'OPERATIVA' }}</span>
+          <h1>{{ onboardingMode() ? 'Diseña tu plano' : 'Mesas, reservados y productos' }}</h1>
+          <p>
+            {{
+              onboardingMode()
+                ? 'Usa las herramientas del editor. Cuando termines, guarda para volver al asistente.'
+                : 'Pulsa una mesa o reservado para abrir su operativa.'
+            }}
+          </p>
         </div>
         <div class="select-actions">
-          <ion-select
-            label="Plano"
-            labelPlacement="stacked"
-            [value]="selectedPlan()?.id"
-            (ionChange)="openPlanById($any($event.detail.value))"
-          >
-            @for (p of plans(); track p.id) {
-              <ion-select-option [value]="p.id">{{ p.name }}</ion-select-option>
-            }
-          </ion-select>
+          @if (!onboardingMode()) {
+            <ion-select
+              label="Plano"
+              labelPlacement="stacked"
+              [value]="selectedPlan()?.id"
+              (ionChange)="openPlanById($any($event.detail.value))"
+            >
+              @for (p of plans(); track p.id) {
+                <ion-select-option [value]="p.id">{{ p.name }}</ion-select-option>
+              }
+            </ion-select>
+          }
           @if (isAdmin && selectedPlan()) {
-            <ion-button fill="outline" (click)="toggleEditorMode()">
-              {{ editorMode() === 'editor' ? 'Ver operativa' : 'Editar plano' }}
-            </ion-button>
-            @if (editorMode() === 'operativo') {
-              <ion-button fill="outline" (click)="toggleMapVisibility()">
-                {{ showMap() ? 'Ocultar mapa' : 'Mostrar mapa' }}
+            @if (onboardingMode()) {
+              <ion-button class="primary-button" [disabled]="savingOnboardingPlan()" (click)="saveOnboardingPlanAndContinue()">
+                {{ savingOnboardingPlan() ? 'Guardando…' : 'Guardar y continuar' }}
               </ion-button>
+            } @else {
+              <ion-button fill="outline" (click)="toggleEditorMode()">
+                {{ editorMode() === 'editor' ? 'Ver operativa' : 'Editar plano' }}
+              </ion-button>
+              @if (editorMode() === 'operativo') {
+                <ion-button fill="outline" (click)="toggleMapVisibility()">
+                  {{ showMap() ? 'Ocultar mapa' : 'Mostrar mapa' }}
+                </ion-button>
+              }
             }
           }
         </div>
@@ -129,22 +205,26 @@
       @if (selectedPlan()) {
         <div
           class="operative-layout"
-          [class.editor-layout]="editorMode() === 'editor'"
-          [class.list-only]="editorMode() === 'operativo' && (!isAdmin || !showMap())">
+          [class.editor-layout]="editorMode() === 'editor' || onboardingMode()"
+          [class.list-only]="!onboardingMode() && editorMode() === 'operativo' && (!isAdmin || !showMap())"
+        >
           <div
             class="plan-column"
-            [class.dialog-host-only]="editorMode() === 'operativo' && (!isAdmin || !showMap())">
+            [class.dialog-host-only]="!onboardingMode() && editorMode() === 'operativo' && (!isAdmin || !showMap())"
+          >
             <app-plan-editor
               [plan]="selectedPlan()!"
-              [mode]="editorMode()"
-              [hideSurface]="editorMode() === 'operativo' && (!isAdmin || !showMap())"
-              (pendingChanged)="pendingCount.set($event)">
+              [mode]="onboardingMode() ? 'editor' : editorMode()"
+              [hideSurface]="!onboardingMode() && editorMode() === 'operativo' && (!isAdmin || !showMap())"
+              (pendingChanged)="pendingCount.set($event)"
+            >
             </app-plan-editor>
           </div>
-          @if (editorMode() === 'operativo') {
+          @if (!onboardingMode() && editorMode() === 'operativo') {
             <app-table-product-panel
               [plan]="selectedPlan()!"
-              (targetSelected)="openOperationalTarget($event)">
+              (targetSelected)="openOperationalTarget($event)"
+            >
             </app-table-product-panel>
           }
         </div>
@@ -158,9 +238,14 @@
     </main>
   }
 
-  @if (isAdmin) {
+  @if (isAdmin && (!onboardingMode() || setupIntent === 'products')) {
     <div [hidden]="activeTab() !== 'productos'">
-      <app-workspace-catalog-panel #catalogPanel (toastMessage)="onChildToast($event)"></app-workspace-catalog-panel>
+      <app-workspace-catalog-panel
+        #catalogPanel
+        [guidedSetup]="onboardingMode() && setupIntent === 'products'"
+        (toastMessage)="onChildToast($event)"
+        (productCreated)="onOnboardingProductCreated($event)"
+      ></app-workspace-catalog-panel>
     </div>
   }
 </ion-content>

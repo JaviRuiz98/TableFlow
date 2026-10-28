@@ -7,6 +7,7 @@ import { SupabaseService } from '../../../core/infrastructure';
 import { FloorPlanService } from '../../floor-plans';
 import { OnboardingService } from '../../onboarding';
 import { OrderService } from '../../orders';
+import { ProductService } from '../../products';
 import { UserAdminService } from '../../users';
 import { OrderNotificationService } from '../../notifications';
 import type { FloorPlan } from '../../../core/models/models';
@@ -82,11 +83,18 @@ describe('WorkspaceComponent (characterization)', () => {
   const auth = {
     hasRole: vi.fn().mockReturnValue(true),
     session: vi.fn().mockReturnValue({ user: { id: 'u1' } }),
+    profile: vi.fn().mockReturnValue({ company_id: 'co-1' }),
     signOut: vi.fn().mockResolvedValue(undefined),
   };
   const router = { navigateByUrl: vi.fn().mockResolvedValue(true) };
   const onboarding = {
-    refresh: vi.fn().mockResolvedValue({ isComplete: true }),
+    refresh: vi.fn().mockResolvedValue({ isComplete: true, completedCount: 3, facts: { hasAdditionalUser: true } }),
+    progress: vi.fn().mockReturnValue({ completedCount: 0 }),
+    isInitialSetup: vi.fn().mockReturnValue(false),
+    markStepDone: vi.fn().mockResolvedValue(undefined),
+  };
+  const products = {
+    products: vi.fn().mockResolvedValue([{ id: 'prod-1', company_id: 'co-1' }]),
   };
   const route = {
     snapshot: { queryParamMap: { get: vi.fn().mockReturnValue(null) } },
@@ -99,8 +107,13 @@ describe('WorkspaceComponent (characterization)', () => {
     notifications.subscribeToNewOrderItems.mockReturnValue({ unsubscribe: vi.fn() });
     auth.hasRole.mockReturnValue(true);
     auth.session.mockReturnValue({ user: { id: 'u1' } });
+    auth.profile.mockReturnValue({ company_id: 'co-1' });
     auth.signOut.mockResolvedValue(undefined);
     onboarding.refresh.mockResolvedValue({ isComplete: true });
+    onboarding.isInitialSetup.mockReturnValue(false);
+    onboarding.markStepDone.mockResolvedValue(undefined);
+    onboarding.progress.mockReturnValue({ completedCount: 0 });
+    products.products.mockResolvedValue([{ id: 'prod-1', company_id: 'co-1' }]);
     route.snapshot.queryParamMap.get.mockReturnValue(null);
 
     TestBed.configureTestingModule({
@@ -109,6 +122,7 @@ describe('WorkspaceComponent (characterization)', () => {
         { provide: AuthService, useValue: auth },
         { provide: FloorPlanService, useValue: floors },
         { provide: OrderService, useValue: orders },
+        { provide: ProductService, useValue: products },
         { provide: UserAdminService, useValue: {} },
         { provide: OrderNotificationService, useValue: notifications },
         { provide: SupabaseService, useValue: { configured: true } },
@@ -169,6 +183,89 @@ describe('WorkspaceComponent (characterization)', () => {
     expect(cmp.shellVisibility.showPlanosTab).toBe(true);
     expect(cmp.shellVisibility.showProductosTab).toBe(true);
     expect(cmp.shellVisibility.showUsersButton).toBe(true);
+    expect(cmp.onboardingMode()).toBe(false);
+  });
+
+  it('ADMIN initial setup hides workspace chrome (Planos/Operativa/Productos)', async () => {
+    onboarding.isInitialSetup.mockReturnValue(true);
+    const { cmp } = await create();
+    expect(cmp.onboardingMode()).toBe(true);
+    expect(orders.subscribe).not.toHaveBeenCalled();
+    expect(notifications.subscribeToNewOrderItems).not.toHaveBeenCalled();
+  });
+
+  it('ionViewWillEnter restores guided shell after cached re-entry from onboarding', async () => {
+    const { cmp } = await create();
+    expect(cmp.onboardingMode()).toBe(false);
+
+    cmp.onboardingMode.set(false);
+    cmp.setupIntent = null;
+    onboarding.isInitialSetup.mockReturnValue(true);
+    route.snapshot.queryParamMap.get.mockReturnValue('plan');
+
+    await (cmp as unknown as { reenterWorkspace: () => Promise<void> }).reenterWorkspace();
+
+    expect(onboarding.refresh).toHaveBeenCalled();
+    expect(cmp.onboardingMode()).toBe(true);
+    expect(cmp.setupIntent).toBe('plan');
+  });
+
+  it('returnToOnboarding keeps guided chrome and clears plan surface (no operational flash)', async () => {
+    onboarding.isInitialSetup.mockReturnValue(true);
+    route.snapshot.queryParamMap.get.mockReturnValue('plan');
+    const { cmp } = await create();
+    cmp.selectedPlan.set(samplePlan);
+    cmp.activeTab.set('operativo');
+
+    await cmp.returnToOnboarding();
+
+    expect(cmp.onboardingMode()).toBe(true);
+    expect(cmp.setupIntent).toBeNull();
+    expect(cmp.selectedPlan()).toBeNull();
+    expect(cmp.activeTab()).toBe('planos');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/onboarding');
+  });
+
+  it('products setup intent switches off plan editor surface', async () => {
+    const { cmp } = await create();
+    cmp.selectedPlan.set(samplePlan);
+    cmp.activeTab.set('operativo');
+    cmp.onboardingMode.set(true);
+    onboarding.isInitialSetup.mockReturnValue(true);
+    route.snapshot.queryParamMap.get.mockReturnValue('products');
+
+    await (cmp as unknown as { reenterWorkspace: () => Promise<void> }).reenterWorkspace();
+
+    expect(cmp.setupIntent).toBe('products');
+    expect(cmp.onboardingMode()).toBe(true);
+    expect(cmp.activeTab()).toBe('productos');
+    expect(cmp.selectedPlan()).toBeNull();
+  });
+
+  it('finishOnboardingProducts marks flag only after at least one product', async () => {
+    onboarding.isInitialSetup.mockReturnValue(true);
+    route.snapshot.queryParamMap.get.mockReturnValue('products');
+    const { cmp } = await create();
+
+    products.products.mockResolvedValueOnce([]);
+    await cmp.finishOnboardingProducts();
+    expect(onboarding.markStepDone).not.toHaveBeenCalled();
+    expect(cmp.toast()).toContain('al menos un producto');
+
+    products.products.mockResolvedValueOnce([{ id: 'prod-1', company_id: 'co-1' }]);
+    await cmp.finishOnboardingProducts();
+    expect(onboarding.markStepDone).toHaveBeenCalledWith('products');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/onboarding');
+  });
+
+  it('creating a product during products setup does not auto-complete the step', async () => {
+    onboarding.isInitialSetup.mockReturnValue(true);
+    route.snapshot.queryParamMap.get.mockReturnValue('products');
+    const { cmp } = await create();
+
+    cmp.onOnboardingProductCreated({ id: 'p1', company_id: 'co-1' });
+    expect(onboarding.markStepDone).not.toHaveBeenCalled();
+    expect(router.navigateByUrl).not.toHaveBeenCalledWith('/onboarding');
   });
 
   it('USER init: operativa + first plan + user-order alerts; no admin tabs', async () => {

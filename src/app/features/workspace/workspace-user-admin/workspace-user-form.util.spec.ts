@@ -19,6 +19,12 @@ describe('workspace-user-form.util', () => {
     expect(canSubmitNewUserForm({ ...valid, verifiedAdminPassword: '' })).toBe(false);
   });
 
+  it('allows empty admin password when requireAdminPassword is false (onboarding)', () => {
+    const onboarding = { ...valid, verifiedAdminPassword: '', requireAdminPassword: false };
+    expect(validateNewUserForm(onboarding)).toBeNull();
+    expect(canSubmitNewUserForm(onboarding)).toBe(true);
+  });
+
   it('rejects invalid usernames', () => {
     expect(validateNewUserForm({ ...valid, username: 'ab' })).toContain('3 y 32');
   });

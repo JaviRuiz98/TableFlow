@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -38,7 +38,11 @@ import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form
   styleUrl: './workspace-user-admin.component.scss',
 })
 export class WorkspaceUserAdminComponent {
+  /** When true (onboarding step 3), force role USER and hide role picker. */
+  @Input() lockRoleToUser = false;
+
   @Output() toastMessage = new EventEmitter<string>();
+  @Output() userCreated = new EventEmitter<void>();
 
   userAccessDialog = signal(false);
   createUserDialog = signal(false);
@@ -46,12 +50,15 @@ export class WorkspaceUserAdminComponent {
   creatingUser = signal(false);
   userAccessError = signal('');
   createUserError = signal('');
+  /** Starts false so browsers cannot autofill into readonly staff fields. */
+  fieldsInteractive = signal(false);
   adminAccessPassword = '';
   newUserFullName = '';
   newUserUsername = '';
   newUserPassword = '';
   newUserRole: Role = 'USER';
   private verifiedAdminPassword = '';
+  private unlockTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly userAdmin: UserAdminService,
@@ -62,19 +69,33 @@ export class WorkspaceUserAdminComponent {
     return canSubmitNewUserForm(this.newUserFormState());
   }
 
-  /** Public API for shell: open password gate (ADMIN only — parent must gate the button). */
+  /**
+   * Public API for shell (ADMIN only — parent must gate the button).
+   * Onboarding (`lockRoleToUser`) skips the management-password gate.
+   */
   openAccess(): void {
     this.adminAccessPassword = '';
     this.userAccessError.set('');
+    if (this.lockRoleToUser) {
+      this.verifiedAdminPassword = '';
+      this.openCreateUserDialog();
+      return;
+    }
     this.userAccessDialog.set(true);
+  }
+
+  unlockFields(): void {
+    this.fieldsInteractive.set(true);
   }
 
   /** Clears overlays/forms — called from Workspace resetTransientUi / logout. */
   reset(): void {
+    this.clearUnlockTimer();
     this.userAccessDialog.set(false);
     this.createUserDialog.set(false);
     this.verifyingUserAccess.set(false);
     this.creatingUser.set(false);
+    this.fieldsInteractive.set(false);
     this.userAccessError.set('');
     this.createUserError.set('');
     this.adminAccessPassword = '';
@@ -101,8 +122,7 @@ export class WorkspaceUserAdminComponent {
       this.verifiedAdminPassword = this.adminAccessPassword;
       this.userAccessDialog.set(false);
       this.adminAccessPassword = '';
-      this.resetNewUserForm();
-      this.createUserDialog.set(true);
+      this.openCreateUserDialog();
     } catch (error) {
       this.userAccessError.set(error instanceof Error ? error.message : 'No se pudo verificar la contraseña');
     } finally {
@@ -111,9 +131,27 @@ export class WorkspaceUserAdminComponent {
   }
 
   closeCreateUserDialog(): void {
+    this.clearUnlockTimer();
     this.createUserDialog.set(false);
+    this.fieldsInteractive.set(false);
     this.verifiedAdminPassword = '';
     this.resetNewUserForm();
+  }
+
+  private openCreateUserDialog(): void {
+    this.resetNewUserForm();
+    this.fieldsInteractive.set(false);
+    this.createUserDialog.set(true);
+    this.clearUnlockTimer();
+    // Unlock after paint so Chrome/Safari cannot inject login autofill into empty fields.
+    this.unlockTimer = setTimeout(() => this.fieldsInteractive.set(true), 350);
+  }
+
+  private clearUnlockTimer(): void {
+    if (this.unlockTimer) {
+      clearTimeout(this.unlockTimer);
+      this.unlockTimer = null;
+    }
   }
 
   async createUser(): Promise<void> {
@@ -132,12 +170,13 @@ export class WorkspaceUserAdminComponent {
         full_name: this.newUserFullName.trim(),
         username: normalizeUsername(this.newUserUsername),
         password: this.newUserPassword,
-        role: this.newUserRole,
-        admin_password: this.verifiedAdminPassword,
+        role: this.lockRoleToUser ? 'USER' : this.newUserRole,
+        ...(this.lockRoleToUser ? {} : { admin_password: this.verifiedAdminPassword }),
       });
       const username = normalizeUsername(this.newUserUsername);
       this.closeCreateUserDialog();
       this.toastMessage.emit(`Usuario ${username} creado correctamente`);
+      this.userCreated.emit();
     } catch (error) {
       this.createUserError.set(this.errors.humanize(error, 'No se pudo crear el usuario'));
     } finally {
@@ -158,8 +197,9 @@ export class WorkspaceUserAdminComponent {
       fullName: this.newUserFullName,
       username: this.newUserUsername,
       password: this.newUserPassword,
-      role: this.newUserRole,
+      role: this.lockRoleToUser ? ('USER' as Role) : this.newUserRole,
       verifiedAdminPassword: this.verifiedAdminPassword,
+      requireAdminPassword: !this.lockRoleToUser,
     };
   }
 }

@@ -163,6 +163,9 @@ create index if not exists idx_reservations_date
 create table if not exists public.companies (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  onboarding_plan_done boolean not null default false,
+  onboarding_products_done boolean not null default false,
+  onboarding_users_done boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

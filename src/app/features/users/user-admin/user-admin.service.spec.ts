@@ -45,9 +45,10 @@ describe('UserAdminService', () => {
     service = TestBed.inject(UserAdminService);
   });
 
-  it('countAdditionalCompanyUsers scopes by company and excludes current admin', async () => {
-    const eq = vi.fn().mockResolvedValue({ count: 2, error: null });
-    const neq = vi.fn().mockReturnValue({ eq });
+  it('countAdditionalCompanyUsers scopes by company and counts USER staff only', async () => {
+    const eqCompany = vi.fn().mockResolvedValue({ count: 2, error: null });
+    const eqRole = vi.fn().mockReturnValue({ eq: eqCompany });
+    const neq = vi.fn().mockReturnValue({ eq: eqRole });
     const select = vi.fn().mockReturnValue({ neq });
     fromMock.mockReturnValue({ select });
 
@@ -58,7 +59,8 @@ describe('UserAdminService', () => {
     expect(fromMock).toHaveBeenCalledWith('profiles');
     expect(select).toHaveBeenCalledWith('id', { count: 'exact', head: true });
     expect(neq).toHaveBeenCalledWith('id', 'admin-1');
-    expect(eq).toHaveBeenCalledWith('company_id', 'co-1');
+    expect(eqRole).toHaveBeenCalledWith('role', 'USER');
+    expect(eqCompany).toHaveBeenCalledWith('company_id', 'co-1');
   });
 
   it('verifyAccess calls user_management secret RPC', async () => {

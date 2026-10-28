@@ -35,6 +35,17 @@ describe('WorkspaceUserAdminComponent', () => {
     expect(cmp.userAccessError()).toBe('');
   });
 
+  it('openAccess skips password gate when lockRoleToUser (onboarding)', () => {
+    const cmp = create();
+    cmp.lockRoleToUser = true;
+    cmp.openAccess();
+    expect(cmp.userAccessDialog()).toBe(false);
+    expect(cmp.createUserDialog()).toBe(true);
+    expect(cmp.newUserFullName).toBe('');
+    expect(cmp.newUserUsername).toBe('');
+    expect(cmp.newUserPassword).toBe('');
+  });
+
   it('verifyUserAccess opens create dialog when password ok', async () => {
     userAdmin.verifyAccess.mockResolvedValue(true);
     const cmp = create();

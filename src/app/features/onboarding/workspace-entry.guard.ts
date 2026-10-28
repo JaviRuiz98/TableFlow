@@ -23,8 +23,8 @@ export const workspaceEntryGuard: CanActivateFn = async (route) => {
   }
 
   try {
-    const progress = await onboarding.refresh();
-    if (progress.isComplete) return true;
+    await onboarding.refresh();
+    if (!onboarding.isInitialSetup()) return true;
   } catch {
     // If progress cannot be loaded, do not block the operational shell.
     return true;

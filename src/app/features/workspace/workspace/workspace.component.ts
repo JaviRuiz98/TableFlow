@@ -14,6 +14,7 @@ import {
   IonToast,
   IonSelect,
   IonSelectOption,
+  ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -32,17 +33,18 @@ import {
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { AuthService } from '../../../core/auth/auth.service';
+import { TABLEFLOW_DEFAULT_BRANDING } from '../../../core/branding';
 import { SupabaseService } from '../../../core/infrastructure';
 import {
   clearSetupIntent,
   OnboardingService,
-  peekSetupIntent,
   resolveSetupIntent,
   TF_SETUP_QUERY,
   type OnboardingStepId,
 } from '../../onboarding';
 import { FloorPlanService } from '../../floor-plans';
 import { OrderService } from '../../orders';
+import { ProductService } from '../../products';
 import { OrderNotificationService } from '../../notifications';
 import type { ClubTable, FloorPlan } from '../../../core/models/models';
 import { PlanEditorComponent, TableProductPanelComponent } from '../../floor-editor';
@@ -82,12 +84,14 @@ import { WorkspaceUserAlertModalComponent } from '../workspace-user-alert-modal/
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
 })
-export class WorkspaceComponent implements OnInit, OnDestroy {
+export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
   @ViewChild(PlanEditorComponent) private planEditor?: PlanEditorComponent;
   /** Template ref so tests can stub the child without matching the concrete class. */
   @ViewChild('userAdmin') private userAdminPanel?: WorkspaceUserAdminComponent;
   @ViewChild('planAdmin') private planAdminDialogs?: WorkspacePlanAdminDialogsComponent;
   @ViewChild('catalogPanel') private catalogPanel?: WorkspaceCatalogPanelComponent;
+
+  readonly branding = TABLEFLOW_DEFAULT_BRANDING;
 
   activeTab = signal<'planos' | 'operativo' | 'productos'>('planos');
   editorMode = signal<'editor' | 'operativo'>('editor');
@@ -101,12 +105,15 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   userAlertTitle = signal(NEW_ORDER_ALERT.title);
   userAlertEyebrow = signal(NEW_ORDER_ALERT.eyebrow);
   userAlertMessage = signal(NEW_ORDER_ALERT.message);
-  /** ADMIN arrived from incomplete onboarding checklist. */
-  showOnboardingReturn = signal(false);
+  /** Guided setup shell (hide workspace chrome; step-scoped content). */
+  onboardingMode = signal(false);
+  savingOnboardingPlan = signal(false);
+  finishingOnboardingProducts = signal(false);
 
   private channel: RealtimeChannel | null = null;
   private userOrderChannel: RealtimeChannel | null = null;
-  private setupIntent: OnboardingStepId | null = null;
+  private workspaceDataReady = false;
+  setupIntent: OnboardingStepId | null = null;
 
   /**
    * Limpia cualquier estado visual transitorio para que una nueva sesión
@@ -128,6 +135,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     private floors: FloorPlanService,
     private orders: OrderService,
+    private products: ProductService,
     private notifications: OrderNotificationService,
     private supabase: SupabaseService,
     private router: Router,
@@ -162,34 +170,121 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     return workspaceShellVisibility(this.isAdmin);
   }
 
+  onboardingStepLabel(): string {
+    if (this.setupIntent === 'plan') return 'Crear primer plano';
+    if (this.setupIntent === 'products') return 'Configurar productos';
+    if (this.setupIntent === 'users') return 'Configurar usuarios';
+    return 'Configuración inicial';
+  }
+
+  onboardingProgressLabel(): string {
+    const progress = this.onboarding.progress();
+    return `${progress.completedCount} de 3 completados`;
+  }
+
   async ngOnInit(): Promise<void> {
     // Una sesión nueva siempre parte con todos los overlays cerrados.
     this.resetTransientUi();
-    this.setupIntent = resolveSetupIntent(this.route.snapshot.queryParamMap.get(TF_SETUP_QUERY));
+    await this.bootstrapWorkspace();
+  }
+
+  /**
+   * ion-router-outlet caches this page. Re-enter after /onboarding must
+   * re-apply guided shell (return CTA + hidden tabs) — ngOnInit alone won't.
+   */
+  ionViewWillEnter(): void {
+    if (!this.workspaceDataReady) return;
+    void this.reenterWorkspace();
+  }
+
+  private async reenterWorkspace(): Promise<void> {
     try {
       this.plans.set(await this.floors.list());
-      const presentation = initialWorkspacePresentation(this.isAdmin, this.plans());
-      this.activeTab.set(presentation.activeTab);
-      this.editorMode.set(presentation.editorMode);
-      this.showMap.set(presentation.showMap);
-      this.selectedPlan.set(presentation.selectedPlan);
-      if (presentation.subscribeUserOrderAlerts) {
-        this.userOrderChannel = this.notifications.subscribeToNewOrderItems(
-          () => this.showUserAlert(NEW_ORDER_ALERT),
-          () => this.showUserAlert(NEW_OBSERVATION_ALERT),
-        );
-      }
-      this.channel = this.orders.subscribe(() => this.refreshOperationalData(), 'workspace-orders');
-      await this.refreshOnboardingReturnBanner();
-      void this.applySetupIntent();
-    } catch (error) {
-      this.toast.set(error instanceof Error ? error.message : 'Error cargando datos');
+    } catch {
+      // Keep the previous list; shell sync still proceeds.
     }
+    await this.syncOnboardingShell({ applyIntent: true });
   }
 
   ngOnDestroy(): void {
     this.channel?.unsubscribe?.();
     this.userOrderChannel?.unsubscribe?.();
+  }
+
+  /**
+   * Resolve setup intent + company flags and toggle guided chrome.
+   * Tab/intent are applied synchronously first so a cached operativo view
+   * cannot flash when re-entering for products/users.
+   */
+  private async syncOnboardingShell(options?: { applyIntent?: boolean }): Promise<void> {
+    this.setupIntent = resolveSetupIntent(this.route.snapshot.queryParamMap.get(TF_SETUP_QUERY));
+
+    // Keep guided chrome on immediately when arriving from an onboarding CTA
+    // (before awaiting refresh) so operational tabs never flash.
+    if (this.isAdmin && this.setupIntent) {
+      this.onboardingMode.set(true);
+      this.applySetupIntentTabs();
+    }
+
+    if (this.isAdmin) {
+      await this.onboarding.refresh().catch(() => undefined);
+    }
+    const guided = this.isAdmin && (this.onboarding.isInitialSetup() || !!this.setupIntent);
+    this.onboardingMode.set(guided);
+    if (guided && options?.applyIntent) {
+      await this.applySetupIntent();
+    }
+  }
+
+  /** Switch visible tab for the current setup intent without awaiting I/O. */
+  private applySetupIntentTabs(): void {
+    if (!this.setupIntent) return;
+    if (this.setupIntent === 'plan') {
+      this.activeTab.set(this.plans().length ? 'operativo' : 'planos');
+      return;
+    }
+    if (this.setupIntent === 'products') {
+      this.activeTab.set('productos');
+      return;
+    }
+    // users: no plan/catalog surface — stay off operativo/planos
+    this.activeTab.set('productos');
+  }
+
+  private async bootstrapWorkspace(): Promise<void> {
+    try {
+      await this.syncOnboardingShell({ applyIntent: false });
+
+      this.plans.set(await this.floors.list());
+      if (this.onboardingMode()) {
+        // Guided entry: never inherit a default operativa presentation.
+        this.applySetupIntentTabs();
+        if (this.setupIntent === 'plan' && this.plans().length) {
+          this.selectedPlan.set(this.plans()[0]);
+          this.editorMode.set('editor');
+          this.showMap.set(true);
+        } else if (this.setupIntent !== 'plan') {
+          this.selectedPlan.set(null);
+        }
+      } else {
+        const presentation = initialWorkspacePresentation(this.isAdmin, this.plans());
+        this.activeTab.set(presentation.activeTab);
+        this.editorMode.set(presentation.editorMode);
+        this.showMap.set(presentation.showMap);
+        this.selectedPlan.set(presentation.selectedPlan);
+        if (presentation.subscribeUserOrderAlerts) {
+          this.userOrderChannel = this.notifications.subscribeToNewOrderItems(
+            () => this.showUserAlert(NEW_ORDER_ALERT),
+            () => this.showUserAlert(NEW_OBSERVATION_ALERT),
+          );
+        }
+        this.channel = this.orders.subscribe(() => this.refreshOperationalData(), 'workspace-orders');
+      }
+      this.workspaceDataReady = true;
+      await this.applySetupIntent();
+    } catch (error) {
+      this.toast.set(error instanceof Error ? error.message : 'Error cargando datos');
+    }
   }
 
   private async refreshOperationalData(): Promise<void> {
@@ -275,61 +370,137 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     this.editorMode.set('editor');
     this.showMap.set(true);
     this.activeTab.set('operativo');
-    void this.maybeReturnToOnboardingAfterSetup();
+    // Onboarding: stay in the editor until the design is saved explicitly.
   }
 
   async returnToOnboarding(): Promise<void> {
+    if (this.onboardingMode() && this.setupIntent === 'plan' && this.hasUnsavedPlanEdits()) {
+      const leave = window.confirm(
+        'Hay cambios en el editor que quizá no se hayan guardado. ¿Volver a la configuración igual?',
+      );
+      if (!leave) return;
+    }
+
     clearSetupIntent();
     this.setupIntent = null;
-    this.showOnboardingReturn.set(false);
+    // Keep guided chrome on while navigating away so operational tabs never flash.
+    this.resetGuidedSurface();
     await this.router.navigateByUrl('/onboarding');
   }
 
-  private async refreshOnboardingReturnBanner(): Promise<void> {
-    if (!this.isAdmin) {
-      this.showOnboardingReturn.set(false);
-      return;
-    }
-    if (this.setupIntent || peekSetupIntent()) {
-      this.showOnboardingReturn.set(true);
-      return;
-    }
+  async saveOnboardingPlanAndContinue(): Promise<void> {
+    if (!this.onboardingMode() || this.setupIntent !== 'plan' || !this.selectedPlan()) return;
+    this.savingOnboardingPlan.set(true);
     try {
-      const progress = await this.onboarding.refresh();
-      this.showOnboardingReturn.set(!progress.isComplete);
-    } catch {
-      this.showOnboardingReturn.set(false);
+      const saved = await this.planEditor?.saveDesign(false);
+      if (saved === false) {
+        this.toast.set('No se pudo guardar el diseño del plano.');
+        return;
+      }
+      const plans = await this.floors.list();
+      this.plans.set(plans);
+      if (!plans.some((item) => item.id === this.selectedPlan()?.id)) {
+        this.toast.set('El plano no se encontró tras guardar. Inténtalo de nuevo.');
+        return;
+      }
+      await this.onboarding.markStepDone('plan');
+      await this.completeOnboardingStepAndReturn();
+    } catch (error) {
+      this.toast.set(error instanceof Error ? error.message : 'No se pudo guardar el plano');
+    } finally {
+      this.savingOnboardingPlan.set(false);
+    }
+  }
+
+  /** Creating a product no longer completes the step — only validates tenancy. */
+  onOnboardingProductCreated(product: { id: string; company_id: string | null }): void {
+    if (!this.onboardingMode() || this.setupIntent !== 'products') return;
+    const companyId = this.auth.profile()?.company_id ?? null;
+    if (!product.company_id || !companyId || product.company_id !== companyId) {
+      this.toast.set('El producto no quedó asociado a tu empresa.');
+    }
+  }
+
+  /** Explicit finish CTA: mark products flag and return to onboarding checklist. */
+  async finishOnboardingProducts(): Promise<void> {
+    if (!this.onboardingMode() || this.setupIntent !== 'products') return;
+    this.finishingOnboardingProducts.set(true);
+    try {
+      const list = await this.products.products();
+      if (!list.length) {
+        this.toast.set('Añade al menos un producto antes de finalizar.');
+        return;
+      }
+      await this.onboarding.markStepDone('products');
+      await this.completeOnboardingStepAndReturn();
+    } catch (error) {
+      this.toast.set(error instanceof Error ? error.message : 'No se pudo finalizar productos');
+    } finally {
+      this.finishingOnboardingProducts.set(false);
+    }
+  }
+
+  async onOnboardingUserCreated(): Promise<void> {
+    if (!this.onboardingMode() || this.setupIntent !== 'users') return;
+    try {
+      await this.onboarding.markStepDone('users');
+      await this.completeOnboardingStepAndReturn();
+    } catch (error) {
+      this.toast.set(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo marcar el paso de usuarios. Revisa migración 0019 / create-user si el staff no tiene company_id.',
+      );
     }
   }
 
   private async applySetupIntent(): Promise<void> {
-    if (!this.isAdmin || !this.setupIntent) return;
+    if (!this.isAdmin || !this.setupIntent || !this.workspaceDataReady) return;
+
+    this.applySetupIntentTabs();
 
     if (this.setupIntent === 'plan') {
-      this.activeTab.set('planos');
-      // ViewChild dialogs are ready after the first CD cycle.
-      void Promise.resolve().then(() => this.openCreatePlanDialog());
+      if (this.plans().length) {
+        this.selectedPlan.set(this.plans()[0]);
+        this.editorMode.set('editor');
+        this.showMap.set(true);
+      } else {
+        this.selectedPlan.set(null);
+        void Promise.resolve().then(() => this.openCreatePlanDialog());
+      }
       return;
     }
-    if (this.setupIntent === 'products') {
-      this.activeTab.set('productos');
-      return;
-    }
+
+    // products / users: never leave a plan editor visible behind the step
+    this.selectedPlan.set(null);
     if (this.setupIntent === 'users') {
       void Promise.resolve().then(() => this.openUserAccessDialog());
     }
   }
 
-  private async maybeReturnToOnboardingAfterSetup(): Promise<void> {
-    if (!this.isAdmin || !this.setupIntent) return;
+  /** Neutral surface so a cached plan step cannot leak into the next intent. */
+  private resetGuidedSurface(): void {
+    this.selectedPlan.set(null);
+    this.activeTab.set('planos');
+    this.editorMode.set('editor');
+  }
+
+  private async completeOnboardingStepAndReturn(): Promise<void> {
     try {
-      const progress = await this.onboarding.refresh();
-      if (!progress.isComplete) {
-        await this.returnToOnboarding();
-      }
+      await this.onboarding.refresh();
     } catch {
-      // Keep the user in workspace if progress cannot be re-checked.
+      // Still return; onboarding screen will refresh again.
     }
+    clearSetupIntent();
+    this.setupIntent = null;
+    // Keep guided chrome on while navigating away so operational tabs never flash.
+    this.resetGuidedSurface();
+    await this.router.navigateByUrl('/onboarding');
+  }
+
+  private hasUnsavedPlanEdits(): boolean {
+    const editor = this.planEditor as { historyIndex?: number } | undefined;
+    return typeof editor?.historyIndex === 'number' && editor.historyIndex > 0;
   }
 
   openPlan(plan: FloorPlan): void {
@@ -373,7 +544,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     this.resetTransientUi();
     clearSetupIntent();
     this.setupIntent = null;
-    this.showOnboardingReturn.set(false);
+    this.onboardingMode.set(false);
     this.channel?.unsubscribe?.();
     this.userOrderChannel?.unsubscribe?.();
     this.channel = null;

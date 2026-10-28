@@ -1,9 +1,15 @@
 <main class="page products">
   <div class="page-head">
     <div>
-      <span class="eyebrow">CATÁLOGO</span>
-      <h1>Productos</h1>
-      <p>Gestiona las bebidas disponibles para los pedidos.</p>
+      <span class="eyebrow">{{ guidedSetup ? 'PASO 2 DE 3' : 'CATÁLOGO' }}</span>
+      <h1>{{ guidedSetup ? 'Configurar productos' : 'Productos' }}</h1>
+      <p>
+        {{
+          guidedSetup
+            ? 'Añade categorías y productos. Cuando termines, pulsa «Finalizar productos» arriba.'
+            : 'Gestiona las bebidas disponibles para los pedidos.'
+        }}
+      </p>
     </div>
   </div>
   <div class="category-create">

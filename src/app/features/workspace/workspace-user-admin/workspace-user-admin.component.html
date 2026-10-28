@@ -10,19 +10,26 @@
         <button type="button" class="dialog-close" (click)="closeUserAccessDialog()"><ion-icon name="close-outline"></ion-icon></button>
       </div>
       <div class="dialog-body">
-        <ion-input
-          label="Contraseña de administración"
-          type="password"
-          labelPlacement="stacked"
-          fill="outline"
-          [(ngModel)]="adminAccessPassword"
-          (keydown.enter)="verifyUserAccess()"
-        >
-          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-        </ion-input>
-        @if (userAccessError()) {
-          <p class="form-error">{{ userAccessError() }}</p>
-        }
+        <form class="auth-like-form" autocomplete="off" (ngSubmit)="verifyUserAccess()">
+          <div class="field">
+            <label class="field-label" for="adminAccessPassword">Contraseña de administración</label>
+            <ion-input
+              id="adminAccessPassword"
+              class="auth-field"
+              type="password"
+              name="tf_admin_access_password"
+              autocomplete="off"
+              fill="outline"
+              [(ngModel)]="adminAccessPassword"
+              placeholder="Contraseña"
+            >
+              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+            </ion-input>
+          </div>
+          @if (userAccessError()) {
+            <p class="form-error">{{ userAccessError() }}</p>
+          }
+        </form>
       </div>
       <div class="dialog-actions">
         <ion-button fill="outline" class="secondary-button" (click)="closeUserAccessDialog()">Cancelar</ion-button>
@@ -40,31 +47,112 @@
       <div class="dialog-header">
         <div>
           <span class="dialog-eyebrow">ADMINISTRACIÓN</span>
-          <h2>Crear usuario</h2>
-          <p>La cuenta se creará en Supabase con el rol seleccionado.</p>
+          <h2>{{ lockRoleToUser ? 'Crear trabajador' : 'Crear usuario' }}</h2>
+          <p>
+            {{
+              lockRoleToUser
+                ? 'Se creará una cuenta USER asociada a tu empresa.'
+                : 'La cuenta se creará en Supabase con el rol seleccionado.'
+            }}
+          </p>
         </div>
         <button type="button" class="dialog-close" (click)="closeCreateUserDialog()"><ion-icon name="close-outline"></ion-icon></button>
       </div>
-      <div class="dialog-body user-form">
-        <ion-input label="Nombre" labelPlacement="stacked" fill="outline" [(ngModel)]="newUserFullName"></ion-input>
-        <ion-input label="Nombre de usuario" type="text" autocomplete="off" labelPlacement="stacked" fill="outline" [(ngModel)]="newUserUsername"></ion-input>
-        <p class="field-help">Usa al menos 3 caracteres. Se admiten letras, números, punto, guion y guion bajo.</p>
-        <ion-input
-          label="Contraseña del nuevo usuario"
-          type="password"
-          labelPlacement="stacked"
-          fill="outline"
-          [(ngModel)]="newUserPassword"
-        >
-          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-        </ion-input>
-        <ion-select label="Rol" labelPlacement="stacked" fill="outline" [(ngModel)]="newUserRole">
-          <ion-select-option value="USER">Usuario (USER)</ion-select-option>
-          <ion-select-option value="ADMIN">Administrador (ADMIN)</ion-select-option>
-        </ion-select>
-        @if (createUserError()) {
-          <p class="form-error">{{ createUserError() }}</p>
-        }
+      <div class="dialog-body">
+        <form class="auth-like-form user-form" autocomplete="off" (ngSubmit)="createUser()">
+          <!-- Honeypot decoys: reduce browser login autofill into staff fields -->
+          <input
+            class="autofill-decoy"
+            type="text"
+            name="username"
+            autocomplete="username"
+            tabindex="-1"
+            aria-hidden="true"
+          />
+          <input
+            class="autofill-decoy"
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            tabindex="-1"
+            aria-hidden="true"
+          />
+
+          <div class="field">
+            <label class="field-label" for="newUserFullName">Nombre</label>
+            <ion-input
+              id="newUserFullName"
+              class="auth-field"
+              type="text"
+              name="tf_staff_full_name"
+              autocomplete="off"
+              fill="outline"
+              [readonly]="!fieldsInteractive()"
+              [(ngModel)]="newUserFullName"
+              placeholder="Nombre y apellidos"
+              (ionFocus)="unlockFields()"
+            ></ion-input>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="newUserUsername">Nombre de usuario</label>
+            <ion-input
+              id="newUserUsername"
+              class="auth-field"
+              type="text"
+              name="tf_staff_username"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              fill="outline"
+              [readonly]="!fieldsInteractive()"
+              [(ngModel)]="newUserUsername"
+              placeholder="ej. ana.garcia"
+              (ionFocus)="unlockFields()"
+            ></ion-input>
+            <p class="field-help">Usa al menos 3 caracteres. Se admiten letras, números, punto, guion y guion bajo.</p>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="newUserPassword">Contraseña del nuevo usuario</label>
+            <ion-input
+              id="newUserPassword"
+              class="auth-field"
+              type="password"
+              name="tf_staff_new_password"
+              autocomplete="new-password"
+              fill="outline"
+              [readonly]="!fieldsInteractive()"
+              [(ngModel)]="newUserPassword"
+              placeholder="Mín. 6 caracteres"
+              (ionFocus)="unlockFields()"
+            >
+              <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+            </ion-input>
+          </div>
+
+          @if (!lockRoleToUser) {
+            <div class="field">
+              <label class="field-label" for="newUserRole">Rol</label>
+              <ion-select
+                id="newUserRole"
+                class="auth-select"
+                labelPlacement="stacked"
+                fill="outline"
+                interface="popover"
+                [(ngModel)]="newUserRole"
+                name="tf_staff_role"
+              >
+                <ion-select-option value="USER">Usuario (USER)</ion-select-option>
+                <ion-select-option value="ADMIN">Administrador (ADMIN)</ion-select-option>
+              </ion-select>
+            </div>
+          }
+
+          @if (createUserError()) {
+            <p class="form-error">{{ createUserError() }}</p>
+          }
+        </form>
       </div>
       <div class="dialog-actions">
         <ion-button fill="outline" class="secondary-button" (click)="closeCreateUserDialog()">Cancelar</ion-button>

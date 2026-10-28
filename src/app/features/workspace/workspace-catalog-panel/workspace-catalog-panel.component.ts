@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonButton, IonIcon, IonInput, IonModal } from '@ionic/angular/standalone';
@@ -19,9 +19,14 @@ import { applyCatalogDelete, catalogDeleteBlockedMessage } from './workspace-cat
   styleUrl: './workspace-catalog-panel.component.scss',
 })
 export class WorkspaceCatalogPanelComponent implements OnInit {
+  /** When true, copy explains the guided setup finish CTA in the parent topbar. */
+  @Input() guidedSetup = false;
   @Output() toastMessage = new EventEmitter<string>();
+  /** Emitted after a product row is persisted (parent may validate company_id). */
+  @Output() productCreated = new EventEmitter<Product>();
 
   categories = signal<ProductCategory[]>([]);
+
   products = signal<Product[]>([]);
   newCategory = '';
   newProductName: Record<string, string> = {};
@@ -102,6 +107,7 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
       this.products.update((current) => [...current, product]);
       this.newProductName[categoryId] = '';
       this.toastMessage.emit('Producto añadido');
+      this.productCreated.emit(product);
     } catch (error) {
       this.toastMessage.emit(error instanceof Error ? error.message : 'No se pudo crear el producto');
     }

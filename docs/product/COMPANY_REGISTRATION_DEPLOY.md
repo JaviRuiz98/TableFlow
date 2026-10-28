@@ -42,6 +42,8 @@ Existing RLS on floor plans / tables / orders is still largely “any authentica
 
 **Products:** migration `0018_products_company_id.sql` adds `products.company_id`, company-scoped RLS, and the Angular catalog inserts/lists by company. Still pending: `product_categories` tenancy and full operational RLS.
 
+**Staff users:** migration `0019_staff_profile_company_id.sql` (pending apply) + redeploy Edge `create-user` so new USER profiles inherit the ADMIN `company_id` from trusted metadata on INSERT.
+
 ## App routes
 
 | Route | Purpose |

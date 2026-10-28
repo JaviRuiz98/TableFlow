@@ -59,18 +59,27 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          onboarding_plan_done: boolean;
+          onboarding_products_done: boolean;
+          onboarding_users_done: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           name: string;
+          onboarding_plan_done?: boolean;
+          onboarding_products_done?: boolean;
+          onboarding_users_done?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
+          onboarding_plan_done?: boolean;
+          onboarding_products_done?: boolean;
+          onboarding_users_done?: boolean;
           created_at?: string;
           updated_at?: string;
         };

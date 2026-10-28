@@ -15,6 +15,7 @@ describe('workspaceEntryGuard', () => {
   };
   const onboarding = {
     refresh: vi.fn(),
+    isInitialSetup: vi.fn(),
   };
 
   beforeEach(() => {
@@ -44,6 +45,7 @@ describe('workspaceEntryGuard', () => {
     auth.session.mockReturnValue({});
     auth.hasRole.mockReturnValue(true);
     onboarding.refresh.mockResolvedValue({ isComplete: false });
+    onboarding.isInitialSetup.mockReturnValue(true);
 
     const result = await TestBed.runInInjectionContext(() =>
       workspaceEntryGuard(routeWithQuery(null), {} as never),
