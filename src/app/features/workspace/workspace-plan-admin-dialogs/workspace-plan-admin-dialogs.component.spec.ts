@@ -13,6 +13,11 @@ const samplePlan: FloorPlan = {
   is_active: false,
   is_locked: false,
   company_id: 'company-1',
+  opening_date: '2026-01-01',
+  opens_at: '22:00:00',
+  closes_at: '06:00:00',
+  closes_next_day: true,
+  status: 'scheduled',
   created_at: '',
   updated_at: '',
 };
@@ -20,6 +25,7 @@ const samplePlan: FloorPlan = {
 describe('WorkspacePlanAdminDialogsComponent', () => {
   const floors = {
     create: vi.fn(),
+    createOpeningJornada: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
   };
@@ -64,7 +70,7 @@ describe('WorkspacePlanAdminDialogsComponent', () => {
 
   it('createPlan emits plansUpdated, toast and planCreated', async () => {
     const created = { ...samplePlan, id: 'p2', name: 'Nuevo' };
-    floors.create.mockResolvedValue(created);
+    floors.createOpeningJornada.mockResolvedValue(created);
     const cmp = create();
     const toast = vi.fn();
     const plansUpdated = vi.fn();
@@ -75,11 +81,50 @@ describe('WorkspacePlanAdminDialogsComponent', () => {
     cmp.openCreate();
     cmp.newPlanName = 'Nuevo';
     await cmp.createPlan();
-    expect(floors.create).toHaveBeenCalled();
-    expect(plansUpdated).toHaveBeenCalledWith([samplePlan, created]);
+    expect(floors.createOpeningJornada).toHaveBeenCalled();
+    expect(plansUpdated).toHaveBeenCalledWith([created, samplePlan]);
     expect(planCreated).toHaveBeenCalledWith(created);
-    expect(toast).toHaveBeenCalledWith(expect.stringContaining('creado'));
+    expect(toast).toHaveBeenCalledWith(expect.stringContaining('creada'));
     expect(cmp.createPlanDialog()).toBe(false);
+  });
+
+  it('openEditSchedule / confirmEditSchedule updates schedule fields', async () => {
+    floors.update.mockResolvedValue(undefined);
+    const cmp = create();
+    const plansUpdated = vi.fn();
+    const toast = vi.fn();
+    cmp.plansUpdated.subscribe(plansUpdated);
+    cmp.toastMessage.subscribe(toast);
+    cmp.openEditSchedule(samplePlan);
+    expect(cmp.editScheduleDialog()).toBe(true);
+    expect(cmp.editOpeningDate).toBe('2026-01-01');
+    expect(cmp.editOpensAt).toBe('22:00');
+    cmp.editOpeningDate = '2026-10-31';
+    cmp.editOpensAt = '23:00';
+    cmp.editClosesAt = '05:00';
+    cmp.editClosesNextDay = true;
+    await cmp.confirmEditSchedule();
+    expect(floors.update).toHaveBeenCalledWith('p1', {
+      opening_date: '2026-10-31',
+      opens_at: '23:00:00',
+      closes_at: '05:00:00',
+      closes_next_day: true,
+    });
+    expect(plansUpdated.mock.calls[0][0][0].opening_date).toBe('2026-10-31');
+    expect(toast).toHaveBeenCalledWith('Fecha y horario actualizados');
+    expect(cmp.editScheduleDialog()).toBe(false);
+  });
+
+  it('confirmEditSchedule opens incoherent dialog when same-day close is before open', async () => {
+    const cmp = create();
+    cmp.openEditSchedule(samplePlan);
+    cmp.editOpensAt = '22:00';
+    cmp.editClosesAt = '06:00';
+    cmp.editClosesNextDay = false;
+    await cmp.confirmEditSchedule();
+    expect(floors.update).not.toHaveBeenCalled();
+    expect(cmp.scheduleIncoherentDialog()).toBe(true);
+    expect(cmp.scheduleIncoherentContext()).toBe('edit');
   });
 
   it('askDuplicate / closeCopyDialog', () => {

@@ -87,6 +87,32 @@ describe('ProductService', () => {
     });
   });
 
+  it('creates a product with a rounded price', async () => {
+    const created = {
+      id: 'p3',
+      category_id: 'c1',
+      company_id: 'co-1',
+      name: 'Gin',
+      price: 12.5,
+      active: true,
+    };
+    const builder = createQueryBuilder({ data: created, error: null });
+    fromMock.mockReturnValue(builder);
+
+    await expect(service.createProduct('c1', 'Gin', 12.505)).resolves.toEqual(created);
+    expect(builder['insert']).toHaveBeenCalledWith({
+      category_id: 'c1',
+      name: 'Gin',
+      price: 12.51,
+      company_id: 'co-1',
+    });
+  });
+
+  it('rejects negative prices on create', async () => {
+    await expect(service.createProduct('c1', 'Gin', -1)).rejects.toThrow(/precio/i);
+    expect(fromMock).not.toHaveBeenCalled();
+  });
+
   it('rejects catalog ops when the profile has no company_id', async () => {
     auth.profile.mockReturnValue({ company_id: null });
     await expect(service.products()).rejects.toThrow(/empresa asociada/i);

@@ -19,6 +19,7 @@ const table = (partial: Partial<ClubTable> & Pick<ClubTable, 'id' | 'number' | '
     shape: partial.type === 'RESERVED' ? 'rectangle' : 'circle',
     attended: false,
     observation: null,
+    reserved: false,
     created_at: '',
     updated_at: '',
     ...partial,
@@ -30,6 +31,8 @@ describe('OrderAttentionDialogComponent', () => {
   const floors = {
     setTableObservation: vi.fn().mockResolvedValue(undefined),
     setTableAttended: vi.fn().mockResolvedValue(undefined),
+    setTableReserved: vi.fn().mockResolvedValue({ reserved: true }),
+    transferTableContent: vi.fn().mockResolvedValue({ ok: true, moved_orders: 0 }),
   };
   const orders = {
     forTable: vi.fn().mockResolvedValue({ items: [] }),

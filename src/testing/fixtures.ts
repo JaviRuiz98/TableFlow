@@ -46,6 +46,11 @@ export const fixturePlan: FloorPlan = {
   is_active: true,
   is_locked: false,
   company_id: 'company-1',
+  opening_date: '2026-01-01',
+  opens_at: '22:00:00',
+  closes_at: '06:00:00',
+  closes_next_day: true,
+  status: 'open',
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };
@@ -63,6 +68,7 @@ export const fixtureTable: ClubTable = {
   shape: 'circle',
   attended: true,
   observation: null,
+  reserved: false,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 };

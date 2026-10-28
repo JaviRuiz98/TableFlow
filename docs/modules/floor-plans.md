@@ -5,14 +5,16 @@
 
 ## Purpose
 
-Persist and manage floor plans, snapshots (elements + tables/reserved), lock flag, and operational table helpers used by the editor/workspace.
+Persist and manage floor plans as **jornadas de apertura** (dated opening sessions), snapshots (elements + tables/reserved), lock flag, and operational table helpers used by the editor/workspace.
+
+Each `floor_plans` row is one jornada: `opening_date`, `opens_at`, `closes_at`, `closes_next_day`, `status` (`scheduled` | `open` | `closed`). At most one `open` plan per company. Tables carry current `reserved` / `attended` flags for that jornada (not history).
 
 ## Responsibilities (this module)
 
-- CRUD `floor_plans`
+- CRUD `floor_plans` + jornada lifecycle (`createOpeningJornada`, `openJornada`, `closeJornada`)
 - Load/save snapshot via `replace_floor_plan_snapshot`
-- Duplicate plan (geometry only; reset attended/observation; new ids)
-- Lock (`is_locked`), attended/observation RPCs, create operational TABLE/RESERVED row
+- Duplicate / copy layout for a new jornada (geometry; reset attended/observation/**reserved**; new ids)
+- Lock (`is_locked`), attended/observation RPCs, reserved/transfer RPCs, create operational TABLE/RESERVED row
 
 ## Not this module
 
@@ -32,15 +34,17 @@ Persist and manage floor plans, snapshots (elements + tables/reserved), lock fla
 
 ## Public API (`FloorPlanService`)
 
-`list`, `create(name, width, height, companyId)`, `update`, `remove`, `load`, `saveSnapshot`, `setTableAttended`, `loadTableAttentionStates`, `setTableObservation`, `createOperationalTarget`, `setLocked`
+`list` (ordered by `opening_date` desc), `create` (legacy; defaults scheduled jornada times), `createOpeningJornada`, `openJornada`, `closeJornada`, `update`, `remove`, `load`, `saveSnapshot`, `setTableAttended`, `loadTableAttentionStates`, `setTableObservation`, `setTableReserved`, `transferTableContent`, `createOperationalTarget`, `setLocked`
 
 `PlanDuplicationService.duplicate(plan, copyName)` — copy inherits `plan.company_id`
 
-Ownership: `floor_plans.company_id` only (migration `0027`; `created_by` removed). Tenant RLS/RPC hardening: `0028` / `0029` (pending apply).
+Ownership: `floor_plans.company_id` only (migration `0027`; `created_by` removed). Tenant RLS/RPC hardening: `0028` / `0029`. Jornada fields + table flags: `0030`. Operational RPCs: `0031`.
+
+ADMIN Resumen (`admin-dashboard`) reads jornadas/KPIs from these rows — it does not own floor-plan mutations.
 
 ## Duplication behaviour (do not “improve” casually)
 
-Copies elements + tables + reserved with **new UUIDs**, `attended: false`, `observation: null`.  
+Copies elements + tables + reserved with **new UUIDs**, `attended: false`, `observation: null`, `reserved: false`.  
 If source `is_locked`, copy is locked after save. **Does not** copy orders/history.
 
 ## Integrity
@@ -52,7 +56,7 @@ If source `is_locked`, copy is locked after save. **Does not** copy orders/histo
 | Kind | Name |
 |------|------|
 | Tables | `floor_plans`, `floor_plan_elements`, `tables` |
-| RPC | `replace_floor_plan_snapshot`, `set_table_attended`, `set_table_observation` |
+| RPC | `replace_floor_plan_snapshot`, `set_table_attended`, `set_table_observation`, `create_opening_jornada`, `open_jornada`, `close_jornada`, `set_table_reserved`, `transfer_table_content` |
 
 ## Tests
 

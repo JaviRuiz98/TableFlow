@@ -43,10 +43,12 @@
   <app-order-attention-dialog
     [open]="showOrderDialog"
     [target]="selectedOrderTarget"
+    [siblingTables]="operationalTables"
     (closed)="onOrderDialogClosed()"
     (pendingChanged)="onOrderDialogPendingChanged()"
     (canvasRefresh)="onOrderCanvasRefresh()"
-    (targetPatched)="onOrderTargetPatched()">
+    (targetPatched)="onOrderTargetPatched()"
+    (transferCompleted)="onTransferCompleted($event)">
   </app-order-attention-dialog>
 
   <app-plan-editor-dialogs

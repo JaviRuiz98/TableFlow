@@ -1,5 +1,29 @@
 @use '../admin-shared.scss';
 
+.cta-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.cta-copy h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.cta-copy p {
+  margin: 0.35rem 0 0;
+  max-width: 34rem;
+}
+
+.cta-banner .btn-primary {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .grid {
   display: grid;
   gap: 0.75rem;

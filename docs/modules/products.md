@@ -25,7 +25,7 @@ Catalog of product categories and active products for ADMIN management and order
 ## Public API (`ProductService`)
 
 - `categories()`, `products()` (active only, filtered by `profile.company_id`)
-- `createCategory(name)`, `createProduct(categoryId, name)` (`price: null`, `company_id` from profile)
+- `createCategory(name)`, `createProduct(categoryId, name, price?)` (`price` optional ≥ 0, `company_id` from profile)
 - `updateProduct(id, patch)`, `updateCategory(id, name)`
 - `productHasOrderHistory` / `categoryHasOrderHistory`
 - `deleteProductSafe` / `deleteCategorySafe` → `boolean` (`data === true`)
@@ -47,7 +47,8 @@ Catalog of product categories and active products for ADMIN management and order
 ## Business rules (do not change)
 
 - Catalog list uses `active = true` only **and** `company_id = profile.company_id`
-- New products insert `price: null` and **must** set `company_id` from the signed-in profile
+- New products may set `price` (≥ 0 or null) and **must** set `company_id` from the signed-in profile
+- Catalog UI (workspace) shows price on create and in the product list summary
 - Missing `profile.company_id` → catalog list/create/update fail with a clear error
 - Delete RPCs block on non-CANCELLED order history (server-side)
 - ADMIN gating is UI + RLS/RPC, not duplicated in the service

@@ -41,6 +41,7 @@ class StubPlanAdminDialogsComponent {
   openCreate = vi.fn();
   askDuplicate = vi.fn();
   openRename = vi.fn();
+  openEditSchedule = vi.fn();
   askRemove = vi.fn();
   reset = vi.fn();
 }
@@ -66,6 +67,11 @@ const samplePlan: FloorPlan = {
   is_active: false,
   is_locked: false,
   company_id: 'company-1',
+  opening_date: '2026-01-01',
+  opens_at: '22:00:00',
+  closes_at: '06:00:00',
+  closes_next_day: true,
+  status: 'scheduled',
   created_at: '',
   updated_at: '',
 };
@@ -329,23 +335,41 @@ describe('WorkspaceComponent (characterization)', () => {
     expect(cmp.showMap()).toBe(true);
   });
 
-  it('onPlansUpdated syncs selected plan name and clears deleted selection', async () => {
+  it('onPlansUpdated syncs selected plan fields and clears deleted selection', async () => {
     const { cmp } = await create();
     cmp.selectedPlan.set(samplePlan);
-    cmp.onPlansUpdated([{ ...samplePlan, name: 'Sala renombrada' }]);
+    cmp.onPlansUpdated([
+      {
+        ...samplePlan,
+        name: 'Sala renombrada',
+        opening_date: '2026-10-31',
+        opens_at: '23:00:00',
+        closes_at: '05:00:00',
+      },
+    ]);
     expect(cmp.selectedPlan()?.name).toBe('Sala renombrada');
+    expect(cmp.selectedPlan()?.opening_date).toBe('2026-10-31');
+    expect(cmp.selectedPlan()?.opens_at).toBe('23:00:00');
     cmp.onPlansUpdated([]);
     expect(cmp.selectedPlan()).toBeNull();
   });
 
-  it('askDuplicate / openRename / askRemove delegate to plan-admin', async () => {
+  it('askDuplicate / openRename / openEditSchedule / askRemove delegate to plan-admin', async () => {
     const { cmp, planAdmin } = await create();
     cmp.askDuplicate(samplePlan);
     cmp.openRenamePlanDialog(samplePlan);
+    cmp.openEditScheduleDialog(samplePlan);
     cmp.askRemovePlan(samplePlan);
     expect(planAdmin.askDuplicate).toHaveBeenCalledWith(samplePlan);
     expect(planAdmin.openRename).toHaveBeenCalledWith(samplePlan);
+    expect(planAdmin.openEditSchedule).toHaveBeenCalledWith(samplePlan);
     expect(planAdmin.askRemove).toHaveBeenCalledWith(samplePlan);
+  });
+
+  it('formatPlanSchedule shows date and hours', async () => {
+    const { cmp } = await create();
+    expect(cmp.formatPlanHours(samplePlan)).toBe('22:00 – 06:00 (+1)');
+    expect(cmp.formatPlanSchedule(samplePlan)).toContain('22:00 – 06:00 (+1)');
   });
 
   it('logout resets overlays, unsubscribes channels and navigates to login', async () => {

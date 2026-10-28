@@ -2,44 +2,148 @@
   <header class="page-head">
     <span class="eyebrow">Análisis operativo</span>
     <h1>Actividad</h1>
-    <p class="lede">Consulta la evolución de pedidos y el movimiento de tu establecimiento.</p>
+    <p class="lede">Estadísticas reales por jornada y periodo de tu empresa.</p>
   </header>
 
-  <div class="banner state-box">
-    <ion-icon name="analytics-outline"></ion-icon>
-    <div>
-      <h2>Actividad no disponible</h2>
-      <p>
-        Las estadísticas de actividad estarán disponibles cuando se complete la configuración de este
-        módulo.
-      </p>
+  <div class="scope-bar">
+    <label for="activity-scope">Periodo</label>
+    <select
+      id="activity-scope"
+      [ngModel]="scopeKind()"
+      (ngModelChange)="onScopeChange($event)"
+    >
+      <option value="jornada">Jornada seleccionada</option>
+      <option value="last7">Últimos 7 días</option>
+      <option value="last30">Últimos 30 días</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="banner state-box">
+      <ion-icon name="analytics-outline"></ion-icon>
+      <div>
+        <h2>Cargando actividad…</h2>
+      </div>
     </div>
-  </div>
+  } @else if (snapshot(); as snap) {
+    @if (snap.emptyCta) {
+      <div class="banner state-box">
+        <ion-icon name="analytics-outline"></ion-icon>
+        <div>
+          <h2>Sin jornadas todavía</h2>
+          <p>Crea la primera apertura para consultar estadísticas reales.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="blocks">
+        @if (snap.mode === 'jornada' && snap.jornadaKpis; as kpis) {
+          <article class="card block">
+            <h2>Estado operativo (jornada)</h2>
+            <ul class="metric-list">
+              <li>
+                <span>Reservas</span>
+                <strong>
+                  @if (kpis.reservas.value; as r) {
+                    {{ r.numerator }}/{{ r.denominator }}
+                  } @else {
+                    —
+                  }
+                </strong>
+              </li>
+              <li>
+                <span>Atendidas (verde)</span>
+                <strong>
+                  @if (kpis.atendidas.value; as o) {
+                    {{ o.numerator }}/{{ o.denominator }}
+                  } @else {
+                    —
+                  }
+                </strong>
+              </li>
+              <li>
+                <span>Pendientes de botella (rojo)</span>
+                <strong>{{ displayValue(kpis.pedidosPendientes.value) }}</strong>
+              </li>
+              <li>
+                <span>Libres</span>
+                <strong>
+                  @if (kpis.libres.value; as l) {
+                    {{ l.numerator }}/{{ l.denominator }}
+                  } @else {
+                    —
+                  }
+                </strong>
+              </li>
+            </ul>
+            @if (kpis.pedidosPendientes.availability === 'error') {
+              <p class="muted">No se pudieron cargar los pendientes de botella.</p>
+            }
+            <p class="muted">
+              Estados actuales de la jornada (no historial).
+            </p>
+          </article>
+        }
 
-  <div class="blocks">
-    <article class="card block">
-      <h2>Pedidos por estado</h2>
-      <ul class="metric-list">
-        <li><span>Pendientes</span><strong>—</strong></li>
-        <li><span>En atención</span><strong>—</strong></li>
-        <li><span>Completados</span><strong>—</strong></li>
-      </ul>
-    </article>
+        @if (snap.mode === 'period' && snap.periodKpis; as pk) {
+          <article class="card block">
+            <h2>Aperturas del periodo</h2>
+            <ul class="metric-list">
+              <li>
+                <span>Total</span>
+                <strong>{{ displayValue(pk.aperturas.value?.total) }}</strong>
+              </li>
+              <li>
+                <span>Programadas</span>
+                <strong>{{ displayValue(pk.aperturas.value?.scheduled) }}</strong>
+              </li>
+              <li>
+                <span>Abiertas</span>
+                <strong>{{ displayValue(pk.aperturas.value?.open) }}</strong>
+              </li>
+              <li>
+                <span>Cerradas</span>
+                <strong>{{ displayValue(pk.aperturas.value?.closed) }}</strong>
+              </li>
+            </ul>
+          </article>
+          <article class="card block">
+            <h2>Pedidos del periodo</h2>
+            <ul class="metric-list">
+              <li>
+                <span>Recibidos</span>
+                <strong>{{ displayValue(pk.pedidosRecibidos.value) }}</strong>
+              </li>
+              <li>
+                <span>Atendidos</span>
+                <strong>{{ displayValue(pk.pedidosAtendidos.value) }}</strong>
+              </li>
+            </ul>
+          </article>
+        }
 
-    <article class="card block">
-      <h2>Evolución de pedidos</h2>
-      <ul class="metric-list">
-        <li><span>Hoy</span><strong>—</strong></li>
-        <li><span>Últimos 7 días</span><strong>—</strong></li>
-        <li><span>Últimos 30 días</span><strong>—</strong></li>
-      </ul>
-    </article>
-
-    <article class="card block wide">
-      <h2>Actividad reciente</h2>
-      <p class="muted">
-        Aquí aparecerán los últimos pedidos, cambios de estado y avisos operativos de tu empresa.
-      </p>
-    </article>
-  </div>
+        <article class="card block wide">
+          <h2>Actividad reciente</h2>
+          @if (snap.recentActivity.availability === 'ready' && snap.recentActivity.value?.length) {
+            <ul class="activity-list">
+              @for (item of snap.recentActivity.value; track item.id) {
+                <li>
+                  <strong>{{ item.floor_plan_name ?? 'Jornada' }}</strong>
+                  <span>
+                    Mesa {{ item.table_number ?? '—' }} · {{ item.status }} ·
+                    {{ item.created_at | date: 'short' }}
+                  </span>
+                </li>
+              }
+            </ul>
+          } @else if (snap.recentActivity.availability === 'empty') {
+            <p class="muted">No hay pedidos recientes en este alcance.</p>
+          } @else if (snap.recentActivity.availability === 'error') {
+            <p class="muted">{{ snap.recentActivity.detail || 'No se pudo cargar la actividad.' }}</p>
+          } @else {
+            <p class="muted">Actividad no disponible para este alcance.</p>
+          }
+        </article>
+      </div>
+    }
+  }
 </section>

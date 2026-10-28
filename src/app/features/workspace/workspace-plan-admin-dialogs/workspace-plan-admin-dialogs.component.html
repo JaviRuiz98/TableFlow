@@ -3,25 +3,131 @@
     <div class="plan-dialog">
       <div class="dialog-header">
         <div>
-          <span class="dialog-eyebrow">NUEVO PLANO</span>
-          <h2>Crear plano</h2>
-          <p>Añade un nombre para identificar este plano.</p>
+          <span class="dialog-eyebrow">NUEVA JORNADA</span>
+          <h2>Crear jornada de apertura</h2>
+          <p>Define nombre, fecha y horario. Puedes partir de un plano vacío o copiar la distribución de uno anterior.</p>
         </div>
-        <button type="button" class="dialog-close" (click)="closeCreatePlanDialog()"><ion-icon name="close-outline"></ion-icon></button>
       </div>
-      <div class="dialog-body">
+      <div class="dialog-body jornada-form">
         <ion-input
-          label="Nombre del plano"
+          label="Nombre de la jornada"
           labelPlacement="stacked"
           fill="outline"
-          placeholder="Ej. Sala principal"
+          placeholder="Ej. Viernes Halloween"
           [(ngModel)]="newPlanName"
-          (keydown.enter)="createPlan()"
         ></ion-input>
+        <label class="field-label" for="jornada-date">Fecha de apertura</label>
+        <input id="jornada-date" type="date" [(ngModel)]="newOpeningDate" />
+        <label class="field-label" for="jornada-opens">Hora de apertura</label>
+        <input id="jornada-opens" type="time" [(ngModel)]="newOpensAt" />
+        <label class="field-label" for="jornada-closes">Hora de cierre</label>
+        <input id="jornada-closes" type="time" [(ngModel)]="newClosesAt" />
+        <label class="check-row">
+          <input type="checkbox" [(ngModel)]="newClosesNextDay" />
+          El cierre es al día siguiente
+        </label>
+        <div class="field-with-hint">
+          <label class="field-label" for="jornada-source">
+            Distribución
+            <button
+              type="button"
+              class="field-help"
+              [attr.title]="distribucionTooltip"
+              [attr.aria-label]="distribucionTooltip"
+            >
+              ?
+            </button>
+          </label>
+          <select
+            id="jornada-source"
+            [(ngModel)]="newSourcePlanId"
+            [attr.title]="newSourcePlanId ? distribucionTooltip : 'Se creará un plano vacío'"
+          >
+            <option value="">Plano vacío</option>
+            @for (p of plans; track p.id) {
+              <option [value]="p.id">Copiar «{{ p.name }}» ({{ p.opening_date }})</option>
+            }
+          </select>
+          @if (newSourcePlanId) {
+            <p class="field-hint">{{ distribucionTooltip }}</p>
+          }
+        </div>
       </div>
       <div class="dialog-actions">
         <ion-button fill="outline" class="secondary-button" (click)="closeCreatePlanDialog()">Cancelar</ion-button
-        ><ion-button class="primary-button" [disabled]="!newPlanName.trim()" (click)="createPlan()">Crear plano</ion-button>
+        ><ion-button class="primary-button" [disabled]="!canSubmitJornada" (click)="createPlan()">Crear jornada</ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<ion-modal
+  [isOpen]="scheduleIncoherentDialog()"
+  [backdropDismiss]="false"
+  class="create-plan-modal"
+  (didDismiss)="closeScheduleIncoherentDialog()"
+>
+  <ng-template>
+    <div class="plan-dialog confirm-dialog">
+      <div class="dialog-header">
+        <div>
+          <span class="dialog-eyebrow">HORARIO</span>
+          <h2>Horario incoherente</h2>
+          <p>
+            La hora de cierre ({{ scheduleIncoherentContext() === 'edit' ? editClosesAt : newClosesAt }})
+            es anterior a la de apertura ({{ scheduleIncoherentContext() === 'edit' ? editOpensAt : newOpensAt }})
+            y no has marcado que el cierre sea al día siguiente.
+          </p>
+          <p>
+            Si la jornada atraviesa la medianoche (por ejemplo 22:00 → 06:00), activa
+            «El cierre es al día siguiente».
+          </p>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <ion-button fill="outline" class="secondary-button" (click)="closeScheduleIncoherentDialog()">
+          Revisar horario
+        </ion-button>
+        <ion-button class="primary-button" (click)="fixClosesNextDayAndContinue()">
+          Cierra al día siguiente
+        </ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>
+
+<ion-modal
+  [isOpen]="editScheduleDialog()"
+  [backdropDismiss]="false"
+  class="create-plan-modal"
+  (didDismiss)="closeEditScheduleDialog()"
+>
+  <ng-template>
+    <div class="plan-dialog">
+      <div class="dialog-header">
+        <div>
+          <span class="dialog-eyebrow">FECHA Y HORARIO</span>
+          <h2>Editar «{{ planToEditSchedule()?.name }}»</h2>
+          <p>Actualiza la fecha de apertura y el horario de la jornada.</p>
+        </div>
+      </div>
+      <div class="dialog-body jornada-form">
+        <label class="field-label" for="edit-jornada-date">Fecha de apertura</label>
+        <input id="edit-jornada-date" type="date" [(ngModel)]="editOpeningDate" />
+        <label class="field-label" for="edit-jornada-opens">Hora de apertura</label>
+        <input id="edit-jornada-opens" type="time" [(ngModel)]="editOpensAt" />
+        <label class="field-label" for="edit-jornada-closes">Hora de cierre</label>
+        <input id="edit-jornada-closes" type="time" [(ngModel)]="editClosesAt" />
+        <label class="check-row">
+          <input type="checkbox" [(ngModel)]="editClosesNextDay" />
+          El cierre es al día siguiente
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <ion-button fill="outline" class="secondary-button" (click)="closeEditScheduleDialog()">Cancelar</ion-button>
+        <ion-button class="primary-button" [disabled]="!canSubmitScheduleEdit" (click)="confirmEditSchedule()">
+          Guardar
+        </ion-button>
       </div>
     </div>
   </ng-template>

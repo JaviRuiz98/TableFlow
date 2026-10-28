@@ -42,33 +42,31 @@ export function buildReplaceSnapshotPayload(planId: string, snapshot: FloorSnaps
 }
 
 /**
- * Clone snapshot for plan duplication: new ids, reset attended/observation.
+ * Clone snapshot for plan duplication: new ids, reset operational flags.
  * Does not copy orders; geometry + table layout only.
+ * reserved always starts false on the new jornada.
  */
 export function buildDuplicatedSnapshot(
   source: FloorSnapshot,
   copyPlanId: string,
   newId: () => string = () => crypto.randomUUID(),
 ): FloorSnapshot {
+  const resetTable = (table: ClubTable): ClubTable => ({
+    ...structuredClone(table),
+    id: newId(),
+    floor_plan_id: copyPlanId,
+    attended: false,
+    observation: null,
+    reserved: false,
+  });
+
   return {
     elements: source.elements.map((element) => ({
       ...structuredClone(element),
       id: newId(),
       floor_plan_id: copyPlanId,
     })),
-    tables: source.tables.map((table) => ({
-      ...structuredClone(table),
-      id: newId(),
-      floor_plan_id: copyPlanId,
-      attended: false,
-      observation: null,
-    })),
-    reserved: (source.reserved ?? []).map((table) => ({
-      ...structuredClone(table),
-      id: newId(),
-      floor_plan_id: copyPlanId,
-      attended: false,
-      observation: null,
-    })),
+    tables: source.tables.map(resetTable),
+    reserved: (source.reserved ?? []).map(resetTable),
   };
 }

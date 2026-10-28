@@ -27,6 +27,8 @@ export interface PlanEditorHost {
   reserved: ClubTable[];
   drawing: Point[];
   orderCountMap: Map<string, number>;
+  /** PENDING item quantities by table id — drives red attention color. */
+  pendingMap: Map<string, number>;
 
   // Selection / endpoints
   selectedTable: ClubTable | null;

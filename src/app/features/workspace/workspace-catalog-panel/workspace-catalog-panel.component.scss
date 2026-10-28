@@ -47,6 +47,7 @@ ion-button {
   display: flex;
   gap: 10px;
   align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .category-create {
@@ -57,12 +58,19 @@ ion-button {
 .category-create ion-input,
 .category-add ion-input {
   flex: 1;
+  min-width: 140px;
   --background: #14141a;
   --color: var(--tf-brand-text, #f4efe6);
   --placeholder-color: var(--tf-brand-text-muted, #9a948a);
   --border-color: rgba(244, 239, 230, 0.14);
   --border-radius: 12px;
   --highlight-color-focused: var(--tf-brand-primary, #d4af7c);
+}
+
+.category-add .price-input {
+  flex: 0 0 120px;
+  min-width: 110px;
+  max-width: 140px;
 }
 
 .category-card {
@@ -98,14 +106,28 @@ ion-button {
   border-top: 1px solid rgba(244, 239, 230, 0.08);
 }
 
-.product-row > span {
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  overflow-wrap: anywhere;
-  color: var(--tf-brand-text-muted, #9a948a);
 }
 
-.product-row strong {
+.product-info strong {
   color: var(--tf-brand-text, #f4efe6);
+  overflow-wrap: anywhere;
+}
+
+.product-price {
+  color: var(--tf-brand-primary, #d4af7c);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dialog-body-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .catalog-actions {

@@ -23,6 +23,46 @@
         </ion-button>
       </div>
 
+      @if (canManageOrders && selectedOrderTarget) {
+        <section class="table-status-ops">
+          <div class="section-title">Estado de la mesa</div>
+          <p class="status-line">
+            {{ selectedOrderTarget.reserved ? 'Reservada' : 'Sin reserva' }}
+          </p>
+          <div class="status-actions">
+            <ion-button
+              size="small"
+              class="editor-button"
+              [disabled]="statusSaving"
+              (click)="toggleReserved()">
+              {{ selectedOrderTarget.reserved ? 'Cancelar reserva' : 'Reservar' }}
+            </ion-button>
+          </div>
+
+          <div class="transfer-block">
+            <div class="section-title">Cambiar de mesa</div>
+            <select class="category-product-select" [(ngModel)]="transferTargetId">
+              <option value="">Selecciona destino libre…</option>
+              @for (opt of freeTransferTargets; track opt.id) {
+                <option [value]="opt.id">
+                  {{ opt.type === 'RESERVED' ? 'Reservado' : 'Mesa' }} {{ opt.number }}
+                </option>
+              }
+            </select>
+            <ion-button
+              size="small"
+              class="editor-button primary"
+              [disabled]="!transferTargetId || statusSaving"
+              (click)="confirmTransfer()">
+              Trasladar
+            </ion-button>
+          </div>
+          @if (statusMessage) {
+            <p class="observation-message" role="status">{{ statusMessage }}</p>
+          }
+        </section>
+      }
+
       <section class="table-observation" [class.editable]="isAdmin">
         <div class="observation-heading">
           <span class="dialog-eyebrow">OBSERVACIONES</span>

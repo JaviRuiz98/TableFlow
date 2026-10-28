@@ -8,6 +8,8 @@
 
 Domain helpers for table/reserved **validation** and **password-gated deletion**. No Konva UI.
 
+Operational flag `reserved` (migration `0030`, `occupied` removed in `0033`) and RPCs `set_table_reserved` / `transfer_table_content` live on `FloorPlanService` (see [JORNADAS_APERTURA](../architecture/JORNADAS_APERTURA.md)).
+
 ## Layout
 
 ```text

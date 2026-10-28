@@ -35,11 +35,19 @@ export class ProductService {
     return data;
   }
 
-  async createProduct(categoryId: string, name: string): Promise<Product> {
+  async createProduct(categoryId: string, name: string, price: number | null = null): Promise<Product> {
     const companyId = await this.requireCompanyId();
+    if (price != null && (!Number.isFinite(price) || price < 0)) {
+      throw new Error('El precio debe ser un número mayor o igual que 0');
+    }
     const { data, error } = await this.db.client
       .from('products')
-      .insert({ category_id: categoryId, name, price: null, company_id: companyId })
+      .insert({
+        category_id: categoryId,
+        name,
+        price: price == null ? null : Math.round(price * 100) / 100,
+        company_id: companyId,
+      })
       .select()
       .single();
     if (error) throw error;

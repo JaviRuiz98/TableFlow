@@ -42,6 +42,12 @@ describe('FloorPlanService', () => {
       width: 2000,
       height: 1200,
       company_id: 'company-1',
+      opening_date: expect.any(String),
+      opens_at: '22:00:00',
+      closes_at: '06:00:00',
+      closes_next_day: true,
+      status: 'scheduled',
+      is_active: false,
     });
   });
 
@@ -70,6 +76,7 @@ describe('FloorPlanService', () => {
           shape: 'circle',
           attended: false,
           observation: null,
+          reserved: false,
           created_at: '',
           updated_at: '',
         },
@@ -116,17 +123,17 @@ describe('FloorPlanService', () => {
     });
   });
 
-  it('createOperationalTarget inserts next number with attended true', async () => {
+  it('createOperationalTarget inserts next number with attended false', async () => {
     fromMock
       .mockReturnValueOnce(createQueryBuilder({ data: [{ number: 3 }], error: null }))
       .mockReturnValueOnce(
         createQueryBuilder({
-          data: { ...fixtureTable, number: 4, attended: true },
+          data: { ...fixtureTable, number: 4, attended: false },
           error: null,
         }),
       );
     const created = await service.createOperationalTarget(fixturePlan.id, 'TABLE');
     expect(created.number).toBe(4);
-    expect(created.attended).toBe(true);
+    expect(created.attended).toBe(false);
   });
 });

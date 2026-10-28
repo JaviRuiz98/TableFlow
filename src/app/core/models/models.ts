@@ -6,6 +6,7 @@
 export type {
   AppRole as Role,
   FloorElementKind,
+  JornadaStatus,
   OrderItemStatus,
   OrderStatus,
   ReservationStatus,
@@ -16,6 +17,7 @@ export type {
 import type {
   AppRole,
   FloorElementKind,
+  JornadaStatus,
   OrderItemStatus,
   OrderStatus,
   ReservationStatus,
@@ -53,6 +55,14 @@ export interface FloorPlan {
   is_locked: boolean;
   /** Tenant owner after migration 0027 (replaces created_by). */
   company_id: string;
+  /** Opening calendar date (YYYY-MM-DD). Not created_at. */
+  opening_date: string;
+  /** Local open time (HH:MM:SS). */
+  opens_at: string;
+  /** Local close time (HH:MM:SS); may be next day when closes_next_day. */
+  closes_at: string;
+  closes_next_day: boolean;
+  status: JornadaStatus;
   created_at: string;
   updated_at: string;
 }
@@ -88,6 +98,8 @@ export interface ClubTable {
   shape: TableShape;
   attended: boolean;
   observation: string | null;
+  /** Current reservation flag for this jornada (not history). */
+  reserved: boolean;
   created_at: string;
   updated_at: string;
 }

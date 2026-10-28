@@ -14,7 +14,7 @@ UI shell after login: tabs, plan list, operativa composition, product catalog UI
 - Presentation state (toast, editor mode, map visibility, RECEPTOR alert copy)
 - Orchestrate → `floor-plans` / `products` / `orders` / `notifications` / `auth`
 - User admin dialogs → child `WorkspaceUserAdminComponent` → `users`
-- Plan create/copy/rename/delete → `WorkspacePlanAdminDialogsComponent`
+- Plan create/copy/rename/delete/edit-schedule → `WorkspacePlanAdminDialogsComponent`
 - Catalog list + dialogs → `WorkspaceCatalogPanelComponent` → `ProductService`
 - RECEPTOR alert modal → `WorkspaceUserAlertModalComponent` (presentation)
 - Init + teardown Realtime; reset transient UI on init/logout (delegates child `reset()`)
@@ -46,7 +46,7 @@ workspace/
 |--------|------|
 | `workspace/` | Shell coordinator (tabs, operativa, Realtime, toast) + init/visibility/transient utils |
 | `workspace-user-admin/` | User access + create-user dialogs + form util (B11) |
-| `workspace-plan-admin-dialogs/` | Create/copy/rename/delete plan dialogs (C2) |
+| `workspace-plan-admin-dialogs/` | Create/copy/rename/delete/edit-schedule plan dialogs (C2) |
 | `workspace-catalog-panel/` | Productos tab + catalog dialogs + catalog util (C2) |
 | `workspace-user-alert-modal/` | RECEPTOR alert modal + alert copy util (C2) |
 | `styles/` | Shared modal SCSS |
@@ -57,7 +57,7 @@ workspace/
 | State | Owner |
 |-------|--------|
 | tabs, plans, selectedPlan, editorMode, showMap | Workspace |
-| plan create/copy/rename/delete dialogs | `WorkspacePlanAdminDialogsComponent` |
+| plan create/copy/rename/delete/edit-schedule dialogs | `WorkspacePlanAdminDialogsComponent` |
 | categories, products, catalog dialogs | `WorkspaceCatalogPanelComponent` |
 | user access + create-user forms/dialogs | `WorkspaceUserAdminComponent` |
 | RECEPTOR alert open + copy | Workspace (modal child is presentation) |

@@ -30,6 +30,7 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
   products = signal<Product[]>([]);
   newCategory = '';
   newProductName: Record<string, string> = {};
+  newProductPrice: Record<string, string | number | null> = {};
 
   editCategoryDialog = signal(false);
   categoryToEdit = signal<ProductCategory | null>(null);
@@ -37,6 +38,7 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
   editProductDialog = signal(false);
   productToEdit = signal<Product | null>(null);
   editProductName = '';
+  editProductPrice: string | number | null = '';
   catalogDeleteDialog = signal(false);
   catalogDeleteBlocked = signal(false);
   catalogDeleteChecking = signal(false);
@@ -76,12 +78,28 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
     this.productToDelete.set(null);
     this.editCategoryName = '';
     this.editProductName = '';
+    this.editProductPrice = '';
     this.newCategory = '';
     this.newProductName = {};
+    this.newProductPrice = {};
   }
 
   productsFor(categoryId: string): Product[] {
     return this.products().filter((product) => product.category_id === categoryId);
+  }
+
+  formatPrice(price: number | null | undefined): string {
+    if (price == null || !Number.isFinite(price)) return 'Sin precio';
+    return `${price.toFixed(2)} €`;
+  }
+
+  private parsePriceInput(raw: string | number | null | undefined): number | null {
+    if (raw === '' || raw === null || raw === undefined) return null;
+    const normalized = typeof raw === 'number' ? raw : Number(String(raw).trim().replace(',', '.'));
+    if (!Number.isFinite(normalized) || normalized < 0) {
+      throw new Error('Introduce un precio válido (0 o más)');
+    }
+    return Math.round(normalized * 100) / 100;
   }
 
   async createCategory(): Promise<void> {
@@ -103,9 +121,15 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
     const name = this.newProductName[categoryId]?.trim();
     if (!name) return;
     try {
-      const product = await this.product.createProduct(categoryId, name);
+      const price = this.parsePriceInput(this.newProductPrice[categoryId]);
+      if (price == null) {
+        this.toastMessage.emit('Indica el precio del producto');
+        return;
+      }
+      const product = await this.product.createProduct(categoryId, name, price);
       this.products.update((current) => [...current, product]);
       this.newProductName[categoryId] = '';
+      this.newProductPrice[categoryId] = '';
       this.toastMessage.emit('Producto añadido');
       this.productCreated.emit(product);
     } catch (error) {
@@ -144,6 +168,7 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
     if (!this.isAdmin) return;
     this.productToEdit.set(product);
     this.editProductName = product.name;
+    this.editProductPrice = product.price == null ? '' : product.price;
     this.editProductDialog.set(true);
   }
 
@@ -151,17 +176,21 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
     this.editProductDialog.set(false);
     this.productToEdit.set(null);
     this.editProductName = '';
+    this.editProductPrice = '';
   }
 
-  async saveProductName(): Promise<void> {
+  async saveProduct(): Promise<void> {
     const product = this.productToEdit();
     const name = this.editProductName.trim();
     if (!this.isAdmin || !product || !name) return;
     try {
-      await this.product.updateProduct(product.id, { name });
-      this.products.update((items) => items.map((item) => (item.id === product.id ? { ...item, name } : item)));
+      const price = this.parsePriceInput(this.editProductPrice);
+      await this.product.updateProduct(product.id, { name, price });
+      this.products.update((items) =>
+        items.map((item) => (item.id === product.id ? { ...item, name, price } : item)),
+      );
       this.closeEditProduct();
-      this.toastMessage.emit('Nombre de producto actualizado');
+      this.toastMessage.emit('Producto actualizado');
     } catch (error) {
       this.toastMessage.emit(error instanceof Error ? error.message : 'No se pudo actualizar el producto');
     }
@@ -251,6 +280,9 @@ export class WorkspaceCatalogPanelComponent implements OnInit {
         this.categories.set(next.categories);
         this.products.set(next.products);
         this.newProductName = next.newProductName;
+        const nextPrices = { ...this.newProductPrice };
+        delete nextPrices[category.id];
+        this.newProductPrice = nextPrices;
         this.toastMessage.emit(next.toast);
       }
       this.closeCatalogDeleteDialog();

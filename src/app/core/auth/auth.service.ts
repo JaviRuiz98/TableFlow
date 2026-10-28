@@ -208,7 +208,14 @@ export class AuthService {
       throw new Error(this.errors.humanize(error, 'No se pudo completar el registro'));
     }
 
-    const userId = data.user?.id;
+    const user = data.user;
+    // With "Confirm email" enabled, Auth may return a fake user (empty identities)
+    // instead of an error when the email is already registered.
+    if (user && Array.isArray(user.identities) && user.identities.length === 0) {
+      throw new Error('Ese correo ya está registrado.');
+    }
+
+    const userId = user?.id;
     if (!userId) {
       throw new Error('Supabase no devolvió el usuario registrado.');
     }

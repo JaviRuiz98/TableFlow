@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { mapOutline, restaurantOutline, cubeOutline, openOutline } from 'ionicons/icons';
+import { mapOutline, restaurantOutline, cubeOutline, openOutline, addCircleOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-sala',
@@ -14,6 +14,6 @@ import { mapOutline, restaurantOutline, cubeOutline, openOutline } from 'ionicon
 })
 export class AdminSalaComponent {
   constructor() {
-    addIcons({ mapOutline, restaurantOutline, cubeOutline, openOutline });
+    addIcons({ mapOutline, restaurantOutline, cubeOutline, openOutline, addCircleOutline });
   }
 }

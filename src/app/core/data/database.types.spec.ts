@@ -71,6 +71,7 @@ describe('database.types contracts', () => {
       shape: 'circle',
       attended: false,
       observation: null,
+      reserved: false,
       created_at: 't',
       updated_at: 't',
     };
@@ -85,6 +86,11 @@ describe('database.types contracts', () => {
       is_active: true,
       is_locked: false,
       company_id: 'co1',
+      opening_date: '2026-01-01',
+      opens_at: '22:00:00',
+      closes_at: '06:00:00',
+      closes_next_day: true,
+      status: 'open',
       created_at: 't',
       updated_at: 't',
     };

@@ -9,7 +9,7 @@ Manage open orders, line items, product assignment RPC, pending badges, and real
 
 ## 2. Responsibilities
 
-- Load open order + items for a table
+- Load active order + items for a table (OPEN, or latest CLOSED after attend)
 - Assign products via `assign_products_to_table`
 - Mark / cancel / quantity-update pending lines
 - Aggregate pending/total quantities per table
@@ -53,13 +53,14 @@ Consumers: `PlanEditorComponent`, `TableProductPanelComponent`, `WorkspaceCompon
 | Kind | Name |
 |------|------|
 | Tables | `orders`, `order_items` (+ join `products`) |
-| RPC | `assign_products_to_table` |
+| RPC | `assign_products_to_table`, `set_table_attended` (vía floor-plans) |
 | Realtime | `orders`, `order_items`, `tables` (`*`) |
 
 ## 7. Behaviour that must be preserved
 
 - CANCELLED lines excluded from badges and `forTable` lists
-- Assign RPC sets table unattended / pending semantics (server-side)
+- Assign RPC sets table unattended / pending semantics (server-side); opens a new `OPEN` order if none
+- `set_table_attended(true)` places pending items **and** sets the table’s `OPEN` order to `CLOSED`; `forTable` still returns that CLOSED order so the panel can list productos atendidos
 - `markPlaced` only updates `status='PENDING'` rows
 - Quantity/cancel updates match previous editor filters (by id only)
 - Realtime channel names used by workspace/panel/editor

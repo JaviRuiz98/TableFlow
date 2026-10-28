@@ -273,6 +273,54 @@ ion-button {
   width: 100%;
 }
 
+.jornada-schedule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(212, 175, 124, 0.2);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 55%),
+    rgba(18, 18, 24, 0.72);
+}
+
+.jornada-schedule-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.jornada-schedule-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tf-brand-primary);
+}
+
+.jornada-schedule strong {
+  color: var(--tf-brand-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.jornada-schedule-hours {
+  color: var(--tf-brand-text-muted);
+  font-size: 14px;
+}
+
+.jornada-schedule ion-button {
+  margin: 0;
+  flex-shrink: 0;
+  --border-color: rgba(212, 175, 124, 0.28);
+  --color: var(--tf-brand-text-muted);
+}
+
 .select-actions {
   display: flex;
   align-items: flex-end;
@@ -404,6 +452,15 @@ ion-button {
   }
 
   .select-actions ion-select {
+    width: 100%;
+  }
+
+  .jornada-schedule {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .jornada-schedule ion-button {
     width: 100%;
   }
 

@@ -26,7 +26,7 @@ floor-editor/
 | Unit | Owns | Does not own |
 |------|------|----------------|
 | `PlanEditorComponent` | Stage lifecycle, model arrays, history arrays, tool, wires children/helpers | Persistence RPCs |
-| `plan-editor-renderer` | `render` / table / reserved nodes | Stage create/destroy |
+| `plan-editor-renderer` | `render` / table / reserved nodes; operativo colors: pending → red, attended → green, reserved → gold | Stage create/destroy |
 | `plan-editor-viewport` | Zoom/fit/pinch math application | Stage ownership |
 | `editor-toolbar` | Toolbar chrome | Model mutations |
 | `plan-editor-dialogs` | Unlock/delete/text/save overlays UI | Service calls (parent/facade) |

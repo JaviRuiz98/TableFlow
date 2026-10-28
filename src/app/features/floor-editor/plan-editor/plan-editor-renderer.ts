@@ -37,16 +37,26 @@ export class PlanEditorRenderer {
   }
 
   /**
-   * Colores de mesa/reservado en modo operativo:
-   *  - Sin productos              -> color normal (el mismo que en editor)
-   *  - Con productos y atendida   -> verde
-   *  - Con productos y no atendida-> rojo
+   * Colores de mesa/reservado en modo operativo (alineados con el panel):
+   *  - Pedido pendiente / observación -> rojo (hay que llevar botella)
+   *  - Mesa atendida (botella puesta) -> verde
+   *  - Reservada                      -> dorado champagne
+   *  - Resto                          -> color normal (editor)
    */
-  tableColor(t: ClubTable, hasProducts: boolean, normalColor = '#111111'): string {
-    if (!hasProducts) {
-      return normalColor;
+  tableColor(t: ClubTable, _hasProducts: boolean, normalColor = '#111111'): string {
+    const pendingQty = this.host.pendingMap?.get(t.id) ?? 0;
+    const needsAttention =
+      !t.attended && (pendingQty > 0 || Boolean((t.observation ?? '').trim()));
+    if (needsAttention) {
+      return '#9f2f3a';
     }
-    return t.attended ? '#4c8b62' : '#9f2f3a';
+    if (t.attended) {
+      return '#4c8b62';
+    }
+    if (t.reserved) {
+      return '#c4a574';
+    }
+    return normalColor;
   }
 
   private renderTextElement(e: FloorPlanElement): void {
@@ -305,18 +315,29 @@ export class PlanEditorRenderer {
       h.requestRender();
     });
     h.layer.add(shape);
+    const pendingQty = h.pendingMap?.get(t.id) ?? 0;
+    const needsAttention =
+      !t.attended && (pendingQty > 0 || Boolean((t.observation ?? '').trim()));
+    const statusHint = needsAttention
+      ? 'PENDIENTE'
+      : t.attended
+        ? 'ATENDIDA'
+        : t.reserved
+          ? 'RESERVADA'
+          : null;
     const numberText = new Konva.Text({
       x: t.x,
       y: t.y,
-      text: `${t.number}`,
+      text: statusHint ? `${t.number}\n${statusHint}` : `${t.number}`,
       fill: '#ffffff',
-      fontSize: 18,
+      fontSize: statusHint ? 14 : 18,
       fontStyle: 'bold',
       width: t.width,
       height: t.height,
       align: 'center',
       verticalAlign: 'middle',
       listening: false,
+      lineHeight: 1.15,
     });
     shape.on('dragmove', () => {
       if (t.shape === 'circle') {
@@ -375,12 +396,22 @@ export class PlanEditorRenderer {
       h.requestRender();
     });
     h.layer.add(shape);
+    const pendingQtyR = h.pendingMap?.get(r.id) ?? 0;
+    const needsAttentionR =
+      !r.attended && (pendingQtyR > 0 || Boolean((r.observation ?? '').trim()));
+    const stateLine = needsAttentionR
+      ? 'PENDIENTE'
+      : r.attended
+        ? 'ATENDIDO'
+        : r.reserved
+          ? 'RESERVADA'
+          : 'DISPONIBLE';
     const reservedText = new Konva.Text({
       x: r.x,
       y: r.y,
-      text: `RESERVADO\n${r.number}`,
+      text: `RESERVADO ${r.number}\n${stateLine}`,
       fill: '#ffffff',
-      fontSize: 16,
+      fontSize: 14,
       fontStyle: 'bold',
       width: r.width,
       height: r.height,

@@ -1,5 +1,53 @@
 @use '../admin-shared.scss';
 
+.scope-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface);
+  border: 1px solid var(--tf-border);
+}
+
+.scope-bar label {
+  color: var(--tf-muted);
+  font-size: 0.85rem;
+}
+
+.scope-bar select {
+  background: var(--tf-surface-2);
+  color: var(--tf-cream);
+  border: 1px solid var(--tf-gold-border);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+}
+
+.activity-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.activity-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(244, 239, 230, 0.03);
+  border: 1px solid var(--tf-border);
+}
+
+.activity-list span {
+  color: var(--tf-muted);
+  font-size: 0.85rem;
+}
+
 .banner {
   display: flex;
   gap: 0.85rem;

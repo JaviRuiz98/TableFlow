@@ -46,8 +46,10 @@ describe('OrderService (mocked Supabase)', () => {
     service = TestBed.inject(OrderService);
   });
 
-  it('forTable returns empty items when no OPEN order', async () => {
-    fromMock.mockReturnValue(createQueryBuilder({ data: [], error: null }));
+  it('forTable returns empty items when no OPEN or CLOSED order', async () => {
+    fromMock
+      .mockReturnValueOnce(createQueryBuilder({ data: [], error: null }))
+      .mockReturnValueOnce(createQueryBuilder({ data: [], error: null }));
     await expect(service.forTable(fixtureTable.id)).resolves.toEqual({ order: null, items: [] });
   });
 
@@ -65,6 +67,23 @@ describe('OrderService (mocked Supabase)', () => {
     expect(result.order?.id).toBe(fixtureOrder.id);
     expect(result.items[0]?.product.name).toBe('Agua');
     expect(result.items[0]?.status).toBe('PENDING');
+  });
+
+  it('forTable falls back to latest CLOSED order when none is OPEN', async () => {
+    const closed = { ...fixtureOrder, id: 'order-closed', status: 'CLOSED' as const };
+    fromMock
+      .mockReturnValueOnce(createQueryBuilder({ data: [], error: null }))
+      .mockReturnValueOnce(createQueryBuilder({ data: [closed], error: null }))
+      .mockReturnValueOnce(
+        createQueryBuilder({
+          data: [{ ...fixtureOrderItem, status: 'PLACED', attended: true, product: fixtureProduct }],
+          error: null,
+        }),
+      );
+
+    const result = await service.forTable(fixtureTable.id);
+    expect(result.order?.id).toBe('order-closed');
+    expect(result.items[0]?.status).toBe('PLACED');
   });
 
   it('assignProducts sends RPC payload and returns order id', async () => {

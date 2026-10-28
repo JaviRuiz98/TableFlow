@@ -130,12 +130,21 @@
             <div class="plan-preview">{{ plan.name.charAt(0).toUpperCase() }}</div>
             <div class="plan-info">
               <h2>{{ plan.name }}</h2>
-              <p>{{ onboardingMode() ? 'Continuar diseño' : 'Plano de mesas y reservados' }}</p>
+              <p>
+                {{
+                  onboardingMode()
+                    ? 'Continuar diseño'
+                    : formatPlanSchedule(plan)
+                }}
+              </p>
             </div>
             @if (!onboardingMode()) {
               <div class="plan-actions">
                 <ion-button size="small" fill="outline" (click)="$event.stopPropagation(); openRenamePlanDialog(plan)"
                   >Nombre</ion-button
+                >
+                <ion-button size="small" fill="outline" (click)="$event.stopPropagation(); openEditScheduleDialog(plan)"
+                  >Fecha</ion-button
                 >
                 <ion-button size="small" fill="outline" (click)="$event.stopPropagation(); askDuplicate(plan)"
                   ><ion-icon name="copy-outline" slot="start"></ion-icon>Copiar</ion-button
@@ -207,6 +216,20 @@
       </div>
 
       @if (selectedPlan()) {
+        @if (!onboardingMode()) {
+          <section class="jornada-schedule" aria-label="Fecha y horario del evento">
+            <div class="jornada-schedule-copy">
+              <span class="jornada-schedule-label">Evento</span>
+              <strong>{{ formatPlanDate(selectedPlan()!) }}</strong>
+              <span class="jornada-schedule-hours">{{ formatPlanHours(selectedPlan()!) }}</span>
+            </div>
+            @if (canManageFloor) {
+              <ion-button size="small" fill="outline" (click)="openEditScheduleDialog(selectedPlan()!)">
+                Editar fecha y hora
+              </ion-button>
+            }
+          </section>
+        }
         <div
           class="operative-layout"
           [class.editor-layout]="editorMode() === 'editor' || onboardingMode()"

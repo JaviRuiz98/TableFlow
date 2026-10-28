@@ -1,3 +1,60 @@
 @use '../styles/workspace-dialog.styles.scss';
 
 ion-button { --border-radius:10px; --box-shadow:none; font-weight:700; text-transform:none; }
+
+.jornada-form { display:grid; gap:0.75rem; }
+.jornada-form .field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: rgba(244, 239, 230, 0.72);
+}
+.jornada-form input[type=date],
+.jornada-form input[type=time],
+.jornada-form select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 124, 0.35);
+  background: #15151b;
+  color: #f4efe6;
+  padding: 0.65rem 0.75rem;
+}
+.jornada-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.75rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23d4af7c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 12px 8px;
+}
+.jornada-form .check-row { display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; color:rgba(244,239,230,.8); }
+
+.field-with-hint {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.field-help {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 124, 0.55);
+  background: rgba(212, 175, 124, 0.12);
+  color: #d4af7c;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: rgba(244, 239, 230, 0.62);
+}

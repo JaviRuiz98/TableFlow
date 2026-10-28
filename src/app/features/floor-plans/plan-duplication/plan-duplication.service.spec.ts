@@ -19,6 +19,11 @@ describe('PlanDuplicationService', () => {
       is_active: false,
       is_locked: true,
       company_id: 'company-1',
+      opening_date: '2026-01-01',
+      opens_at: '22:00:00',
+      closes_at: '06:00:00',
+      closes_next_day: true,
+      status: 'scheduled',
       created_at: '',
       updated_at: '',
     };

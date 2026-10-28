@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Enterprise shell for role `ADMIN` after onboarding: top navigation (no permanent sidebar), Resumen KPIs, Actividad (structure), Gestión de sala (links to `/sala`), Personal, Configuración.
+Enterprise shell for role `ADMIN` after onboarding: top navigation (no permanent sidebar), Resumen KPIs around **jornadas** (floor plans as opening sessions), Actividad (structure), Gestión de sala (links to `/sala`), Personal, Configuración.
 
 ## Routing
 
@@ -16,18 +16,27 @@ Enterprise shell for role `ADMIN` after onboarding: top navigation (no permanent
 
 Onboarding and `tf_setup` intents are unchanged.
 
-## Metrics (real vs unavailable)
+## Metrics (jornadas)
 
-| KPI | Source | Status |
-|-----|--------|--------|
-| Nombre empresa | `companies` by `profiles.company_id` | Real + editable (RPC `0023` or RLS `0020`) |
-| Productos activos | `ProductService.products()` + `company_id` | Real (needs `0018` applied) |
-| Trabajadores | `profiles` count/list by `company_id` | Real |
-| Mesas/reservados | UI placeholder (0) | Enable after `0027`–`0029` (`floor_plans.company_id` + RLS/RPC) |
-| Pedidos pendientes / actividad | UI placeholder / “no disponible” | Same — join via `tables → floor_plans.company_id` |
-| Facturación | — | Not in schema (future) |
+`AdminMetricsService.loadOverview(scope)` is tenant-scoped via `profiles.company_id`. Scope kinds: single **jornada** | last 7 days | last 30 days | custom date range (`opening_date`).
 
-Never runs global cross-tenant aggregates. Schema/RLS reasons stay in docs, not in ADMIN UI copy.
+**Auto-select (jornada):** open → next scheduled → last closed → empty CTA (“Crear jornada de apertura” → `/sala?tab=planos`).
+
+| Mode | KPI | Source |
+|------|-----|--------|
+| Jornada | Reservas | `tables.reserved` / total mesas+reservados |
+| Jornada | Mesas atendidas | `tables.attended` / total (verde / botella puesta) |
+| Jornada | Pedidos pendientes | mesas/reservados con ítems `PENDING` y `attended=false` (rojo) |
+| Jornada | Libres | sin `reserved` ni `attended` / total |
+| Jornada | Facturación + balance | `order_items` × `products.price` (excl. CANCELLED) on OPEN/CLOSED orders; table by product |
+| Periodo | Aperturas | count jornadas by `status` with `opening_date` in range |
+| Periodo | Reservas | reserved/total only on **open/closed** jornadas in range (not future scheduled as historical) |
+| Periodo | Pedidos recibidos / atendidos | OPEN+CLOSED / CLOSED on those historical plans |
+| Periodo | Facturación + gráfica diaria | same sales sum, grouped by `floor_plans.opening_date` (dense series with zeros) |
+| Both | Próximas aperturas | `scheduled` with `opening_date >= today` |
+| Both | Actividad reciente | latest OPEN/CLOSED orders in selected scope (`OPEN`→Pendiente, `CLOSED`→Atendido; marcar mesa atendida en sala cierra el pedido) |
+
+Also loads company name, active products, workers/staff for Personal/Configuración. Never runs global cross-tenant aggregates. Query failures → `error` / `unavailable` (never fake zeros). Schema/RLS reasons stay in docs, not in ADMIN UI copy.
 
 ## Company rename
 
@@ -43,7 +52,7 @@ Never runs global cross-tenant aggregates. Schema/RLS reasons stay in docs, not 
 ## Reuse
 
 - Personal → `WorkspaceUserAdminComponent` + Edge `create-user`
-- Gestión de sala → existing `WorkspaceComponent` at `/sala`
+- Gestión de sala → existing `WorkspaceComponent` at `/sala` (CTA crear jornada → planos)
 
 ## Restrictions
 

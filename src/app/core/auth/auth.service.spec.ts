@@ -198,4 +198,24 @@ describe('AuthService (integration with mocked Supabase)', () => {
     ).rejects.toThrow(/Ya existe una empresa/);
     expect(signUp).not.toHaveBeenCalled();
   });
+
+  it('signUpCompany rejects already-registered email (empty identities obfuscation)', async () => {
+    signUp.mockResolvedValue({
+      data: {
+        user: { id: 'u-dup', email: 'boss@club.test', identities: [] },
+        session: null,
+      },
+      error: null,
+    });
+    const service = await readyService();
+    await expect(
+      service.signUpCompany({
+        email: 'boss@club.test',
+        password: 'secreto123',
+        adminFullName: 'Boss Club',
+        establishmentName: 'Club Test',
+        phone: '+34 600 000 000',
+      }),
+    ).rejects.toThrow(/correo ya está registrado/);
+  });
 });

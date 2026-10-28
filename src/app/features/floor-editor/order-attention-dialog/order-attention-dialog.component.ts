@@ -39,11 +39,14 @@ type ProductOrderGroup = { id: string; name: string; products: Product[] };
 export class OrderAttentionDialogComponent implements OnChanges {
   @Input() open = false;
   @Input() target: ClubTable | null = null;
+  /** Other tables/reserved on the same jornada (for transfer). */
+  @Input() siblingTables: ClubTable[] = [];
 
   @Output() closed = new EventEmitter<void>();
   @Output() pendingChanged = new EventEmitter<number>();
   @Output() canvasRefresh = new EventEmitter<void>();
   @Output() targetPatched = new EventEmitter<ClubTable>();
+  @Output() transferCompleted = new EventEmitter<{ sourceId: string; targetId: string }>();
 
   selectedOrderTarget: ClubTable | null = null;
   observationDraft = '';
@@ -51,6 +54,9 @@ export class OrderAttentionDialogComponent implements OnChanges {
   observationMessage = '';
   attendanceSaving = false;
   attendanceError = '';
+  statusSaving = false;
+  statusMessage = '';
+  transferTargetId = '';
   selectedProductId = '';
   quantity = 1;
   categoryProductSelection: Record<string, string> = {};
@@ -94,6 +100,11 @@ export class OrderAttentionDialogComponent implements OnChanges {
 
   get attendedOrderGroups(): OrderItemCategoryGroup[] {
     return this.groupOrderItemsByCategory(this.attendedOrderItems);
+  }
+
+  get freeTransferTargets(): ClubTable[] {
+    const currentId = this.selectedOrderTarget?.id;
+    return (this.siblingTables ?? []).filter((t) => t.id !== currentId && !t.reserved);
   }
 
   get canSetAttendedStatus(): boolean {
@@ -168,6 +179,54 @@ export class OrderAttentionDialogComponent implements OnChanges {
       this.observationMessage = 'No se pudo guardar la observación';
     } finally {
       this.observationSaving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async toggleReserved(): Promise<void> {
+    const target = this.selectedOrderTarget;
+    if (!target || !this.canManageOrders || this.statusSaving) return;
+    this.statusSaving = true;
+    this.statusMessage = '';
+    try {
+      const next = !target.reserved;
+      const updated = await this.floors.setTableReserved(target.id, next);
+      Object.assign(target, updated);
+      this.targetPatched.emit(target);
+      this.canvasRefresh.emit();
+      this.statusMessage = next ? 'Mesa marcada como reservada.' : 'Reserva cancelada.';
+    } catch (error) {
+      this.statusMessage = error instanceof Error ? error.message : 'No se pudo actualizar la reserva.';
+    } finally {
+      this.statusSaving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async confirmTransfer(): Promise<void> {
+    const source = this.selectedOrderTarget;
+    const targetId = this.transferTargetId;
+    if (!source || !targetId || !this.canManageOrders || this.statusSaving) return;
+    const dest = this.siblingTables.find((t) => t.id === targetId);
+    if (!dest) return;
+    const ok = confirm(
+      `¿Trasladar pedidos y estado de ${source.type === 'RESERVED' ? 'Reservado' : 'Mesa'} ${source.number} a ${dest.type === 'RESERVED' ? 'Reservado' : 'Mesa'} ${dest.number}?`,
+    );
+    if (!ok) return;
+
+    this.statusSaving = true;
+    this.statusMessage = '';
+    try {
+      await this.floors.transferTableContent(source.id, targetId);
+      this.transferCompleted.emit({ sourceId: source.id, targetId });
+      this.statusMessage = 'Traslado completado.';
+      this.transferTargetId = '';
+      this.canvasRefresh.emit();
+      this.closeOrderDialog();
+    } catch (error) {
+      this.statusMessage = error instanceof Error ? error.message : 'No se pudo completar el traslado.';
+    } finally {
+      this.statusSaving = false;
       this.cdr.detectChanges();
     }
   }

@@ -16,6 +16,8 @@ export type FloorElementKind = 'wall' | 'zone' | 'door' | 'text';
 export type OrderStatus = 'OPEN' | 'CLOSED' | 'CANCELLED';
 export type OrderItemStatus = 'PENDING' | 'PLACED' | 'CANCELLED';
 export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+/** Opening session lifecycle on floor_plans (migration 0030). */
+export type JornadaStatus = 'scheduled' | 'open' | 'closed';
 
 export interface Database {
   public: {
@@ -124,6 +126,12 @@ export interface Database {
           is_locked: boolean;
           /** Present after 0027. Ownership key (created_by removed). */
           company_id: string;
+          /** Opening calendar date (0030). Not created_at. */
+          opening_date: string;
+          opens_at: string;
+          closes_at: string;
+          closes_next_day: boolean;
+          status: JornadaStatus;
           created_at: string;
           updated_at: string;
         };
@@ -135,6 +143,11 @@ export interface Database {
           is_active?: boolean;
           is_locked?: boolean;
           company_id: string;
+          opening_date: string;
+          opens_at: string;
+          closes_at: string;
+          closes_next_day?: boolean;
+          status?: JornadaStatus;
           created_at?: string;
           updated_at?: string;
         };
@@ -146,6 +159,11 @@ export interface Database {
           is_active?: boolean;
           is_locked?: boolean;
           company_id?: string;
+          opening_date?: string;
+          opens_at?: string;
+          closes_at?: string;
+          closes_next_day?: boolean;
+          status?: JornadaStatus;
           created_at?: string;
           updated_at?: string;
         };
@@ -218,6 +236,8 @@ export interface Database {
           shape: TableShape;
           attended: boolean;
           observation: string | null;
+          /** Current reservation flag (0030). Not history. */
+          reserved: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -234,6 +254,7 @@ export interface Database {
           shape?: TableShape;
           attended?: boolean;
           observation?: string | null;
+          reserved?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -250,6 +271,7 @@ export interface Database {
           shape?: TableShape;
           attended?: boolean;
           observation?: string | null;
+          reserved?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -530,6 +552,41 @@ export interface Database {
           p_observation: string | null;
         };
         Returns: undefined;
+      };
+
+      /** 0031 — ADMIN creates scheduled jornada (+ optional layout copy). */
+      create_opening_jornada: {
+        Args: {
+          p_name: string;
+          p_opening_date: string;
+          p_opens_at: string;
+          p_closes_at: string;
+          p_closes_next_day?: boolean;
+          p_source_floor_plan_id?: string | null;
+          p_width?: number;
+          p_height?: number;
+        };
+        Returns: Database['public']['Tables']['floor_plans']['Row'];
+      };
+
+      open_jornada: {
+        Args: { p_floor_plan_id: string };
+        Returns: Database['public']['Tables']['floor_plans']['Row'];
+      };
+
+      close_jornada: {
+        Args: { p_floor_plan_id: string };
+        Returns: Database['public']['Tables']['floor_plans']['Row'];
+      };
+
+      set_table_reserved: {
+        Args: { p_table_id: string; p_reserved: boolean };
+        Returns: Database['public']['Tables']['tables']['Row'];
+      };
+
+      transfer_table_content: {
+        Args: { p_source_table_id: string; p_target_table_id: string };
+        Returns: Json;
       };
 
       delete_table_with_orders: {

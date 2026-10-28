@@ -12,7 +12,11 @@ export class FloorPlanService {
   constructor(private readonly db: SupabaseService) {}
 
   async list(): Promise<FloorPlan[]> {
-    const { data, error } = await this.db.client.from('floor_plans').select('*').order('name');
+    const { data, error } = await this.db.client
+      .from('floor_plans')
+      .select('*')
+      .order('opening_date', { ascending: false })
+      .order('opens_at', { ascending: false });
 
     if (error) {
       throw error;
@@ -21,7 +25,27 @@ export class FloorPlanService {
     return data ?? [];
   }
 
-  async create(name: string, width = 2000, height = 1200, companyId: string): Promise<FloorPlan> {
+  /**
+   * Legacy create used by onboarding / PlanDuplicationService.
+   * Prefer `createOpeningJornada` for dated sessions.
+   */
+  async create(
+    name: string,
+    width = 2000,
+    height = 1200,
+    companyId: string,
+    jornada?: {
+      openingDate: string;
+      opensAt: string;
+      closesAt: string;
+      closesNextDay?: boolean;
+    },
+  ): Promise<FloorPlan> {
+    const openingDate = jornada?.openingDate ?? new Date().toISOString().slice(0, 10);
+    const opensAt = jornada?.opensAt ?? '22:00:00';
+    const closesAt = jornada?.closesAt ?? '06:00:00';
+    const closesNextDay = jornada?.closesNextDay ?? true;
+
     const { data, error } = await this.db.client
       .from('floor_plans')
       .insert({
@@ -29,6 +53,12 @@ export class FloorPlanService {
         width,
         height,
         company_id: companyId,
+        opening_date: openingDate,
+        opens_at: opensAt,
+        closes_at: closesAt,
+        closes_next_day: closesNextDay,
+        status: 'scheduled',
+        is_active: false,
       })
       .select()
       .single();
@@ -42,6 +72,75 @@ export class FloorPlanService {
     }
 
     return data;
+  }
+
+  /** ADMIN: create scheduled jornada (empty or copy layout via RPC). */
+  async createOpeningJornada(input: {
+    name: string;
+    openingDate: string;
+    opensAt: string;
+    closesAt: string;
+    closesNextDay?: boolean;
+    sourceFloorPlanId?: string | null;
+    width?: number;
+    height?: number;
+  }): Promise<FloorPlan> {
+    const { data, error } = await this.db.client.rpc('create_opening_jornada', {
+      p_name: input.name,
+      p_opening_date: input.openingDate,
+      p_opens_at: input.opensAt,
+      p_closes_at: input.closesAt,
+      p_closes_next_day: input.closesNextDay ?? false,
+      p_source_floor_plan_id: input.sourceFloorPlanId ?? null,
+      p_width: input.width ?? 2000,
+      p_height: input.height ?? 1200,
+    });
+    if (error) throw error;
+    if (!data) throw new Error('Supabase no devolvió la jornada creada');
+    return data as FloorPlan;
+  }
+
+  async openJornada(planId: string): Promise<FloorPlan> {
+    const { data, error } = await this.db.client.rpc('open_jornada', { p_floor_plan_id: planId });
+    if (error) throw error;
+    if (!data) throw new Error('Supabase no devolvió la jornada abierta');
+    return data as FloorPlan;
+  }
+
+  async closeJornada(planId: string): Promise<FloorPlan> {
+    const { data, error } = await this.db.client.rpc('close_jornada', { p_floor_plan_id: planId });
+    if (error) throw error;
+    if (!data) throw new Error('Supabase no devolvió la jornada cerrada');
+    return data as FloorPlan;
+  }
+
+  async setTableReserved(tableId: string, reserved: boolean): Promise<ClubTable> {
+    const { data, error } = await this.db.client.rpc('set_table_reserved', {
+      p_table_id: tableId,
+      p_reserved: reserved,
+    });
+    if (error) throw error;
+    if (!data) throw new Error('Supabase no devolvió la mesa actualizada');
+    return data as ClubTable;
+  }
+
+  async transferTableContent(sourceTableId: string, targetTableId: string): Promise<{
+    ok: boolean;
+    moved_orders: number;
+    source_table_id: string;
+    target_table_id: string;
+  }> {
+    const { data, error } = await this.db.client.rpc('transfer_table_content', {
+      p_source_table_id: sourceTableId,
+      p_target_table_id: targetTableId,
+    });
+    if (error) throw error;
+    return data as {
+      ok: boolean;
+      moved_orders: number;
+      source_table_id: string;
+      target_table_id: string;
+    };
   }
 
   async update(planId: string, patch: Partial<FloorPlan>): Promise<void> {
@@ -118,10 +217,12 @@ export class FloorPlanService {
    * Se usa por Realtime para mantener sincronizado el color del canvas entre
    * dispositivos sin recargar toda la geometría del plano.
    */
-  async loadTableAttentionStates(planId: string): Promise<Array<Pick<ClubTable, 'id' | 'attended' | 'observation' | 'updated_at'>>> {
+  async loadTableAttentionStates(
+    planId: string,
+  ): Promise<Array<Pick<ClubTable, 'id' | 'attended' | 'observation' | 'reserved' | 'updated_at'>>> {
     const { data, error } = await this.db.client
       .from('tables')
-      .select('id,attended,observation,updated_at')
+      .select('id,attended,observation,reserved,updated_at')
       .eq('floor_plan_id', planId);
 
     if (error) throw error;
@@ -158,7 +259,8 @@ export class FloorPlanService {
       height: 100,
       rotation: 0,
       shape: type === 'RESERVED' ? ('rectangle' as const) : ('circle' as const),
-      attended: true,
+      attended: false,
+      reserved: false,
     };
 
     const { data, error } = await this.db.client.from('tables').insert(row).select('*').single();

@@ -386,9 +386,34 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
       this.selectedPlan.set(null);
       return;
     }
-    if (match.name !== selected.name) {
-      this.selectedPlan.set({ ...selected, name: match.name });
+    this.selectedPlan.set(match);
+  }
+
+  formatPlanDate(plan: FloorPlan): string {
+    const [y, m, d] = (plan.opening_date || '').split('-').map(Number);
+    if (!y || !m || !d) return plan.opening_date || 'Sin fecha';
+    try {
+      const formatted = new Intl.DateTimeFormat('es-ES', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      }).format(new Date(y, m - 1, d));
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    } catch {
+      return plan.opening_date;
     }
+  }
+
+  formatPlanHours(plan: FloorPlan): string {
+    const opens = (plan.opens_at || '').slice(0, 5);
+    const closes = (plan.closes_at || '').slice(0, 5);
+    if (!opens || !closes) return 'Sin horario';
+    const suffix = plan.closes_next_day ? ' (+1)' : '';
+    return `${opens} – ${closes}${suffix}`;
+  }
+
+  formatPlanSchedule(plan: FloorPlan): string {
+    return `${this.formatPlanDate(plan)} · ${this.formatPlanHours(plan)}`;
   }
 
   onPlanCreated(plan: FloorPlan): void {
@@ -557,6 +582,10 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
 
   openRenamePlanDialog(plan: FloorPlan): void {
     this.planAdminDialogs?.openRename(plan);
+  }
+
+  openEditScheduleDialog(plan: FloorPlan): void {
+    this.planAdminDialogs?.openEditSchedule(plan);
   }
 
   askRemovePlan(plan: FloorPlan): void {

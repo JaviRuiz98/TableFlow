@@ -132,6 +132,11 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   private readonly drawingSession: PlanEditorDrawing;
   private readonly deleteFacade: PlanEditorDeleteFacade;
 
+  /** Mesas + reservados del plano actual (traslados en la misma jornada). */
+  get operationalTables(): ClubTable[] {
+    return [...this.tables, ...this.reserved];
+  }
+
   get panMode(): boolean {
     return this._panMode;
   }
@@ -331,6 +336,16 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     this.render();
   }
 
+  async onTransferCompleted(_event: { sourceId: string; targetId: string }): Promise<void> {
+    if (!this.plan?.id) return;
+    try {
+      await this.load();
+    } catch (error) {
+      console.error('Error recargando plano tras traslado:', error);
+      this.render();
+    }
+  }
+
   async togglePlanLock(): Promise<void> {
     if (!this.isAdmin) return;
     if (this.plan.is_locked) {
@@ -392,6 +407,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
         if (!state) return;
         table.attended = state.attended;
         table.observation = state.observation ?? null;
+        table.reserved = state.reserved;
         table.updated_at = state.updated_at;
       };
       this.tables.forEach(apply);
@@ -548,6 +564,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       updated_at: now,
       attended: false,
       observation: null,
+      reserved: false,
     };
     this.tables = [...this.tables, table];
     this.selectedTable = table;
@@ -570,6 +587,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       type: 'RESERVED',
       attended: false,
       observation: null,
+      reserved: false,
       number: n,
       x: 300 + this.reserved.length * 20,
       y: 450 + this.reserved.length * 20,

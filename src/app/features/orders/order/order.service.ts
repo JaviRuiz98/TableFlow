@@ -21,7 +21,9 @@ export class OrderService {
     order: Order | null;
     items: OrderItemWithProduct[];
   }> {
-    const { data: orders, error } = await this.db.client
+    // Prefer OPEN (operativa activa). If the mesa was marked attended, the order
+    // is CLOSED — still load it so the panel can show productos atendidos.
+    const { data: openOrders, error } = await this.db.client
       .from('orders')
       .select('*')
       .eq('table_id', tableId)
@@ -31,7 +33,20 @@ export class OrderService {
 
     if (error) throw error;
 
-    const order = orders?.[0] ?? null;
+    let order = openOrders?.[0] ?? null;
+
+    if (!order) {
+      const { data: closedOrders, error: closedError } = await this.db.client
+        .from('orders')
+        .select('*')
+        .eq('table_id', tableId)
+        .eq('status', 'CLOSED')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (closedError) throw closedError;
+      order = closedOrders?.[0] ?? null;
+    }
 
     if (!order) {
       return {

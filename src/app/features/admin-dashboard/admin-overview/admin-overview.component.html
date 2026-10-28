@@ -1,114 +1,437 @@
 <section class="overview">
-  <header class="page-head">
-    <span class="eyebrow">Panel de dirección</span>
-    <h1>{{ companyName() }}</h1>
-    <p class="lede">Resumen de la actividad y el estado de tu establecimiento.</p>
-  </header>
-
-  @if (loading()) {
+  @if (initialLoading()) {
     <div class="loading-strip">Cargando indicadores…</div>
   } @else if (snapshot(); as snap) {
-    <div class="kpi-grid">
-      <article class="kpi-card">
-        <div class="kpi-icon"><ion-icon name="grid-outline"></ion-icon></div>
-        <div class="kpi-body">
-          <span class="kpi-label">Mesas y reservados</span>
-          <strong class="kpi-value">{{ displayValue(snap.tablesConfigured) }}</strong>
-          @if (statusLabel(snap.tablesConfigured)) {
-            <small>{{ statusLabel(snap.tablesConfigured) }}</small>
-          }
-          @if (snap.tablesConfigured.detail) {
-            <p class="kpi-detail">{{ snap.tablesConfigured.detail }}</p>
-          }
-        </div>
-      </article>
+    <header class="hero-head">
+      <div class="hero-copy">
+        <span class="eyebrow">Panel de dirección</span>
+        <h1>{{ companyName() }}</h1>
+        <p class="lede">Resumen de actividad del establecimiento</p>
+      </div>
+      <button
+        type="button"
+        class="cal-btn"
+        [class.active]="scopeKind() === 'custom' || datePickerOpen()"
+        (click)="toggleDatePicker()"
+        aria-label="Seleccionar fecha exacta"
+        title="Fecha exacta"
+      >
+        <ion-icon name="calendar-outline"></ion-icon>
+      </button>
+    </header>
 
-      <article class="kpi-card">
-        <div class="kpi-icon"><ion-icon name="restaurant-outline"></ion-icon></div>
-        <div class="kpi-body">
-          <span class="kpi-label">Pedidos pendientes</span>
-          <strong class="kpi-value">{{ displayValue(snap.pendingOrders) }}</strong>
-          @if (statusLabel(snap.pendingOrders)) {
-            <small>{{ statusLabel(snap.pendingOrders) }}</small>
-          }
-          @if (snap.pendingOrders.detail) {
-            <p class="kpi-detail">{{ snap.pendingOrders.detail }}</p>
-          }
-        </div>
-      </article>
+    @if (snap.emptyCta) {
+      <div class="empty-cta state-box">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <h2>Crea tu primera jornada de apertura</h2>
+        <p>
+          Las métricas de reservas, atención y pedidos se activan cuando hay una jornada
+          programada o abierta.
+        </p>
+        <a class="btn-primary" routerLink="/sala" [queryParams]="{ tab: 'planos' }">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          Crear jornada de apertura
+        </a>
+      </div>
+    } @else {
+      <div
+        class="segment"
+        role="tablist"
+        aria-label="Alcance del resumen"
+        [attr.data-active]="segmentIndex()"
+      >
+        <span class="segment-thumb" aria-hidden="true"></span>
+        <button
+          type="button"
+          role="tab"
+          class="segment-item"
+          [class.active]="scopeKind() === 'jornada'"
+          [attr.aria-selected]="scopeKind() === 'jornada'"
+          (click)="onScopeKindChange('jornada')"
+        >
+          Jornada
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="segment-item"
+          [class.active]="scopeKind() === 'last7'"
+          [attr.aria-selected]="scopeKind() === 'last7'"
+          (click)="onScopeKindChange('last7')"
+        >
+          Últimos 7 días
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="segment-item"
+          [class.active]="scopeKind() === 'last30'"
+          [attr.aria-selected]="scopeKind() === 'last30'"
+          (click)="onScopeKindChange('last30')"
+        >
+          Últimos 30 días
+        </button>
+      </div>
 
-      <article class="kpi-card">
-        <div class="kpi-icon"><ion-icon name="cube-outline"></ion-icon></div>
-        <div class="kpi-body">
-          <span class="kpi-label">Productos activos</span>
-          <strong class="kpi-value">{{ displayValue(snap.activeProducts) }}</strong>
-          @if (statusLabel(snap.activeProducts)) {
-            <small>{{ statusLabel(snap.activeProducts) }}</small>
-          }
-          @if (snap.activeProducts.detail) {
-            <p class="kpi-detail">{{ snap.activeProducts.detail }}</p>
-          }
-        </div>
-      </article>
+      <div class="overview-stage" [class.is-refreshing]="refreshing()">
+        @if (datePickerOpen() || scopeKind() === 'custom') {
+          <div class="date-panel panel">
+            <span class="panel-eyebrow">Fecha exacta</span>
+            <div class="date-row">
+              <div class="date-field">
+                <label for="scope-from">Desde</label>
+                <input
+                  id="scope-from"
+                  type="date"
+                  [ngModel]="customFrom()"
+                  (ngModelChange)="customFrom.set($event)"
+                />
+              </div>
+              <div class="date-field">
+                <label for="scope-to">Hasta</label>
+                <input
+                  id="scope-to"
+                  type="date"
+                  [ngModel]="customTo()"
+                  (ngModelChange)="customTo.set($event)"
+                />
+              </div>
+              <button type="button" class="btn-primary apply-exact" (click)="onCustomRangeApply()">
+                Aplicar
+              </button>
+            </div>
+            <p class="date-hint">Elige un día concreto poniendo la misma fecha en desde y hasta.</p>
+          </div>
+        }
 
-      <article class="kpi-card">
-        <div class="kpi-icon"><ion-icon name="people-outline"></ion-icon></div>
-        <div class="kpi-body">
-          <span class="kpi-label">Trabajadores registrados</span>
-          <strong class="kpi-value">{{ displayValue(snap.workers) }}</strong>
-          @if (statusLabel(snap.workers)) {
-            <small>{{ statusLabel(snap.workers) }}</small>
+        @for (animKey of [metricsAnimKey()]; track animKey) {
+        <div class="metrics-swap">
+          @if (scopeKind() === 'jornada') {
+            <div class="selected-card">
+              <span class="panel-eyebrow">Jornada seleccionada</span>
+              @if (snap.selectedJornada; as sel) {
+                <strong class="selected-title">{{ formatJornadaHeadline(sel) }}</strong>
+                <p class="selected-sub">
+                  Plano: {{ sel.name }}
+                  · {{ jornadaStatusLabel(sel.status) }}
+                  · {{ formatTime(sel.opens_at) }}–{{ formatTime(sel.closes_at) }}
+                  @if (sel.closes_next_day) {
+                    <em>(+1)</em>
+                  }
+                </p>
+                <label class="sr-only" for="scope-jornada">Cambiar jornada</label>
+                <select
+                  id="scope-jornada"
+                  class="jornada-select"
+                  [ngModel]="selectedJornadaId()"
+                  (ngModelChange)="onJornadaChange($event)"
+                >
+                  @for (j of jornadas(); track j.id) {
+                    <option [value]="j.id">{{ formatJornadaOption(j) }}</option>
+                  }
+                </select>
+              }
+            </div>
+          } @else if (scopeKind() === 'custom') {
+            <div class="selected-card">
+              <span class="panel-eyebrow">Periodo seleccionado</span>
+              <strong class="selected-title">{{ formatCustomRangeHeadline() }}</strong>
+              <p class="selected-sub">Métricas agregadas de las jornadas en este rango</p>
+            </div>
+          } @else {
+            <div class="selected-card">
+              <span class="panel-eyebrow">Periodo seleccionado</span>
+              <strong class="selected-title">
+                {{ scopeKind() === 'last7' ? 'Últimos 7 días' : 'Últimos 30 días' }}
+              </strong>
+              <p class="selected-sub">Métricas agregadas de las jornadas del periodo</p>
+            </div>
           }
-          @if (snap.workers.detail) {
-            <p class="kpi-detail">{{ snap.workers.detail }}</p>
+
+          @if (snap.mode === 'jornada' && snap.jornadaKpis; as kpis) {
+            <div class="kpi-grid">
+              <article class="kpi-card kpi-card--reserved">
+                <div class="kpi-top">
+                  <span class="kpi-label">Reservas</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="bookmark-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayRatio(kpis.reservas) }}</strong>
+                <p class="kpi-foot">Reservadas / mesas y reservados</p>
+              </article>
+
+              <article class="kpi-card kpi-card--attended">
+                <div class="kpi-top">
+                  <span class="kpi-label">Mesas atendidas</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayRatio(kpis.atendidas) }}</strong>
+                <p class="kpi-foot">Botella puesta (verde)</p>
+              </article>
+
+              <article class="kpi-card kpi-card--pending">
+                <div class="kpi-top">
+                  <span class="kpi-label">Pedidos pendientes</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="clipboard-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayValue(kpis.pedidosPendientes) }}</strong>
+                <p class="kpi-foot">Botella pedida, sin atender (rojo)</p>
+              </article>
+
+              <article class="kpi-card kpi-card--free">
+                <div class="kpi-top">
+                  <span class="kpi-label">Libres</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="ellipse-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayRatio(kpis.libres) }}</strong>
+                <p class="kpi-foot">Sin reserva ni atención</p>
+              </article>
+
+              <article class="kpi-card kpi-card-wide">
+                <div class="kpi-top">
+                  <span class="kpi-label">Facturación en curso</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="cash-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayMoney(kpis.facturacion) }}</strong>
+              </article>
+            </div>
+
+            <section class="panel balance-panel">
+              <header class="panel-head">
+                <h2>Balance vendido</h2>
+                <span class="panel-meta">Tiempo real</span>
+              </header>
+              @if (kpis.balanceRows.availability === 'error' || kpis.balanceRows.availability === 'unavailable') {
+                <p class="muted">{{ kpis.balanceRows.detail || 'No se pudo cargar el balance.' }}</p>
+              } @else if (!kpis.balanceRows.value?.length) {
+                <p class="muted">{{ kpis.balanceRows.detail || 'Todavía no hay ventas en esta jornada.' }}</p>
+              } @else {
+                <div class="balance-table-wrap">
+                  <table class="balance-table">
+                    <thead>
+                      <tr>
+                        <th>Producto</th>
+                        <th class="num">Ud.</th>
+                        <th class="num">Importe</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of kpis.balanceRows.value; track row.productId) {
+                        <tr>
+                          <td>{{ row.productName }}</td>
+                          <td class="num">{{ row.quantity }}</td>
+                          <td class="num">{{ formatMoney(row.amount) }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <th>Total</th>
+                        <th class="num"></th>
+                        <th class="num">{{ displayMoney(kpis.facturacion) }}</th>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              }
+            </section>
+          }
+
+          @if (snap.mode === 'period' && snap.periodKpis; as pk) {
+            <div class="kpi-grid">
+              <article class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Aperturas</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="calendar-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ aperturasTotal(pk.aperturas) }}</strong>
+                @if (pk.aperturas.value; as ap) {
+                  <p class="kpi-foot">
+                    {{ ap.open }} abiertas · {{ ap.closed }} cerradas · {{ ap.scheduled }} programadas
+                  </p>
+                }
+              </article>
+
+              <article class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Reservas</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="bookmark-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayRatio(pk.reservas) }}</strong>
+              </article>
+
+              <article class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Pedidos recibidos</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="clipboard-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayValue(pk.pedidosRecibidos) }}</strong>
+              </article>
+
+              <article class="kpi-card">
+                <div class="kpi-top">
+                  <span class="kpi-label">Pedidos atendidos</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayValue(pk.pedidosAtendidos) }}</strong>
+              </article>
+
+              <article class="kpi-card kpi-card-wide">
+                <div class="kpi-top">
+                  <span class="kpi-label">Facturación</span>
+                  <span class="kpi-icon" aria-hidden="true"><ion-icon name="cash-outline"></ion-icon></span>
+                </div>
+                <strong class="kpi-value">{{ displayMoney(pk.facturacion) }}</strong>
+              </article>
+            </div>
+
+            <section class="panel chart-panel">
+              <header class="panel-head">
+                <h2>Facturación diaria</h2>
+                <span class="panel-meta">
+                  {{ scopeKind() === 'last7' ? 'Últimos 7 días' : scopeKind() === 'last30' ? 'Últimos 30 días' : 'Periodo' }}
+                </span>
+              </header>
+              @if (pk.facturacionSeries.availability === 'error' || pk.facturacionSeries.availability === 'unavailable') {
+                <p class="muted">{{ pk.facturacionSeries.detail || 'No se pudo cargar la gráfica.' }}</p>
+              } @else if (!pk.facturacionSeries.value?.length) {
+                <p class="muted">{{ pk.facturacionSeries.detail || 'Sin datos de facturación.' }}</p>
+              } @else {
+                <div class="chart-wrap" role="img" [attr.aria-label]="'Facturación diaria del periodo'">
+                  <svg
+                    class="billing-chart"
+                    viewBox="0 0 640 220"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    @for (bar of chartBars(pk.facturacionSeries.value); track bar.date) {
+                      <rect
+                        class="billing-bar"
+                        [attr.x]="bar.x"
+                        [attr.y]="bar.y"
+                        [attr.width]="bar.width"
+                        [attr.height]="bar.height"
+                        rx="3"
+                      ></rect>
+                    }
+                  </svg>
+                  <div class="chart-labels">
+                    @for (bar of chartLabelTicks(pk.facturacionSeries.value); track bar.date) {
+                      <span>{{ bar.label }}</span>
+                    }
+                  </div>
+                  <div class="chart-legend">
+                    <span>Máx. {{ formatMoney(chartMax(pk.facturacionSeries.value)) }}</span>
+                    <span>Total {{ displayMoney(pk.facturacion) }}</span>
+                  </div>
+                </div>
+              }
+            </section>
           }
         </div>
-      </article>
-    </div>
+        }
 
-    <div class="panels">
-      <section class="panel activity-panel">
-        <header class="panel-head">
-          <h2>Actividad reciente</h2>
-        </header>
-        <div class="empty-state">
-          <ion-icon name="time-outline"></ion-icon>
-          <h3>Actividad no disponible</h3>
-          <p>
-            Las estadísticas de actividad estarán disponibles cuando se complete la configuración de
-            este módulo.
-          </p>
-          <a routerLink="/admin/actividad">Ir a Actividad</a>
-        </div>
-      </section>
+        <div class="panels">
+        <section class="panel activity-panel">
+          <header class="panel-head">
+            <h2>Actividad reciente</h2>
+          </header>
 
-      <section class="panel quick-panel">
-        <header class="panel-head">
-          <h2>Accesos rápidos</h2>
-        </header>
-        <div class="quick-grid">
-          <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'planos' }">
-            <ion-icon name="map-outline"></ion-icon>
-            <span>Planos</span>
-            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
-          </a>
-          <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'operativo' }">
-            <ion-icon name="restaurant-outline"></ion-icon>
-            <span>Operativa</span>
-            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
-          </a>
-          <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'productos' }">
-            <ion-icon name="cube-outline"></ion-icon>
-            <span>Productos</span>
-            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
-          </a>
-          <a class="quick-card" routerLink="/admin/personal">
-            <ion-icon name="people-outline"></ion-icon>
-            <span>Personal</span>
-            <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
-          </a>
+          @if (snap.recentActivity.availability === 'error' || snap.recentActivity.availability === 'unavailable') {
+            <div class="empty-state">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <h3>{{ statusLabel(snap.recentActivity) || 'No disponible' }}</h3>
+              <p>{{ snap.recentActivity.detail || 'No se pudo cargar la actividad reciente.' }}</p>
+            </div>
+          } @else if (!snap.recentActivity.value?.length) {
+            <div class="empty-state">
+              <ion-icon name="time-outline"></ion-icon>
+              <h3>Sin actividad reciente</h3>
+              <p>{{ snap.recentActivity.detail || 'Todavía no hay pedidos en este alcance.' }}</p>
+            </div>
+          } @else {
+            <ul class="activity-list">
+              @for (item of snap.recentActivity.value; track item.id) {
+                <li>
+                  <div class="activity-main">
+                    <div class="activity-copy">
+                      <strong>
+                        {{ item.table_type === 'RESERVED' ? 'Reservado' : 'Mesa' }}
+                        {{ item.table_number ?? '—' }}
+                      </strong>
+                      @if (item.floor_plan_name) {
+                        <span class="activity-plan">Plano · {{ item.floor_plan_name }}</span>
+                      }
+                    </div>
+                    <span class="activity-status" [attr.data-status]="item.status">
+                      {{ orderStatusLabel(item.status) }}
+                    </span>
+                  </div>
+                  <time>{{ formatDateTime(item.created_at) }}</time>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <div class="side-stack">
+          <section class="panel upcoming-panel">
+            <header class="panel-head">
+              <h2>Próximas aperturas</h2>
+            </header>
+            @if (snap.upcomingOpenings.availability === 'error') {
+              <p class="muted">{{ snap.upcomingOpenings.detail || 'No se pudieron cargar.' }}</p>
+            } @else if (!snap.upcomingOpenings.value?.length) {
+              <p class="muted">{{ snap.upcomingOpenings.detail || 'No hay aperturas programadas.' }}</p>
+            } @else {
+              <ul class="upcoming-list">
+                @for (u of snap.upcomingOpenings.value; track u.id) {
+                  <li>
+                    <button type="button" class="upcoming-link" (click)="onJornadaChange(u.id)">
+                      <strong>{{ u.name }}</strong>
+                      <span>
+                        {{ formatLongDate(u.opening_date) }}
+                        · {{ formatTime(u.opens_at) }}–{{ formatTime(u.closes_at) }}
+                        @if (u.closes_next_day) {
+                          <em>(+1)</em>
+                        }
+                      </span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <section class="panel quick-panel">
+            <header class="panel-head">
+              <h2>Accesos rápidos</h2>
+            </header>
+            <div class="quick-grid">
+              <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'planos' }">
+                <ion-icon name="add-circle-outline"></ion-icon>
+                <span>Crear jornada</span>
+                <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+              </a>
+              <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'planos' }">
+                <ion-icon name="construct-outline"></ion-icon>
+                <span>Preparar plano</span>
+                <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+              </a>
+              <a class="quick-card" routerLink="/sala" [queryParams]="{ tab: 'operativo' }">
+                <ion-icon name="restaurant-outline"></ion-icon>
+                <span>Operativa</span>
+                <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+              </a>
+              <a class="quick-card" routerLink="/admin/personal">
+                <ion-icon name="people-outline"></ion-icon>
+                <span>Personal</span>
+                <ion-icon name="arrow-forward-outline" class="chev"></ion-icon>
+              </a>
+            </div>
+          </section>
         </div>
-      </section>
-    </div>
+      </div>
+      </div>
+    }
   }
 </section>

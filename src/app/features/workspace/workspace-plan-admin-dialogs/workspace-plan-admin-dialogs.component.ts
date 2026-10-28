@@ -28,6 +28,13 @@ export class WorkspacePlanAdminDialogsComponent {
 
   createPlanDialog = signal(false);
   newPlanName = '';
+  newOpeningDate = '';
+  newOpensAt = '22:00';
+  newClosesAt = '06:00';
+  newClosesNextDay = true;
+  newSourcePlanId = '';
+  readonly distribucionTooltip =
+    'Se copiará solo la distribución (mesas, reservados y elementos). Las nuevas mesas tendrán UUID propios y empezarán sin reserva, sin ocupación y sin pedidos.';
   copyPlanDialog = signal(false);
   planToCopy = signal<FloorPlan | null>(null);
   copyPlanName = '';
@@ -36,6 +43,15 @@ export class WorkspacePlanAdminDialogsComponent {
   renamePlanName = '';
   deletePlanDialog = signal(false);
   planToDelete = signal<FloorPlan | null>(null);
+  scheduleIncoherentDialog = signal(false);
+  scheduleIncoherentContext = signal<'create' | 'edit'>('create');
+
+  editScheduleDialog = signal(false);
+  planToEditSchedule = signal<FloorPlan | null>(null);
+  editOpeningDate = '';
+  editOpensAt = '22:00';
+  editClosesAt = '06:00';
+  editClosesNextDay = true;
 
   constructor(
     private readonly auth: AuthService,
@@ -47,9 +63,25 @@ export class WorkspacePlanAdminDialogsComponent {
     return this.auth.hasRole('USER', 'ADMIN');
   }
 
+  get canSubmitJornada(): boolean {
+    return (
+      this.newPlanName.trim().length >= 2 &&
+      !!this.newOpeningDate &&
+      !!this.newOpensAt &&
+      !!this.newClosesAt
+    );
+  }
+
   /** Public API for shell: open create-plan dialog. */
   openCreate(): void {
     this.newPlanName = '';
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    this.newOpeningDate = tomorrow.toISOString().slice(0, 10);
+    this.newOpensAt = '22:00';
+    this.newClosesAt = '06:00';
+    this.newClosesNextDay = true;
+    this.newSourcePlanId = '';
     this.createPlanDialog.set(true);
   }
 
@@ -76,42 +108,142 @@ export class WorkspacePlanAdminDialogsComponent {
     this.deletePlanDialog.set(true);
   }
 
+  /** Public API for shell: edit jornada date/times. */
+  openEditSchedule(plan: FloorPlan): void {
+    if (!this.isAdmin) return;
+    this.planToEditSchedule.set(plan);
+    this.editOpeningDate = plan.opening_date;
+    this.editOpensAt = (plan.opens_at || '22:00').slice(0, 5);
+    this.editClosesAt = (plan.closes_at || '06:00').slice(0, 5);
+    this.editClosesNextDay = !!plan.closes_next_day;
+    this.editScheduleDialog.set(true);
+  }
+
   /** Clears overlays/forms — called from Workspace resetTransientUi / logout. */
   reset(): void {
     this.createPlanDialog.set(false);
     this.copyPlanDialog.set(false);
     this.renamePlanDialog.set(false);
     this.deletePlanDialog.set(false);
+    this.scheduleIncoherentDialog.set(false);
+    this.editScheduleDialog.set(false);
     this.newPlanName = '';
     this.copyPlanName = '';
     this.renamePlanName = '';
     this.planToCopy.set(null);
     this.planToRename.set(null);
     this.planToDelete.set(null);
+    this.planToEditSchedule.set(null);
   }
 
   closeCreatePlanDialog(): void {
     this.createPlanDialog.set(false);
+    this.scheduleIncoherentDialog.set(false);
     this.newPlanName = '';
+    this.newSourcePlanId = '';
+  }
+
+  /** True when close time is earlier than open time on the same calendar day. */
+  private isSameDayCloseBeforeOpen(opensAt: string, closesAt: string, closesNextDay: boolean): boolean {
+    if (closesNextDay) return false;
+    const open = this.timeToMinutes(opensAt);
+    const close = this.timeToMinutes(closesAt);
+    if (open == null || close == null) return false;
+    return close < open;
+  }
+
+  private timeToMinutes(value: string): number | null {
+    const match = /^(\d{1,2}):(\d{2})/.exec((value || '').trim());
+    if (!match) return null;
+    const h = Number(match[1]);
+    const m = Number(match[2]);
+    if (!Number.isFinite(h) || !Number.isFinite(m) || h > 23 || m > 59) return null;
+    return h * 60 + m;
+  }
+
+  private toTime(value: string): string {
+    return value.length === 5 ? `${value}:00` : value;
+  }
+
+  closeScheduleIncoherentDialog(): void {
+    this.scheduleIncoherentDialog.set(false);
+  }
+
+  /** Marks closes-next-day and retries create or edit. */
+  async fixClosesNextDayAndContinue(): Promise<void> {
+    this.scheduleIncoherentDialog.set(false);
+    if (this.scheduleIncoherentContext() === 'edit') {
+      this.editClosesNextDay = true;
+      await this.confirmEditSchedule();
+      return;
+    }
+    this.newClosesNextDay = true;
+    await this.createPlan();
   }
 
   async createPlan(): Promise<void> {
-    if (!this.isAdmin) return;
+    if (!this.isAdmin || !this.canSubmitJornada) return;
+    if (this.isSameDayCloseBeforeOpen(this.newOpensAt, this.newClosesAt, this.newClosesNextDay)) {
+      this.scheduleIncoherentContext.set('create');
+      this.scheduleIncoherentDialog.set(true);
+      return;
+    }
     const name = this.newPlanName.trim();
     const companyId = this.auth.profile()?.company_id?.trim();
-    if (!name) return;
     if (!companyId) {
       this.toastMessage.emit('No hay una empresa asociada a tu cuenta');
       return;
     }
     try {
-      const plan = await this.floors.create(name, 2000, 1200, companyId);
-      this.plansUpdated.emit([...this.plans, plan]);
+      const plan = await this.floors.createOpeningJornada({
+        name,
+        openingDate: this.newOpeningDate,
+        opensAt: this.toTime(this.newOpensAt),
+        closesAt: this.toTime(this.newClosesAt),
+        closesNextDay: this.newClosesNextDay,
+        sourceFloorPlanId: this.newSourcePlanId || null,
+      });
+      this.plansUpdated.emit([plan, ...this.plans]);
       this.closeCreatePlanDialog();
-      this.toastMessage.emit('Plano creado correctamente');
+      this.toastMessage.emit('Jornada creada correctamente');
       this.planCreated.emit(plan);
     } catch (error) {
-      this.toastMessage.emit(error instanceof Error ? error.message : 'No se pudo crear el plano');
+      this.toastMessage.emit(error instanceof Error ? error.message : 'No se pudo crear la jornada');
+    }
+  }
+
+  closeEditScheduleDialog(): void {
+    this.editScheduleDialog.set(false);
+    this.planToEditSchedule.set(null);
+  }
+
+  get canSubmitScheduleEdit(): boolean {
+    return !!this.editOpeningDate && !!this.editOpensAt && !!this.editClosesAt;
+  }
+
+  async confirmEditSchedule(): Promise<void> {
+    const plan = this.planToEditSchedule();
+    if (!this.isAdmin || !plan || !this.canSubmitScheduleEdit) return;
+    if (this.isSameDayCloseBeforeOpen(this.editOpensAt, this.editClosesAt, this.editClosesNextDay)) {
+      this.scheduleIncoherentContext.set('edit');
+      this.scheduleIncoherentDialog.set(true);
+      return;
+    }
+    try {
+      const patch = {
+        opening_date: this.editOpeningDate,
+        opens_at: this.toTime(this.editOpensAt),
+        closes_at: this.toTime(this.editClosesAt),
+        closes_next_day: this.editClosesNextDay,
+      };
+      await this.floors.update(plan.id, patch);
+      this.plansUpdated.emit(
+        this.plans.map((item) => (item.id === plan.id ? { ...item, ...patch } : item)),
+      );
+      this.closeEditScheduleDialog();
+      this.toastMessage.emit('Fecha y horario actualizados');
+    } catch (error) {
+      this.toastMessage.emit(error instanceof Error ? error.message : 'No se pudo guardar el horario');
     }
   }
 
