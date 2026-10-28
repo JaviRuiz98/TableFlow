@@ -93,6 +93,7 @@ export const fixtureCategory: ProductCategory = {
 export const fixtureProduct: Product = {
   id: 'prod-1',
   category_id: 'cat-1',
+  company_id: 'co-1',
   name: 'Agua',
   price: null,
   active: true,

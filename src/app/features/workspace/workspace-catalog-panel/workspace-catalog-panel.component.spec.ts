@@ -16,6 +16,7 @@ const sampleCategory: ProductCategory = {
 const sampleProduct: Product = {
   id: 'pr1',
   category_id: 'c1',
+  company_id: 'co-1',
   name: 'Agua',
   price: null,
   active: true,

@@ -159,6 +159,14 @@ create index if not exists idx_reservations_table
 create index if not exists idx_reservations_date
   on public.reservations (reservation_date);
 
+-- Tenant root (also ensured by migration 0017). Needed before products.company_id FK.
+create table if not exists public.companies (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.product_categories (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
@@ -170,16 +178,26 @@ create table if not exists public.product_categories (
 create table if not exists public.products (
   id uuid primary key default gen_random_uuid(),
   category_id uuid not null references public.product_categories (id),
+  company_id uuid references public.companies (id),
   name text not null,
   price numeric(10, 2) null check (price is null or price >= 0),
   active boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique (category_id, name)
+  updated_at timestamptz not null default now()
 );
+
+create unique index if not exists products_company_category_name_uidx
+  on public.products (company_id, category_id, name)
+  where company_id is not null;
+
+create index if not exists products_company_id_idx
+  on public.products (company_id);
 
 comment on column public.products.price is
   'Reservado para futuro desarrollo. Actualmente puede ser NULL y no se usa en la interfaz.';
+
+comment on column public.products.company_id is
+  'Owning company (tenant). Required for new inserts from the Angular catalog.';
 
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
@@ -906,11 +924,36 @@ create policy categories_admin_write on public.product_categories
   for all to authenticated
   using (public.is_admin()) with check (public.is_admin());
 
-create policy products_auth_select on public.products
-  for select to authenticated using (true);
-create policy products_admin_write on public.products
+create policy products_company_select on public.products
+  for select to authenticated
+  using (
+    company_id is not null
+    and company_id = (
+      select p.company_id
+      from public.profiles p
+      where p.id = auth.uid()
+    )
+  );
+create policy products_admin_company_write on public.products
   for all to authenticated
-  using (public.is_admin()) with check (public.is_admin());
+  using (
+    public.is_admin()
+    and company_id is not null
+    and company_id = (
+      select p.company_id
+      from public.profiles p
+      where p.id = auth.uid()
+    )
+  )
+  with check (
+    public.is_admin()
+    and company_id is not null
+    and company_id = (
+      select p.company_id
+      from public.profiles p
+      where p.id = auth.uid()
+    )
+  );
 
 create policy orders_auth_select on public.orders
   for select to authenticated using (true);
@@ -973,43 +1016,59 @@ end $$;
 
 -- -----------------------------------------------------------------------------
 -- Seed catálogo de ejemplo (opcional; on conflict safe)
+-- Demo company so seeded products satisfy company-scoped RLS (0018).
 -- -----------------------------------------------------------------------------
+insert into public.companies (id, name)
+values ('00000000-0000-4000-8000-000000000001', 'TableFlow Demo')
+on conflict (id) do nothing;
+
 insert into public.product_categories (name, sort_order)
 values ('Alcohol', 1), ('Refrescos', 2)
 on conflict do nothing;
 
-insert into public.products (category_id, name, price)
-select id, 'Whisky', 7 from public.product_categories where name = 'Alcohol'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Whisky', 7
+from public.product_categories where name = 'Alcohol'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Ron', 7 from public.product_categories where name = 'Alcohol'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Ron', 7
+from public.product_categories where name = 'Alcohol'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Vodka', 7 from public.product_categories where name = 'Alcohol'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Vodka', 7
+from public.product_categories where name = 'Alcohol'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Gin', 7 from public.product_categories where name = 'Alcohol'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Gin', 7
+from public.product_categories where name = 'Alcohol'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Tequila', 7 from public.product_categories where name = 'Alcohol'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Tequila', 7
+from public.product_categories where name = 'Alcohol'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Coca-Cola', 3 from public.product_categories where name = 'Refrescos'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Coca-Cola', 3
+from public.product_categories where name = 'Refrescos'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Coca-Cola Zero', 3 from public.product_categories where name = 'Refrescos'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Coca-Cola Zero', 3
+from public.product_categories where name = 'Refrescos'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Fanta', 3 from public.product_categories where name = 'Refrescos'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Fanta', 3
+from public.product_categories where name = 'Refrescos'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Sprite', 3 from public.product_categories where name = 'Refrescos'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Sprite', 3
+from public.product_categories where name = 'Refrescos'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Red Bull', 4 from public.product_categories where name = 'Refrescos'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Red Bull', 4
+from public.product_categories where name = 'Refrescos'
 on conflict do nothing;
-insert into public.products (category_id, name, price)
-select id, 'Agua', 2 from public.product_categories where name = 'Refrescos'
+insert into public.products (category_id, company_id, name, price)
+select id, '00000000-0000-4000-8000-000000000001'::uuid, 'Agua', 2
+from public.product_categories where name = 'Refrescos'
 on conflict do nothing;
 
 notify pgrst, 'reload schema';

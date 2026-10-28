@@ -114,6 +114,7 @@ export interface ProductCategory {
 export interface Product {
   id: string;
   category_id: string;
+  company_id: string | null;
   name: string;
   price: number | null;
   active: boolean;

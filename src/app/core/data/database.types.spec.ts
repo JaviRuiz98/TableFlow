@@ -94,6 +94,7 @@ describe('database.types contracts', () => {
     const product: Product = {
       id: 'pr1',
       category_id: 'c1',
+      company_id: 'co1',
       name: 'Agua',
       price: null,
       active: true,

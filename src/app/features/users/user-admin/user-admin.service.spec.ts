@@ -10,10 +10,13 @@ describe('UserAdminService', () => {
   let invokeMock: ReturnType<typeof vi.fn>;
   let humanizeMock: ReturnType<typeof vi.fn>;
 
+  let fromMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     rpcMock = vi.fn();
     getSessionMock = vi.fn();
     invokeMock = vi.fn();
+    fromMock = vi.fn();
     humanizeMock = vi.fn((value: unknown, fallback: string) =>
       typeof value === 'string' ? value : fallback,
     );
@@ -28,6 +31,7 @@ describe('UserAdminService', () => {
               rpc: rpcMock,
               auth: { getSession: getSessionMock },
               functions: { invoke: invokeMock },
+              from: fromMock,
             },
           },
         },
@@ -39,6 +43,22 @@ describe('UserAdminService', () => {
     });
 
     service = TestBed.inject(UserAdminService);
+  });
+
+  it('countAdditionalCompanyUsers scopes by company and excludes current admin', async () => {
+    const eq = vi.fn().mockResolvedValue({ count: 2, error: null });
+    const neq = vi.fn().mockReturnValue({ eq });
+    const select = vi.fn().mockReturnValue({ neq });
+    fromMock.mockReturnValue({ select });
+
+    await expect(
+      service.countAdditionalCompanyUsers({ companyId: 'co-1', currentUserId: 'admin-1' }),
+    ).resolves.toBe(2);
+
+    expect(fromMock).toHaveBeenCalledWith('profiles');
+    expect(select).toHaveBeenCalledWith('id', { count: 'exact', head: true });
+    expect(neq).toHaveBeenCalledWith('id', 'admin-1');
+    expect(eq).toHaveBeenCalledWith('company_id', 'co-1');
   });
 
   it('verifyAccess calls user_management secret RPC', async () => {

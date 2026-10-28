@@ -27,6 +27,7 @@ ADMIN-only user provisioning: verify management password and create users via Ed
 
 ```ts
 verifyAccess(password: string): Promise<boolean>
+countAdditionalCompanyUsers(params: { companyId: string | null | undefined; currentUserId: string }): Promise<number>
 createUser(request: CreateUserRequest): Promise<void>
 ```
 

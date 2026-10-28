@@ -12,6 +12,7 @@ const category: ProductCategory = {
 const product: Product = {
   id: 'p1',
   category_id: 'c1',
+  company_id: 'co-1',
   name: 'Agua',
   price: null,
   active: true,

@@ -42,6 +42,16 @@
     </ion-segment>
   </div>
 
+  @if (showOnboardingReturn()) {
+    <div class="onboarding-return" role="status">
+      <p>Estás completando la configuración inicial de tu sala.</p>
+      <ion-button fill="outline" size="small" class="onboarding-return-button" (click)="returnToOnboarding()">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Volver a la configuración
+      </ion-button>
+    </div>
+  }
+
   @if (!configured) {
     <div class="notice">Configura Supabase en <code>.env</code>.</div>
   } @else if (activeTab() === 'planos' && isAdmin) {

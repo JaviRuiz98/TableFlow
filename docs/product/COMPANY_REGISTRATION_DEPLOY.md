@@ -38,7 +38,9 @@ Before applying:
 ## Known gap (blocker for production multi-tenant)
 
 Existing RLS on floor plans / tables / orders is still largely “any authenticated”.  
-`company_id` on profiles alone does **not** isolate operational data.
+`company_id` on profiles alone does **not** isolate those domains.
+
+**Products:** migration `0018_products_company_id.sql` adds `products.company_id`, company-scoped RLS, and the Angular catalog inserts/lists by company. Still pending: `product_categories` tenancy and full operational RLS.
 
 ## App routes
 

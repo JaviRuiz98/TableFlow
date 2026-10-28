@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { vi } from 'vitest';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SupabaseService } from '../../../core/infrastructure';
 import { FloorPlanService } from '../../floor-plans';
+import { OnboardingService } from '../../onboarding';
 import { OrderService } from '../../orders';
 import { UserAdminService } from '../../users';
 import { OrderNotificationService } from '../../notifications';
@@ -84,6 +85,12 @@ describe('WorkspaceComponent (characterization)', () => {
     signOut: vi.fn().mockResolvedValue(undefined),
   };
   const router = { navigateByUrl: vi.fn().mockResolvedValue(true) };
+  const onboarding = {
+    refresh: vi.fn().mockResolvedValue({ isComplete: true }),
+  };
+  const route = {
+    snapshot: { queryParamMap: { get: vi.fn().mockReturnValue(null) } },
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -93,6 +100,8 @@ describe('WorkspaceComponent (characterization)', () => {
     auth.hasRole.mockReturnValue(true);
     auth.session.mockReturnValue({ user: { id: 'u1' } });
     auth.signOut.mockResolvedValue(undefined);
+    onboarding.refresh.mockResolvedValue({ isComplete: true });
+    route.snapshot.queryParamMap.get.mockReturnValue(null);
 
     TestBed.configureTestingModule({
       imports: [WorkspaceComponent],
@@ -104,6 +113,8 @@ describe('WorkspaceComponent (characterization)', () => {
         { provide: OrderNotificationService, useValue: notifications },
         { provide: SupabaseService, useValue: { configured: true } },
         { provide: Router, useValue: router },
+        { provide: ActivatedRoute, useValue: route },
+        { provide: OnboardingService, useValue: onboarding },
       ],
     }).overrideComponent(WorkspaceComponent, {
       set: {

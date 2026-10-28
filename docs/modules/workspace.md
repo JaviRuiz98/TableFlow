@@ -67,11 +67,15 @@ workspace/
 ## Init flow
 
 1. `resetTransientUi()` (+ children `reset()`)
-2. Load plans
-3. `initialWorkspacePresentation(isAdmin, plans)`
-4. USER → order/observation alerts; always → orders subscribe
-5. Catalog child loads categories/products on its own init
-6. Destroy/logout → unsubscribe + reset
+2. Resolve optional onboarding setup intent (`tf_setup` / session)
+3. Load plans
+4. `initialWorkspacePresentation(isAdmin, plans)`
+5. USER → order/observation alerts; always → orders subscribe
+6. Apply setup intent (plan dialog / productos / users) + onboarding return banner when relevant
+7. Catalog child loads categories/products on its own init
+8. Destroy/logout → unsubscribe + reset
+
+Incomplete ADMIN tenants are redirected to `/onboarding` by `workspaceEntryGuard` unless a setup intent is active. See [onboarding.md](./onboarding.md).
 
 ## Tests
 

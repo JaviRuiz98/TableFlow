@@ -31,8 +31,10 @@
 | `0014_observation_marks_unattended.sql` | Observación fuerza `attended=false` |
 | `0015_realtime_pending_notifications.sql` | Replica identity + publicación Realtime idempotente |
 | `0016_observation_pending_without_orders.sql` | Observación vacía no cambia `attended`; no vacía sí |
+| `0017_company_registration.sql` | `companies` + `profiles.company_id` + `handle_new_user` registro empresa |
+| `0018_products_company_id.sql` | `products.company_id` + RLS por empresa + unique por tenant |
 
-**Total:** 17 archivos. **Conflicto de numeración:** dos migraciones comparten prefijo `0007`.
+**Total:** 19 archivos (incluye `0017`/`0018`). **Conflicto de numeración:** dos migraciones comparten prefijo `0007`.
 
 ### 1.2 SQL complementarios (no gestionados por CLI)
 

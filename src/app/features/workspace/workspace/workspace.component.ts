@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -27,11 +27,20 @@ import {
   checkmarkCircleOutline,
   alertCircleOutline,
   createOutline,
+  arrowBackOutline,
 } from 'ionicons/icons';
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SupabaseService } from '../../../core/infrastructure';
+import {
+  clearSetupIntent,
+  OnboardingService,
+  peekSetupIntent,
+  resolveSetupIntent,
+  TF_SETUP_QUERY,
+  type OnboardingStepId,
+} from '../../onboarding';
 import { FloorPlanService } from '../../floor-plans';
 import { OrderService } from '../../orders';
 import { OrderNotificationService } from '../../notifications';
@@ -92,9 +101,12 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   userAlertTitle = signal(NEW_ORDER_ALERT.title);
   userAlertEyebrow = signal(NEW_ORDER_ALERT.eyebrow);
   userAlertMessage = signal(NEW_ORDER_ALERT.message);
+  /** ADMIN arrived from incomplete onboarding checklist. */
+  showOnboardingReturn = signal(false);
 
   private channel: RealtimeChannel | null = null;
   private userOrderChannel: RealtimeChannel | null = null;
+  private setupIntent: OnboardingStepId | null = null;
 
   /**
    * Limpia cualquier estado visual transitorio para que una nueva sesión
@@ -119,6 +131,8 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     private notifications: OrderNotificationService,
     private supabase: SupabaseService,
     private router: Router,
+    private route: ActivatedRoute,
+    private onboarding: OnboardingService,
   ) {
     addIcons({
       logOutOutline,
@@ -131,6 +145,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
       checkmarkCircleOutline,
       alertCircleOutline,
       createOutline,
+      arrowBackOutline,
     });
     this.configured = this.supabase.configured;
   }
@@ -150,6 +165,7 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     // Una sesión nueva siempre parte con todos los overlays cerrados.
     this.resetTransientUi();
+    this.setupIntent = resolveSetupIntent(this.route.snapshot.queryParamMap.get(TF_SETUP_QUERY));
     try {
       this.plans.set(await this.floors.list());
       const presentation = initialWorkspacePresentation(this.isAdmin, this.plans());
@@ -164,6 +180,8 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
         );
       }
       this.channel = this.orders.subscribe(() => this.refreshOperationalData(), 'workspace-orders');
+      await this.refreshOnboardingReturnBanner();
+      void this.applySetupIntent();
     } catch (error) {
       this.toast.set(error instanceof Error ? error.message : 'Error cargando datos');
     }
@@ -257,6 +275,61 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
     this.editorMode.set('editor');
     this.showMap.set(true);
     this.activeTab.set('operativo');
+    void this.maybeReturnToOnboardingAfterSetup();
+  }
+
+  async returnToOnboarding(): Promise<void> {
+    clearSetupIntent();
+    this.setupIntent = null;
+    this.showOnboardingReturn.set(false);
+    await this.router.navigateByUrl('/onboarding');
+  }
+
+  private async refreshOnboardingReturnBanner(): Promise<void> {
+    if (!this.isAdmin) {
+      this.showOnboardingReturn.set(false);
+      return;
+    }
+    if (this.setupIntent || peekSetupIntent()) {
+      this.showOnboardingReturn.set(true);
+      return;
+    }
+    try {
+      const progress = await this.onboarding.refresh();
+      this.showOnboardingReturn.set(!progress.isComplete);
+    } catch {
+      this.showOnboardingReturn.set(false);
+    }
+  }
+
+  private async applySetupIntent(): Promise<void> {
+    if (!this.isAdmin || !this.setupIntent) return;
+
+    if (this.setupIntent === 'plan') {
+      this.activeTab.set('planos');
+      // ViewChild dialogs are ready after the first CD cycle.
+      void Promise.resolve().then(() => this.openCreatePlanDialog());
+      return;
+    }
+    if (this.setupIntent === 'products') {
+      this.activeTab.set('productos');
+      return;
+    }
+    if (this.setupIntent === 'users') {
+      void Promise.resolve().then(() => this.openUserAccessDialog());
+    }
+  }
+
+  private async maybeReturnToOnboardingAfterSetup(): Promise<void> {
+    if (!this.isAdmin || !this.setupIntent) return;
+    try {
+      const progress = await this.onboarding.refresh();
+      if (!progress.isComplete) {
+        await this.returnToOnboarding();
+      }
+    } catch {
+      // Keep the user in workspace if progress cannot be re-checked.
+    }
   }
 
   openPlan(plan: FloorPlan): void {
@@ -298,6 +371,9 @@ export class WorkspaceComponent implements OnInit, OnDestroy {
   async logout(): Promise<void> {
     // Cerramos los overlays antes de abandonar la sesión actual.
     this.resetTransientUi();
+    clearSetupIntent();
+    this.setupIntent = null;
+    this.showOnboardingReturn.set(false);
     this.channel?.unsubscribe?.();
     this.userOrderChannel?.unsubscribe?.();
     this.channel = null;

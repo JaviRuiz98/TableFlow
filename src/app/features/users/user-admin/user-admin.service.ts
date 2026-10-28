@@ -27,6 +27,28 @@ export class UserAdminService {
     return data === true;
   }
 
+  /**
+   * Counts company members other than the current admin (onboarding step 3).
+   * With `company_id`, scopes to that tenant; without it (legacy), counts any other visible profile.
+   */
+  async countAdditionalCompanyUsers(params: {
+    companyId: string | null | undefined;
+    currentUserId: string;
+  }): Promise<number> {
+    let query = this.db.client
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .neq('id', params.currentUserId);
+
+    if (params.companyId) {
+      query = query.eq('company_id', params.companyId);
+    }
+
+    const { count, error } = await query;
+    if (error) throw new Error(this.errors.humanize(error, 'No se pudo consultar el personal'));
+    return count ?? 0;
+  }
+
   async createUser(request: CreateUserRequest): Promise<void> {
     const {
       data: { session },

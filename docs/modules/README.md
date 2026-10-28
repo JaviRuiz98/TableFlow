@@ -5,6 +5,7 @@ Short briefs for agents — load **one** domain + [MODULE_MAP](../architecture/M
 | Module | Doc |
 |--------|-----|
 | auth | [auth.md](./auth.md) |
+| onboarding | [onboarding.md](./onboarding.md) |
 | workspace | [workspace.md](./workspace.md) |
 | floor-editor | [floor-editor.md](./floor-editor.md) |
 | floor-plans | [floor-plans.md](./floor-plans.md) |

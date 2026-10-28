@@ -1,0 +1,141 @@
+<ion-content [fullscreen]="true" class="onboarding-page">
+  <div class="onboarding-shell" [ngStyle]="brandCssVars()">
+    <div class="onboarding-ambiance" aria-hidden="true"></div>
+
+    <header class="onboarding-topnav">
+      <div class="topnav-brand">
+        <img
+          class="topnav-logo"
+          [src]="branding.assets.logoCompactUrl"
+          [alt]="branding.productName"
+          width="132"
+          height="40"
+        />
+      </div>
+      <div class="topnav-actions">
+        <span class="topnav-pill">Configuración inicial</span>
+        <ion-button
+          fill="clear"
+          class="logout-button"
+          type="button"
+          aria-label="Cerrar sesión"
+          (click)="logout()"
+        >
+          <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </header>
+
+    <main class="onboarding-main">
+      @if (loading()) {
+        <div class="onboarding-loading" role="status">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Preparando tu configuración…</p>
+        </div>
+      } @else if (error()) {
+        <section class="onboarding-panel onboarding-panel--error">
+          <h1>No se pudo cargar el progreso</h1>
+          <p>{{ error() }}</p>
+          <ion-button class="primary-cta" type="button" (click)="goToWorkspace()">
+            Ir al panel principal
+          </ion-button>
+        </section>
+      } @else if (isComplete()) {
+        <section class="onboarding-panel onboarding-panel--success" aria-labelledby="onboarding-done-title">
+          <div class="success-mark" aria-hidden="true">
+            <ion-icon name="checkmark-circle"></ion-icon>
+          </div>
+          <h1 id="onboarding-done-title">¡Configuración inicial completada!</h1>
+          <p class="lead">Tu sala ya está lista para empezar a trabajar con TableFlow.</p>
+
+          <ul class="step-list step-list--summary" aria-label="Pasos completados">
+            @for (step of viewProgress().steps; track step.id) {
+              <li class="step-row step-row--done">
+                <span class="step-status" aria-hidden="true">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                </span>
+                <div class="step-copy">
+                  <h2>{{ step.title }}</h2>
+                  <p>Completado</p>
+                </div>
+              </li>
+            }
+          </ul>
+
+          <div class="cta-row">
+            <ion-button class="primary-cta" type="button" expand="block" (click)="goToWorkspace()">
+              Ir al panel principal
+            </ion-button>
+            <ion-button class="secondary-cta" type="button" expand="block" fill="outline" (click)="goToPlans()">
+              Ir a Planos
+            </ion-button>
+          </div>
+        </section>
+      } @else {
+        <section class="onboarding-panel" aria-labelledby="onboarding-title">
+          <p class="eyebrow">Bienvenida</p>
+          <h1 id="onboarding-title">Configura tu sala en TableFlow</h1>
+          <p class="lead">
+            Completa estos primeros pasos para dejar tu establecimiento listo para operar.
+          </p>
+
+          <div class="progress-meta" aria-live="polite">
+            <span>{{ completedCount() }} de 3 completados</span>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill" [style.width.%]="(completedCount() / 3) * 100"></div>
+            </div>
+          </div>
+
+          <ol class="step-list">
+            @for (step of viewProgress().steps; track step.id; let index = $index) {
+              <li
+                class="step-row"
+                [class.step-row--done]="step.completed"
+                [class.step-row--active]="step.active"
+                [class.step-row--locked]="step.locked"
+              >
+                <span class="step-index" aria-hidden="true">
+                  @if (step.completed) {
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                  } @else {
+                    {{ index + 1 }}
+                  }
+                </span>
+
+                <div class="step-body">
+                  <div class="step-heading">
+                    <span class="step-glyph" aria-hidden="true">
+                      <ion-icon [name]="stepIcon(step.id)"></ion-icon>
+                    </span>
+                    <div class="step-copy">
+                      <h2>{{ step.title }}</h2>
+                      @if (step.completed) {
+                        <p class="step-state step-state--done">Completado</p>
+                      } @else if (step.locked) {
+                        <p class="step-state">Pendiente</p>
+                      } @else {
+                        <p class="step-state step-state--active">Paso actual</p>
+                      }
+                    </div>
+                  </div>
+                  <p class="step-desc">{{ step.description }}</p>
+
+                  @if (step.active) {
+                    <ion-button
+                      class="primary-cta step-cta"
+                      type="button"
+                      (click)="continueStep(step.id)"
+                    >
+                      {{ step.ctaLabel }}
+                      <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+                    </ion-button>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+        </section>
+      }
+    </main>
+  </div>
+</ion-content>

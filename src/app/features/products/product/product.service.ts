@@ -1,10 +1,14 @@
 import { Injectable } from '@angular/core';
+import { AuthService } from '../../../core/auth/auth.service';
 import { SupabaseService } from '../../../core/infrastructure';
 import type { Product, ProductCategory } from '../../../core/models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  constructor(private readonly db: SupabaseService) {}
+  constructor(
+    private readonly db: SupabaseService,
+    private readonly auth: AuthService,
+  ) {}
 
   async categories(): Promise<ProductCategory[]> {
     const { data, error } = await this.db.client.from('product_categories').select('*').order('sort_order');
@@ -13,7 +17,13 @@ export class ProductService {
   }
 
   async products(): Promise<Product[]> {
-    const { data, error } = await this.db.client.from('products').select('*').eq('active', true).order('name');
+    const companyId = await this.requireCompanyId();
+    const { data, error } = await this.db.client
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .eq('company_id', companyId)
+      .order('name');
     if (error) throw error;
     return data ?? [];
   }
@@ -26,9 +36,10 @@ export class ProductService {
   }
 
   async createProduct(categoryId: string, name: string): Promise<Product> {
+    const companyId = await this.requireCompanyId();
     const { data, error } = await this.db.client
       .from('products')
-      .insert({ category_id: categoryId, name, price: null })
+      .insert({ category_id: categoryId, name, price: null, company_id: companyId })
       .select()
       .single();
     if (error) throw error;
@@ -37,7 +48,15 @@ export class ProductService {
   }
 
   async updateProduct(id: string, patch: Partial<Product>): Promise<void> {
-    const { error } = await this.db.client.from('products').update(patch).eq('id', id);
+    const companyId = await this.requireCompanyId();
+    const safePatch: Partial<Product> = { ...patch };
+    delete safePatch.company_id;
+    delete safePatch.id;
+    const { error } = await this.db.client
+      .from('products')
+      .update(safePatch)
+      .eq('id', id)
+      .eq('company_id', companyId);
     if (error) throw error;
   }
 
@@ -68,5 +87,15 @@ export class ProductService {
     const { data, error } = await this.db.client.rpc('delete_category_safe', { p_category_id: categoryId });
     if (error) throw error;
     return data === true;
+  }
+
+  /** Resolves the signed-in ADMIN/USER company; required for tenant-scoped catalog ops. */
+  private async requireCompanyId(): Promise<string> {
+    await this.auth.whenReady();
+    const companyId = this.auth.profile()?.company_id ?? null;
+    if (!companyId) {
+      throw new Error('Tu perfil no tiene empresa asociada. No se pueden gestionar productos.');
+    }
+    return companyId;
   }
 }

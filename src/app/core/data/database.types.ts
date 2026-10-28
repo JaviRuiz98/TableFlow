@@ -318,6 +318,7 @@ export interface Database {
         Row: {
           id: string;
           category_id: string;
+          company_id: string | null;
           name: string;
           price: number | null;
           active: boolean;
@@ -327,6 +328,7 @@ export interface Database {
         Insert: {
           id?: string;
           category_id: string;
+          company_id?: string | null;
           name: string;
           price?: number | null;
           active?: boolean;
@@ -336,13 +338,22 @@ export interface Database {
         Update: {
           id?: string;
           category_id?: string;
+          company_id?: string | null;
           name?: string;
           price?: number | null;
           active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'products_company_id_fkey';
+            columns: ['company_id'];
+            isOneToOne: false;
+            referencedRelation: 'companies';
+            referencedColumns: ['id'];
+          },
+        ];
       };
 
       orders: {
