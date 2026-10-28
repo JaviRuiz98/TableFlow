@@ -1,0 +1,117 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.status-page {
+  --background: var(--tf-brand-surface-muted, #0b0b0f);
+}
+
+.status-shell {
+  box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding:
+    max(24px, env(safe-area-inset-top, 0px))
+    16px
+    max(24px, env(safe-area-inset-bottom, 0px));
+  color: var(--tf-brand-text, #f4efe6);
+  background: var(--tf-brand-surface-muted, #0b0b0f);
+}
+
+.status-ambiance {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 42% at 50% 18%, rgba(212, 175, 124, 0.09), transparent 70%),
+    linear-gradient(165deg, #101016 0%, #0b0b0f 50%, #08080c 100%);
+}
+
+.status-card {
+  position: relative;
+  z-index: 1;
+  width: min(460px, 100%);
+  padding: 36px 28px 28px;
+  border-radius: 20px;
+  border: 1px solid rgba(212, 175, 124, 0.18);
+  background: rgba(18, 18, 24, 0.88);
+  text-align: center;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+}
+
+.brand-logo {
+  display: block;
+  width: 64px;
+  height: auto;
+  margin: 0 auto 18px;
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.copy {
+  margin: 0 0 22px;
+  color: var(--tf-brand-text-muted, #9a948a);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.copy strong {
+  color: var(--tf-brand-text, #f4efe6);
+  font-weight: 650;
+}
+
+.error-copy {
+  color: var(--tf-brand-danger, #e07a7a);
+}
+
+.status-message {
+  margin: -8px 0 18px;
+  color: var(--tf-brand-primary, #d4af7c);
+  font-size: 13px;
+}
+
+.page-spinner {
+  width: 28px;
+  height: 28px;
+  color: var(--tf-brand-primary, #d4af7c);
+  margin: 8px auto 0;
+}
+
+.primary-button {
+  --background: var(--tf-brand-primary, #d4af7c);
+  --color: var(--tf-brand-on-primary, #0b0b0f);
+  --border-radius: 12px;
+  --box-shadow: none;
+  min-height: 48px;
+  font-weight: 700;
+  text-transform: none;
+  margin-top: 8px;
+}
+
+.secondary-button {
+  --background: transparent;
+  --border-color: rgba(212, 175, 124, 0.42);
+  --color: var(--tf-brand-primary, #d4af7c);
+  --border-radius: 12px;
+  min-height: 48px;
+  font-weight: 650;
+  text-transform: none;
+  margin-top: 8px;
+}
+
+.primary-button ion-spinner,
+.secondary-button ion-spinner {
+  width: 20px;
+  height: 20px;
+}

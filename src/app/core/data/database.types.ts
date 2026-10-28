@@ -24,24 +24,53 @@ export interface Database {
         Row: {
           id: string;
           full_name: string | null;
+          phone: string | null;
           role: AppRole;
           username: string | null;
+          /** Present after 0017 / remote company migration. Null for legacy users. */
+          company_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           full_name?: string | null;
+          phone?: string | null;
           role?: AppRole;
           username?: string | null;
+          company_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           full_name?: string | null;
+          phone?: string | null;
           role?: AppRole;
           username?: string | null;
+          company_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+
+      companies: {
+        Row: {
+          id: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
           created_at?: string;
           updated_at?: string;
         };

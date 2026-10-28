@@ -8,7 +8,9 @@ import { createQueryBuilder } from '../../../testing/supabase-query-mock';
 describe('AuthService (integration with mocked Supabase)', () => {
   let getSession: ReturnType<typeof vi.fn>;
   let signInWithPassword: ReturnType<typeof vi.fn>;
+  let signUp: ReturnType<typeof vi.fn>;
   let signOut: ReturnType<typeof vi.fn>;
+  let exchangeCodeForSession: ReturnType<typeof vi.fn>;
   let onAuthStateChange: ReturnType<typeof vi.fn>;
   let fromMock: ReturnType<typeof vi.fn>;
 
@@ -16,7 +18,9 @@ describe('AuthService (integration with mocked Supabase)', () => {
     localStorage.clear();
     getSession = vi.fn().mockResolvedValue({ data: { session: null } });
     signInWithPassword = vi.fn();
+    signUp = vi.fn();
     signOut = vi.fn().mockResolvedValue({ error: null });
+    exchangeCodeForSession = vi.fn().mockResolvedValue({ data: { session: null }, error: null });
     onAuthStateChange = vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
     fromMock = vi.fn();
 
@@ -31,7 +35,9 @@ describe('AuthService (integration with mocked Supabase)', () => {
               auth: {
                 getSession,
                 signInWithPassword,
+                signUp,
                 signOut,
+                exchangeCodeForSession,
                 onAuthStateChange,
               },
               from: fromMock,
@@ -120,5 +126,41 @@ describe('AuthService (integration with mocked Supabase)', () => {
     signInWithPassword.mockResolvedValue({ data: { session: null }, error: { message: 'bad' } });
     const service = await readyService();
     await expect(service.signIn('x', 'y')).rejects.toThrow('No se pudo iniciar sesión');
+  });
+
+  it('signUpCompany sends metadata without role and does not mark session when confirmation is required', async () => {
+    signUp.mockResolvedValue({
+      data: { user: { id: 'u-new' }, session: null },
+      error: null,
+    });
+    const service = await readyService();
+    const result = await service.signUpCompany({
+      email: 'boss@club.test',
+      password: 'secreto123',
+      adminFullName: 'Boss Club',
+      establishmentName: 'Club Test',
+      phone: '+34 600 000 000',
+    });
+
+    expect(result).toEqual({
+      userId: 'u-new',
+      email: 'boss@club.test',
+      confirmationRequired: true,
+    });
+    expect(localStorage.getItem('tableflow.sessionStartedAt')).toBeNull();
+    expect(signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'boss@club.test',
+        options: expect.objectContaining({
+          data: expect.objectContaining({
+            full_name: 'Boss Club',
+            establishment_name: 'Club Test',
+            phone: '+34 600 000 000',
+          }),
+        }),
+      }),
+    );
+    const meta = signUp.mock.calls[0][0].options.data as Record<string, unknown>;
+    expect(meta['role']).toBeUndefined();
   });
 });

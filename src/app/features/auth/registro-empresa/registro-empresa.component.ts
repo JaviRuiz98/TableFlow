@@ -1,15 +1,17 @@
 import { NgStyle } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonButton,
   IonCheckbox,
   IonContent,
   IonInput,
   IonInputPasswordToggle,
+  IonSpinner,
   IonText,
 } from '@ionic/angular/standalone';
+import { AuthService } from '../../../core/auth/auth.service';
 import { TABLEFLOW_DEFAULT_BRANDING } from '../../../core/branding';
 import { fieldErrorMessage, passwordsMatchValidator } from './registro-empresa.form';
 
@@ -26,19 +28,21 @@ import { fieldErrorMessage, passwordsMatchValidator } from './registro-empresa.f
     IonButton,
     IonCheckbox,
     IonText,
+    IonSpinner,
   ],
   templateUrl: './registro-empresa.component.html',
   styleUrl: './registro-empresa.component.scss',
 })
 export class RegistroEmpresaComponent {
   readonly branding = TABLEFLOW_DEFAULT_BRANDING;
-  /** Backend registration is not enabled yet — keep CTA visibly disabled. */
-  readonly registrationEnabled = false;
+  readonly loading = signal(false);
+  readonly formError = signal('');
 
   readonly form = this.fb.nonNullable.group(
     {
       establishmentName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
       adminFullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+      phone: ['', [Validators.required, Validators.minLength(7), Validators.maxLength(30), Validators.pattern(/^[+\d\s().-]{7,30}$/)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
       password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(72)]],
       confirmPassword: ['', [Validators.required]],
@@ -47,7 +51,11 @@ export class RegistroEmpresaComponent {
     { validators: passwordsMatchValidator },
   );
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private auth: AuthService,
+    private router: Router,
+  ) {}
 
   brandCssVars(): Record<string, string> {
     const { colors } = this.branding;
@@ -63,7 +71,16 @@ export class RegistroEmpresaComponent {
     };
   }
 
-  errorFor(controlName: 'establishmentName' | 'adminFullName' | 'email' | 'password' | 'confirmPassword' | 'acceptTerms'): string {
+  errorFor(
+    controlName:
+      | 'establishmentName'
+      | 'adminFullName'
+      | 'phone'
+      | 'email'
+      | 'password'
+      | 'confirmPassword'
+      | 'acceptTerms',
+  ): string {
     const control = this.form.controls[controlName];
     const mismatch =
       controlName === 'confirmPassword' &&
@@ -72,8 +89,29 @@ export class RegistroEmpresaComponent {
     return fieldErrorMessage(control, mismatch);
   }
 
-  /** Intentionally no-op until company registration backend is authorized. */
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
+    this.formError.set('');
     this.form.markAllAsTouched();
+    if (this.form.invalid || this.loading()) return;
+
+    const value = this.form.getRawValue();
+    this.loading.set(true);
+    try {
+      const result = await this.auth.signUpCompany({
+        email: value.email,
+        password: value.password,
+        adminFullName: value.adminFullName,
+        establishmentName: value.establishmentName,
+        phone: value.phone,
+      });
+
+      await this.router.navigate(['/registro-empresa/pendiente'], {
+        queryParams: { email: result.email },
+      });
+    } catch (e) {
+      this.formError.set(e instanceof Error ? e.message : 'No se pudo completar el registro');
+    } finally {
+      this.loading.set(false);
+    }
   }
 }

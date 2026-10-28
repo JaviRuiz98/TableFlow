@@ -26,8 +26,17 @@ import type {
 export interface Profile {
   id: string;
   full_name: string | null;
+  phone?: string | null;
   username?: string | null;
   role: AppRole;
+  company_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
   created_at: string;
   updated_at: string;
 }

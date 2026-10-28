@@ -12,6 +12,20 @@ export const routes: Routes = [
         (m) => m.RegistroEmpresaComponent,
       ),
   },
+  {
+    path: 'registro-empresa/pendiente',
+    loadComponent: () =>
+      import('./features/auth/registro-empresa/registro-empresa-pendiente.component').then(
+        (m) => m.RegistroEmpresaPendienteComponent,
+      ),
+  },
+  {
+    path: 'registro-empresa/activar',
+    loadComponent: () =>
+      import('./features/auth/registro-empresa/registro-empresa-activar.component').then(
+        (m) => m.RegistroEmpresaActivarComponent,
+      ),
+  },
   { path: 'register-empresa', redirectTo: 'registro-empresa', pathMatch: 'full' },
   { path: '', canActivate: [authGuard], component: WorkspaceComponent },
   { path: '**', redirectTo: '' },

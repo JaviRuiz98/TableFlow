@@ -12,7 +12,14 @@ export class SupabaseService {
     this.client = createClient<Database>(
       environment.supabaseUrl || 'https://placeholder.supabase.co',
       environment.supabaseAnonKey || 'placeholder-anon-key',
-      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } },
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce',
+        },
+      },
     );
   }
 }

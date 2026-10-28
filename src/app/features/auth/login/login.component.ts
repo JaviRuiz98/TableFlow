@@ -8,7 +8,7 @@ import { addIcons } from 'ionicons';
 import { AuthService } from '../../../core/auth/auth.service';
 import { TABLEFLOW_DEFAULT_BRANDING } from '../../../core/branding';
 
-/** Public route for company registration UI (backend activation pending). */
+/** Public route for company registration UI. */
 export const COMPANY_REGISTER_PATH = '/registro-empresa';
 
 @Component({

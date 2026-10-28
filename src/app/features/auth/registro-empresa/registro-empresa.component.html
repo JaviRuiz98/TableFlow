@@ -19,10 +19,6 @@
         <p class="subtitle">Comienza a gestionar tu discoteca con TableFlow.</p>
       </header>
 
-      <ion-text class="pending-banner" role="status">
-        <p>Alta de empresas pendiente de activación. El formulario es preparatorio; el envío está deshabilitado.</p>
-      </ion-text>
-
       <form class="register-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
         <div class="field">
           <label class="field-label" for="establishmentName">Nombre comercial del establecimiento</label>
@@ -54,6 +50,23 @@
             required
           ></ion-input>
           @if (errorFor('adminFullName'); as message) {
+            <p class="field-error" role="alert">{{ message }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="phone">Teléfono</label>
+          <ion-input
+            id="phone"
+            class="register-field"
+            type="tel"
+            autocomplete="tel"
+            fill="outline"
+            formControlName="phone"
+            placeholder="+34 600 000 000"
+            required
+          ></ion-input>
+          @if (errorFor('phone'); as message) {
             <p class="field-error" role="alert">{{ message }}</p>
           }
         </div>
@@ -126,16 +139,26 @@
           }
         </div>
 
+        @if (formError()) {
+          <ion-text class="form-error" role="alert">
+            <p>{{ formError() }}</p>
+          </ion-text>
+        }
+
         <ion-button
           class="submit-button"
           type="submit"
           expand="block"
           size="large"
-          [disabled]="!registrationEnabled"
+          [disabled]="loading() || form.invalid"
         >
-          Crear cuenta de empresa
+          @if (loading()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            Crear cuenta de empresa
+          }
         </ion-button>
-        <p class="submit-hint" role="note">Envío pendiente de activación</p>
+        <p class="submit-hint" role="note">Te enviaremos un correo de verificación para activar tu empresa.</p>
       </form>
 
       <p class="login-link-row">

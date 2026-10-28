@@ -11,11 +11,17 @@ export class ErrorMessageService {
     if (text.includes('unable to validate email address') || text.includes('invalid email') || text.includes('invalid format')) {
       return 'El nombre de usuario no tiene un formato válido.';
     }
-    if (text.includes('already registered') || text.includes('already exists') || text.includes('duplicate')) {
+    if (text.includes('already registered') || text.includes('user already registered')) {
+      return 'Ese correo ya está registrado.';
+    }
+    if (text.includes('already exists') || text.includes('duplicate')) {
       return 'Ese nombre de usuario ya existe.';
     }
-    if (text.includes('password') && (text.includes('6') || text.includes('short'))) {
-      return 'La contraseña debe tener al menos 6 caracteres.';
+    if (text.includes('password') && (text.includes('6') || text.includes('short') || text.includes('8'))) {
+      return 'La contraseña no cumple los requisitos mínimos.';
+    }
+    if (text.includes('email rate') || text.includes('over_email_send_rate_limit')) {
+      return 'Has solicitado demasiados correos. Espera unos minutos e inténtalo de nuevo.';
     }
     if (text.includes('contraseña de administración incorrecta')) return 'La contraseña de administración es incorrecta.';
     if (text.includes('sesión') || text.includes('jwt') || text.includes('unauthorized') || text.includes('invalid credentials')) {

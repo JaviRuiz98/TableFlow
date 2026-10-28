@@ -1,9 +1,10 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-/** Payload shape reserved for a future company-registration API (UI-only today). */
+/** Payload shape for company registration (Auth signUp + pending activation). */
 export interface CompanyRegistrationDraft {
   establishmentName: string;
   adminFullName: string;
+  phone: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -37,6 +38,9 @@ export function fieldErrorMessage(
   }
   if (errors['email']) {
     return 'Introduce un correo electrónico válido.';
+  }
+  if (errors['pattern']) {
+    return 'Formato no válido.';
   }
   if (errors['minlength']) {
     return `Mínimo ${errors['minlength'].requiredLength} caracteres.`;

@@ -24,6 +24,7 @@ describe('database.types contracts', () => {
   it('exposes expected public tables and enums', () => {
     const tables: Array<keyof Database['public']['Tables']> = [
       'profiles',
+      'companies',
       'app_secrets',
       'floor_plans',
       'floor_plan_elements',
@@ -34,7 +35,7 @@ describe('database.types contracts', () => {
       'orders',
       'order_items',
     ];
-    expect(tables).toHaveLength(10);
+    expect(tables).toHaveLength(11);
 
     const roles: Enums<'app_role'>[] = ['ADMIN', 'USER'];
     expect(roles).toEqual(['ADMIN', 'USER']);
@@ -47,8 +48,10 @@ describe('database.types contracts', () => {
     const profileRow: Tables<'profiles'> = {
       id: 'u1',
       full_name: null,
+      phone: null,
       role: 'USER',
       username: 'alice',
+      company_id: null,
       created_at: 't',
       updated_at: 't',
     };
