@@ -188,6 +188,14 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
     });
   }
 
+  /** Hide Planos/Operativa/Productos bar when only one tab exists (e.g. RECEPTOR). */
+  get showShellTabs(): boolean {
+    const v = this.shellVisibility;
+    const count =
+      Number(v.showPlanosTab) + Number(v.showOperativaTab) + Number(v.showProductosTab);
+    return count > 1;
+  }
+
   onboardingStepLabel(): string {
     if (this.setupIntent === 'plan') return 'Crear primer plano';
     if (this.setupIntent === 'products') return 'Configurar productos';

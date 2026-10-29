@@ -76,19 +76,27 @@
 ></app-workspace-plan-admin-dialogs>
 
 <ion-content>
-  @if (!onboardingMode() && (shellVisibility.showPlanosTab || shellVisibility.showOperativaTab || shellVisibility.showProductosTab)) {
+  @if (!onboardingMode() && showShellTabs) {
     <div class="nav-wrap">
-      <ion-segment [value]="activeTab()" (ionChange)="activeTab.set($any($event.detail.value))">
+      <ion-segment
+        mode="ios"
+        [value]="activeTab()"
+        (ionChange)="activeTab.set($any($event.detail.value))"
+      >
         @if (shellVisibility.showPlanosTab) {
-          <ion-segment-button value="planos"><ion-label>Planos</ion-label></ion-segment-button>
+          <ion-segment-button value="planos" mode="ios">
+            <ion-label>Planos</ion-label>
+          </ion-segment-button>
         }
         @if (shellVisibility.showOperativaTab) {
-          <ion-segment-button value="operativo">
+          <ion-segment-button value="operativo" mode="ios">
             <ion-label>Operativa</ion-label>
           </ion-segment-button>
         }
         @if (shellVisibility.showProductosTab) {
-          <ion-segment-button value="productos"><ion-label>Productos</ion-label></ion-segment-button>
+          <ion-segment-button value="productos" mode="ios">
+            <ion-label>Productos</ion-label>
+          </ion-segment-button>
         }
       </ion-segment>
     </div>

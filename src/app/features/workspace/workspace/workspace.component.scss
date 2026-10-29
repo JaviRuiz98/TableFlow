@@ -120,18 +120,38 @@ ion-button {
   max-width: 560px;
   margin: auto;
   --background: transparent;
+  background: transparent;
 }
 
 .nav-wrap ion-segment-button {
+  --background: transparent;
+  --background-checked: transparent;
+  --background-hover: transparent;
+  --background-focused: transparent;
   --color: var(--tf-brand-text-muted);
   --color-checked: var(--tf-brand-primary);
   --indicator-color: var(--tf-brand-primary);
-  --border-radius: 10px;
+  --indicator-box-shadow: none;
+  --border-radius: 0;
   min-height: 40px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-size: 0.78rem;
+}
+
+/* Mobile/MD must not paint a solid champagne pill on the active tab. */
+.nav-wrap ion-segment-button::part(indicator-background) {
+  background: var(--tf-brand-primary);
+  height: 2px;
+  border-radius: 0;
+  bottom: 0;
+}
+
+.nav-wrap ion-segment-button.segment-button-checked {
+  --background: transparent;
+  --background-checked: transparent;
+  color: var(--tf-brand-primary);
 }
 
 .page {
@@ -434,6 +454,14 @@ ion-button {
 
   .topbar-title {
     display: none;
+  }
+
+  .nav-wrap {
+    padding: 10px 12px 0;
+  }
+
+  .nav-wrap ion-segment {
+    max-width: none;
   }
 
   .page {
