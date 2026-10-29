@@ -202,7 +202,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     this.showOrderDialog = false;
     this.activeEndpoint = null;
     this.endpointShape = null;
-    this.clearDrawing();
+    this.clearDrawingDraft();
     this.history = [];
     this.historyIndex = -1;
     this.pushHistory();
@@ -461,7 +461,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       if (this.drawing.length >= 2) {
         this.drawingSession.convertDrawing();
       } else {
-        this.clearDrawing();
+        this.clearDrawingDraft();
       }
     }
     this.render();
@@ -475,8 +475,14 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   pointerUp(ev: PointerEvent) {
     this.drawingSession.pointerUp(ev);
   }
+
+  /** Clears only the in-progress freehand/shape draft (tool changes, load, etc.). */
+  clearDrawingDraft() {
+    this.drawingSession.clearDrawing();
+  }
+
   /** Toolbar «Borrar dibujo» — opens confirm; does not wipe until accepted. */
-  clearDrawing() {
+  requestClearAllDrawing() {
     if (!this.canEditGeometry) return;
     if (this.elements.length === 0 && this.drawing.length === 0) return;
     this.showClearDrawingDialog = true;
@@ -493,7 +499,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     this.selectedElementId = null;
     this.activeEndpoint = null;
     this.endpointShape = null;
-    this.drawingSession.clearDrawing();
+    this.clearDrawingDraft();
     this.pushHistory();
     this.render();
   }
