@@ -28,7 +28,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Konva from 'konva';
-import { FloorPlanService } from '../../floor-plans';
+import { FloorPlanService, ensureUniqueTableNumbers, nextFreeTableNumber } from '../../floor-plans';
 import { GeometryService, type Point } from '../geometry';
 import {
   VIEWPORT,
@@ -526,11 +526,20 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       if (this.drawing.length >= 2) {
         this.drawingSession.convertDrawing();
       }
+      // DB unique (floor_plan_id, number) spans TABLE + RESERVED — heal collisions before RPC.
+      const unique = ensureUniqueTableNumbers({
+        elements: this.elements,
+        tables: this.tables,
+        reserved: this.reserved,
+      });
+      this.tables = unique.tables;
+      this.reserved = unique.reserved ?? [];
       await this.floors.saveSnapshot(this.plan.id, {
         elements: this.elements,
         tables: this.tables,
         reserved: this.reserved,
       });
+      this.render();
       if (showConfirmation) this.showSaveDialog = true;
       return true;
     } catch (e) {
@@ -543,11 +552,10 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   }
   addTable() {
     if (!this.canEditGeometry) return;
-    const numbers = new Set(this.tables.map((t) => t.number));
-    let n = 1;
-    while (numbers.has(n)) {
-      n++;
-    }
+    const n = nextFreeTableNumber([
+      ...this.tables.map((t) => t.number),
+      ...this.reserved.map((r) => r.number),
+    ]);
     const now = new Date().toISOString();
     const table: ClubTable = {
       id: crypto.randomUUID(),
@@ -575,11 +583,10 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   }
   addReserved() {
     if (!this.canEditGeometry) return;
-    const numbers = new Set(this.reserved.map((r) => r.number));
-    let n = 1;
-    while (numbers.has(n)) {
-      n++;
-    }
+    const n = nextFreeTableNumber([
+      ...this.tables.map((t) => t.number),
+      ...this.reserved.map((r) => r.number),
+    ]);
     const now = new Date().toISOString();
     const reserved: ClubTable = {
       id: crypto.randomUUID(),

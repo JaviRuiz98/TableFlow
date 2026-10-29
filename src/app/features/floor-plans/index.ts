@@ -7,5 +7,7 @@ export {
 export {
   buildDuplicatedSnapshot,
   buildReplaceSnapshotPayload,
+  ensureUniqueTableNumbers,
+  nextFreeTableNumber,
   splitTablesByType,
 } from './floor-plan-snapshot/floor-plan-snapshot.util';

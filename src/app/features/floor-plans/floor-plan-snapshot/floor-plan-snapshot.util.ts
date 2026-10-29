@@ -8,13 +8,47 @@ export function splitTablesByType(allTables: ClubTable[]): Pick<FloorSnapshot, '
   };
 }
 
+/** Next free number in the shared TABLE+RESERVED space (matches DB unique (floor_plan_id, number)). */
+export function nextFreeTableNumber(used: Iterable<number>): number {
+  const numbers = new Set(used);
+  let n = 1;
+  while (numbers.has(n)) n += 1;
+  return n;
+}
+
+/**
+ * Ensures table/reserved numbers are unique across the snapshot.
+ * Keeps the first occurrence of each number; renumbers later collisions.
+ * Preserves ids (orders stay attached).
+ */
+export function ensureUniqueTableNumbers(snapshot: FloorSnapshot): FloorSnapshot {
+  const used = new Set<number>();
+  const remap = (rows: ClubTable[]): ClubTable[] =>
+    rows.map((row) => {
+      if (!used.has(row.number)) {
+        used.add(row.number);
+        return row;
+      }
+      const number = nextFreeTableNumber(used);
+      used.add(number);
+      return { ...row, number };
+    });
+
+  return {
+    ...snapshot,
+    tables: remap(snapshot.tables ?? []),
+    reserved: remap(snapshot.reserved ?? []),
+  };
+}
+
 /** Payload shapes sent to replace_floor_plan_snapshot (behaviour-identical mapping). */
 export function buildReplaceSnapshotPayload(planId: string, snapshot: FloorSnapshot) {
-  const allTables: ClubTable[] = [...(snapshot.tables ?? []), ...(snapshot.reserved ?? [])];
+  const unique = ensureUniqueTableNumbers(snapshot);
+  const allTables: ClubTable[] = [...(unique.tables ?? []), ...(unique.reserved ?? [])];
 
   return {
     p_floor_plan_id: planId,
-    p_elements: snapshot.elements.map((element: FloorPlanElement) => ({
+    p_elements: unique.elements.map((element: FloorPlanElement) => ({
       kind: element.kind,
       x: element.x,
       y: element.y,

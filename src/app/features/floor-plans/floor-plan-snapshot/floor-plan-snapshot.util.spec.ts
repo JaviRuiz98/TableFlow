@@ -2,6 +2,8 @@ import type { ClubTable, FloorPlanElement, FloorSnapshot } from '../../../core/m
 import {
   buildDuplicatedSnapshot,
   buildReplaceSnapshotPayload,
+  ensureUniqueTableNumbers,
+  nextFreeTableNumber,
   splitTablesByType,
 } from './floor-plan-snapshot.util';
 
@@ -29,6 +31,33 @@ describe('floor-plan-snapshot.util', () => {
     ]);
     expect(split.tables.map((t) => t.id)).toEqual(['a']);
     expect(split.reserved?.map((t) => t.id)).toEqual(['b']);
+  });
+
+  it('nextFreeTableNumber skips numbers used by tables and reserved', () => {
+    expect(nextFreeTableNumber([1, 3])).toBe(2);
+    expect(nextFreeTableNumber([1, 2])).toBe(3);
+  });
+
+  it('ensureUniqueTableNumbers remaps reserved colliding with a table number', () => {
+    const fixed = ensureUniqueTableNumbers({
+      elements: [],
+      tables: [table({ id: 't1', type: 'TABLE', number: 1 })],
+      reserved: [table({ id: 'r1', type: 'RESERVED', number: 1, shape: 'rectangle' })],
+    });
+    expect(fixed.tables[0].number).toBe(1);
+    expect(fixed.reserved?.[0].id).toBe('r1');
+    expect(fixed.reserved?.[0].number).toBe(2);
+  });
+
+  it('builds RPC payload remapping duplicate numbers across type', () => {
+    const snapshot: FloorSnapshot = {
+      elements: [],
+      tables: [table({ id: 'keep-me', type: 'TABLE', number: 1, attended: true })],
+      reserved: [table({ id: 'res-1', type: 'RESERVED', number: 1, shape: 'rectangle' })],
+    };
+    const payload = buildReplaceSnapshotPayload('plan-1', snapshot);
+    expect(payload.p_tables.map((t) => t.id)).toEqual(['keep-me', 'res-1']);
+    expect(payload.p_tables.map((t) => t.number)).toEqual([1, 2]);
   });
 
   it('builds RPC payload preserving table ids and merging reserved', () => {
