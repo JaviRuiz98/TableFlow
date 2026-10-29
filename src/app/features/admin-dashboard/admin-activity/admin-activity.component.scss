@@ -112,11 +112,33 @@
 }
 
 @media (max-width: 720px) {
+  .scope-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scope-bar select {
+    width: 100%;
+  }
+
   .blocks {
     grid-template-columns: 1fr;
   }
 
   .block.wide {
     grid-column: auto;
+  }
+
+  .block {
+    padding: 0.95rem 0.9rem;
+  }
+
+  .metric-list li {
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+  }
+
+  .banner {
+    gap: 0.65rem;
   }
 }

@@ -58,8 +58,10 @@
           [class.active]="scopeKind() === 'last7'"
           [attr.aria-selected]="scopeKind() === 'last7'"
           (click)="onScopeKindChange('last7')"
+          title="Últimos 7 días"
         >
-          Últimos 7 días
+          <span class="seg-full">Últimos 7 días</span>
+          <span class="seg-short">7 días</span>
         </button>
         <button
           type="button"
@@ -68,8 +70,10 @@
           [class.active]="scopeKind() === 'last30'"
           [attr.aria-selected]="scopeKind() === 'last30'"
           (click)="onScopeKindChange('last30')"
+          title="Últimos 30 días"
         >
-          Últimos 30 días
+          <span class="seg-full">Últimos 30 días</span>
+          <span class="seg-short">30 días</span>
         </button>
       </div>
 
@@ -304,41 +308,44 @@
                 <div
                   class="chart-wrap"
                   role="img"
-                  [attr.aria-label]="'Facturación diaria del periodo. Pasa el ratón por cada barra para ver el importe.'"
+                  [attr.aria-label]="'Facturación diaria del periodo. Toca o pasa el ratón por cada barra para ver el importe.'"
                 >
-                  <div
-                    class="billing-chart"
-                    [style.--billing-cols]="pk.facturacionSeries.value?.length || 1"
-                  >
-                    @for (bar of chartBars(pk.facturacionSeries.value); track bar.date) {
-                      <div
-                        class="billing-col"
-                        (mouseenter)="onBillingBarEnter(bar.date)"
-                        (mouseleave)="onBillingBarLeave()"
-                        (focusin)="onBillingBarEnter(bar.date)"
-                        (focusout)="onBillingBarLeave()"
-                        tabindex="0"
-                        [attr.aria-label]="formatChartDay(bar.date) + ': ' + formatMoney(bar.amount)"
-                      >
-                        <div class="billing-bar-track">
-                          @if (hoveredBillingDate() === bar.date) {
-                            <div class="billing-tooltip" role="tooltip">
-                              <span class="billing-tooltip-day">{{ formatChartDay(bar.date) }}</span>
-                              <strong>{{ formatMoney(bar.amount) }}</strong>
-                            </div>
-                          }
-                          <div
-                            class="billing-bar"
-                            [class.is-empty]="bar.amount <= 0"
-                            [class.is-hovered]="hoveredBillingDate() === bar.date"
-                            [style.height.%]="bar.pct"
-                          ></div>
+                  <div class="billing-chart-scroll">
+                    <div
+                      class="billing-chart"
+                      [class.is-wide]="(pk.facturacionSeries.value?.length || 0) > 10"
+                      [style.--billing-cols]="pk.facturacionSeries.value?.length || 1"
+                    >
+                      @for (bar of chartBars(pk.facturacionSeries.value); track bar.date) {
+                        <div
+                          class="billing-col"
+                          (mouseenter)="onBillingBarEnter(bar.date)"
+                          (mouseleave)="onBillingBarLeave()"
+                          (focusin)="onBillingBarEnter(bar.date)"
+                          (focusout)="onBillingBarLeave()"
+                          tabindex="0"
+                          [attr.aria-label]="formatChartDay(bar.date) + ': ' + formatMoney(bar.amount)"
+                        >
+                          <div class="billing-bar-track">
+                            @if (hoveredBillingDate() === bar.date) {
+                              <div class="billing-tooltip" role="tooltip">
+                                <span class="billing-tooltip-day">{{ formatChartDay(bar.date) }}</span>
+                                <strong>{{ formatMoney(bar.amount) }}</strong>
+                              </div>
+                            }
+                            <div
+                              class="billing-bar"
+                              [class.is-empty]="bar.amount <= 0"
+                              [class.is-hovered]="hoveredBillingDate() === bar.date"
+                              [style.height.%]="bar.pct"
+                            ></div>
+                          </div>
+                          <span class="chart-label" [class.is-visible]="bar.showLabel">
+                            {{ bar.showLabel ? bar.dayLabel : '' }}
+                          </span>
                         </div>
-                        <span class="chart-label" [class.is-visible]="bar.showLabel">
-                          {{ bar.showLabel ? bar.dayLabel : '' }}
-                        </span>
-                      </div>
-                    }
+                      }
+                    </div>
                   </div>
                   <div class="chart-legend">
                     <span>Máx. {{ formatMoney(chartMax(pk.facturacionSeries.value)) }}</span>

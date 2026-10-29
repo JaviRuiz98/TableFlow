@@ -301,6 +301,91 @@ ion-modal.user-create-modal .auth-like-form ion-select.auth-select::part(icon) {
   color: #d4af7c;
 }
 
+/* Jornada date/time pickers — overlay outside component encapsulation */
+ion-popover.jornada-datetime-popover {
+  --width: min(340px, calc(100vw - 28px));
+  --max-width: calc(100vw - 28px);
+  --box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+  --backdrop-opacity: 0.35;
+  /* Override Ionic default blue primary inside teleported overlay */
+  --ion-color-primary: #d4af7c;
+  --ion-color-primary-rgb: 212, 175, 124;
+  --ion-color-primary-contrast: #0b0b0f;
+  --ion-color-primary-contrast-rgb: 11, 11, 15;
+  --ion-color-primary-shade: #b8925e;
+  --ion-color-primary-tint: #d9bd91;
+}
+
+ion-popover.jornada-datetime-popover::part(content) {
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 124, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+    #15151b;
+  overflow: hidden;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime {
+  --background: #15151b;
+  --background-rgb: 21, 21, 27;
+  --title-color: #f4efe6;
+  --wheel-highlight-background: rgba(212, 175, 124, 0.16);
+  --wheel-highlight-border-radius: 10px;
+  --wheel-fade-background-rgb: 21, 21, 27;
+  --ion-color-base: #d4af7c;
+  --ion-color-base-rgb: 212, 175, 124;
+  --ion-color-contrast: #0b0b0f;
+  width: 100%;
+  max-width: 100%;
+  color: #f4efe6;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime::part(calendar-day active) {
+  background: rgba(212, 175, 124, 0.22);
+  color: #d4af7c;
+  border-radius: 10px;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime::part(calendar-day today),
+ion-popover.jornada-datetime-popover .jornada-datetime::part(month-year-button),
+ion-popover.jornada-datetime-popover .jornada-datetime::part(time-button),
+ion-popover.jornada-datetime-popover .jornada-datetime::part(wheel-item active) {
+  color: #d4af7c;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button {
+  --color: #d4af7c;
+  --color-activated: #d9bd91;
+  --background: transparent;
+  --background-activated: rgba(212, 175, 124, 0.12);
+  --background-focused: rgba(212, 175, 124, 0.1);
+  --background-hover: rgba(212, 175, 124, 0.08);
+  --border-radius: 10px;
+  --ripple-color: rgba(212, 175, 124, 0.25);
+  font-weight: 650;
+  text-transform: none;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button::part(native) {
+  color: #d4af7c;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime .datetime-footer ion-button:last-child,
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button.ion-color-primary {
+  --background: #d4af7c;
+  --background-activated: #b8925e;
+  --background-focused: #d4af7c;
+  --background-hover: #d9bd91;
+  --color: #0b0b0f;
+  --color-activated: #0b0b0f;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime .datetime-footer ion-button:last-child::part(native),
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button.ion-color-primary::part(native) {
+  background: #d4af7c;
+  color: #0b0b0f;
+}
+
 /* Auth VIP pages: prevent browser autofill from painting white/blue field backgrounds */
 .login-page input.native-input,
 .login-page input.native-input:focus,

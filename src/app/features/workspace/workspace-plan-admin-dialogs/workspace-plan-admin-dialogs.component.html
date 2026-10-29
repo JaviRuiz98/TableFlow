@@ -16,12 +16,98 @@
           placeholder="Ej. Viernes Halloween"
           [(ngModel)]="newPlanName"
         ></ion-input>
-        <label class="field-label" for="jornada-date">Fecha de apertura</label>
-        <input id="jornada-date" type="date" [(ngModel)]="newOpeningDate" />
-        <label class="field-label" for="jornada-opens">Hora de apertura</label>
-        <input id="jornada-opens" type="time" [(ngModel)]="newOpensAt" />
-        <label class="field-label" for="jornada-closes">Hora de cierre</label>
-        <input id="jornada-closes" type="time" [(ngModel)]="newClosesAt" />
+        <div class="datetime-field">
+          <span class="field-label" id="jornada-date-label">Fecha de apertura</span>
+          <ion-datetime-button
+            datetime="create-jornada-date"
+            class="jornada-datetime-button"
+            aria-labelledby="jornada-date-label"
+          ></ion-datetime-button>
+          <ion-popover
+            [keepContentsMounted]="true"
+            side="bottom"
+            alignment="start"
+            class="jornada-datetime-popover"
+          >
+            <ng-template>
+              <ion-datetime
+                id="create-jornada-date"
+                class="jornada-datetime"
+                presentation="date"
+                locale="es-ES"
+                firstDayOfWeek="1"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                [value]="newOpeningDate"
+                (ionChange)="onDateModelChange($event.detail.value, 'newOpening')"
+              ></ion-datetime>
+            </ng-template>
+          </ion-popover>
+        </div>
+
+        <div class="datetime-field">
+          <span class="field-label" id="jornada-opens-label">Hora de apertura</span>
+          <ion-datetime-button
+            datetime="create-jornada-opens"
+            class="jornada-datetime-button"
+            aria-labelledby="jornada-opens-label"
+          ></ion-datetime-button>
+          <ion-popover
+            [keepContentsMounted]="true"
+            side="bottom"
+            alignment="start"
+            class="jornada-datetime-popover"
+          >
+            <ng-template>
+              <ion-datetime
+                id="create-jornada-opens"
+                class="jornada-datetime"
+                presentation="time"
+                locale="es-ES"
+                hourCycle="h23"
+                [preferWheel]="true"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                [value]="timeToIso(newOpensAt)"
+                (ionChange)="onTimeModelChange($event.detail.value, 'newOpens')"
+              ></ion-datetime>
+            </ng-template>
+          </ion-popover>
+        </div>
+
+        <div class="datetime-field">
+          <span class="field-label" id="jornada-closes-label">Hora de cierre</span>
+          <ion-datetime-button
+            datetime="create-jornada-closes"
+            class="jornada-datetime-button"
+            aria-labelledby="jornada-closes-label"
+          ></ion-datetime-button>
+          <ion-popover
+            [keepContentsMounted]="true"
+            side="bottom"
+            alignment="start"
+            class="jornada-datetime-popover"
+          >
+            <ng-template>
+              <ion-datetime
+                id="create-jornada-closes"
+                class="jornada-datetime"
+                presentation="time"
+                locale="es-ES"
+                hourCycle="h23"
+                [preferWheel]="true"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                [value]="timeToIso(newClosesAt)"
+                (ionChange)="onTimeModelChange($event.detail.value, 'newCloses')"
+              ></ion-datetime>
+            </ng-template>
+          </ion-popover>
+        </div>
+
         <label class="check-row">
           <input type="checkbox" [(ngModel)]="newClosesNextDay" />
           El cierre es al día siguiente
@@ -112,12 +198,98 @@
         </div>
       </div>
       <div class="dialog-body jornada-form">
-        <label class="field-label" for="edit-jornada-date">Fecha de apertura</label>
-        <input id="edit-jornada-date" type="date" [(ngModel)]="editOpeningDate" />
-        <label class="field-label" for="edit-jornada-opens">Hora de apertura</label>
-        <input id="edit-jornada-opens" type="time" [(ngModel)]="editOpensAt" />
-        <label class="field-label" for="edit-jornada-closes">Hora de cierre</label>
-        <input id="edit-jornada-closes" type="time" [(ngModel)]="editClosesAt" />
+        <div class="datetime-field">
+          <span class="field-label" id="edit-jornada-date-label">Fecha de apertura</span>
+          <ion-datetime-button
+            datetime="edit-jornada-date"
+            class="jornada-datetime-button"
+            aria-labelledby="edit-jornada-date-label"
+          ></ion-datetime-button>
+          <ion-popover
+            [keepContentsMounted]="true"
+            side="bottom"
+            alignment="start"
+            class="jornada-datetime-popover"
+          >
+            <ng-template>
+              <ion-datetime
+                id="edit-jornada-date"
+                class="jornada-datetime"
+                presentation="date"
+                locale="es-ES"
+                firstDayOfWeek="1"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                [value]="editOpeningDate"
+                (ionChange)="onDateModelChange($event.detail.value, 'editOpening')"
+              ></ion-datetime>
+            </ng-template>
+          </ion-popover>
+        </div>
+
+        <div class="datetime-field">
+          <span class="field-label" id="edit-jornada-opens-label">Hora de apertura</span>
+          <ion-datetime-button
+            datetime="edit-jornada-opens"
+            class="jornada-datetime-button"
+            aria-labelledby="edit-jornada-opens-label"
+          ></ion-datetime-button>
+          <ion-popover
+            [keepContentsMounted]="true"
+            side="bottom"
+            alignment="start"
+            class="jornada-datetime-popover"
+          >
+            <ng-template>
+              <ion-datetime
+                id="edit-jornada-opens"
+                class="jornada-datetime"
+                presentation="time"
+                locale="es-ES"
+                hourCycle="h23"
+                [preferWheel]="true"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                [value]="timeToIso(editOpensAt)"
+                (ionChange)="onTimeModelChange($event.detail.value, 'editOpens')"
+              ></ion-datetime>
+            </ng-template>
+          </ion-popover>
+        </div>
+
+        <div class="datetime-field">
+          <span class="field-label" id="edit-jornada-closes-label">Hora de cierre</span>
+          <ion-datetime-button
+            datetime="edit-jornada-closes"
+            class="jornada-datetime-button"
+            aria-labelledby="edit-jornada-closes-label"
+          ></ion-datetime-button>
+          <ion-popover
+            [keepContentsMounted]="true"
+            side="bottom"
+            alignment="start"
+            class="jornada-datetime-popover"
+          >
+            <ng-template>
+              <ion-datetime
+                id="edit-jornada-closes"
+                class="jornada-datetime"
+                presentation="time"
+                locale="es-ES"
+                hourCycle="h23"
+                [preferWheel]="true"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                [value]="timeToIso(editClosesAt)"
+                (ionChange)="onTimeModelChange($event.detail.value, 'editCloses')"
+              ></ion-datetime>
+            </ng-template>
+          </ion-popover>
+        </div>
+
         <label class="check-row">
           <input type="checkbox" [(ngModel)]="editClosesNextDay" />
           El cierre es al día siguiente

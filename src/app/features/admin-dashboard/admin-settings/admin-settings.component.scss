@@ -100,4 +100,27 @@ dt {
   .grid {
     grid-template-columns: 1fr;
   }
+
+  .card {
+    padding: 1rem 0.95rem 1.1rem;
+  }
+
+  .card-top {
+    flex-wrap: wrap;
+  }
+
+  .edit-actions {
+    flex-direction: column;
+  }
+
+  .edit-actions .btn-primary,
+  .edit-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .value,
+  .meta {
+    overflow-wrap: anywhere;
+  }
 }

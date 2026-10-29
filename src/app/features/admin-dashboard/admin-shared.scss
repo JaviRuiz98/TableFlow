@@ -2,6 +2,25 @@
 
 .page-head {
   margin-bottom: 1.35rem;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .page-head {
+    margin-bottom: 1.05rem;
+  }
+
+  .page-head h1 {
+    overflow-wrap: anywhere;
+  }
+
+  .page-head .lede {
+    font-size: 0.9rem;
+  }
+
+  .state-box {
+    padding: 1.05rem 0.95rem;
+  }
 }
 
 .page-head .eyebrow {

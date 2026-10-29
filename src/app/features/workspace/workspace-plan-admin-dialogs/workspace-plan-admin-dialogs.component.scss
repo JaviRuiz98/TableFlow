@@ -10,8 +10,40 @@ ion-button { --border-radius:10px; --box-shadow:none; font-weight:700; text-tran
   font-size: 0.8rem;
   color: rgba(244, 239, 230, 0.72);
 }
-.jornada-form input[type=date],
-.jornada-form input[type=time],
+
+.datetime-field {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.jornada-datetime-button {
+  display: block;
+  width: 100%;
+}
+
+.jornada-datetime-button::part(native) {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 124, 0.35);
+  background: #15151b;
+  color: #f4efe6;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: none;
+  justify-content: flex-start;
+}
+
+.jornada-datetime-button::part(native):hover,
+.jornada-datetime-button::part(native):focus-visible {
+  border-color: rgba(212, 175, 124, 0.55);
+  background: #1a1a22;
+}
+
 .jornada-form select {
   width: 100%;
   border-radius: 10px;
@@ -19,8 +51,6 @@ ion-button { --border-radius:10px; --box-shadow:none; font-weight:700; text-tran
   background: #15151b;
   color: #f4efe6;
   padding: 0.65rem 0.75rem;
-}
-.jornada-form select {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 2.75rem;
@@ -29,7 +59,20 @@ ion-button { --border-radius:10px; --box-shadow:none; font-weight:700; text-tran
   background-position: right 1rem center;
   background-size: 12px 8px;
 }
-.jornada-form .check-row { display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; color:rgba(244,239,230,.8); }
+
+.jornada-form .check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: rgba(244, 239, 230, 0.8);
+}
+
+.jornada-form .check-row input[type='checkbox'] {
+  accent-color: #d4af7c;
+  width: 1.05rem;
+  height: 1.05rem;
+}
 
 .field-with-hint {
   display: grid;
@@ -58,3 +101,4 @@ ion-button { --border-radius:10px; --box-shadow:none; font-weight:700; text-tran
   line-height: 1.4;
   color: rgba(244, 239, 230, 0.62);
 }
+

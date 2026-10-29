@@ -76,3 +76,26 @@ tbody tr:hover {
   color: var(--tf-positive) !important;
   font-size: 0.88rem;
 }
+
+@media (max-width: 720px) {
+  .head-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .actions .btn-primary,
+  .actions .btn-secondary {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  th,
+  td {
+    padding: 0.75rem 0.8rem;
+    font-size: 0.86rem;
+  }
+}

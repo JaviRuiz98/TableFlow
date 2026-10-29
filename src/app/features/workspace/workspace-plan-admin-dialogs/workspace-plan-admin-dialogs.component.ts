@@ -1,7 +1,14 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonButton, IonIcon, IonInput, IonModal } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonDatetime,
+  IonDatetimeButton,
+  IonInput,
+  IonModal,
+  IonPopover,
+} from '@ionic/angular/standalone';
 import { AuthService } from '../../../core/auth/auth.service';
 import type { FloorPlan } from '../../../core/models/models';
 import { FloorPlanService, PlanDuplicationService } from '../../floor-plans';
@@ -14,7 +21,16 @@ import { defaultCopyPlanName } from '../workspace/workspace-transient.util';
 @Component({
   selector: 'app-workspace-plan-admin-dialogs',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonIcon, IonInput, IonModal],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonButton,
+    IonDatetime,
+    IonDatetimeButton,
+    IonInput,
+    IonModal,
+    IonPopover,
+  ],
   templateUrl: './workspace-plan-admin-dialogs.component.html',
   styleUrl: './workspace-plan-admin-dialogs.component.scss',
 })
@@ -163,6 +179,44 @@ export class WorkspacePlanAdminDialogsComponent {
 
   private toTime(value: string): string {
     return value.length === 5 ? `${value}:00` : value;
+  }
+
+  /** ISO value for ion-datetime presentation="time" from HH:mm. */
+  timeToIso(hhmm: string): string {
+    const t = (hhmm || '00:00').slice(0, 5);
+    return `1970-01-01T${t}:00`;
+  }
+
+  /** Persist HH:mm from ion-datetime time value (ISO or HH:mm). */
+  onTimeModelChange(value: string | string[] | null | undefined, target: 'newOpens' | 'newCloses' | 'editOpens' | 'editCloses'): void {
+    const raw = Array.isArray(value) ? value[0] : value;
+    const match = raw ? /(?:T|^)(\d{2}:\d{2})/.exec(raw) : null;
+    const next = match?.[1] ?? '00:00';
+    switch (target) {
+      case 'newOpens':
+        this.newOpensAt = next;
+        break;
+      case 'newCloses':
+        this.newClosesAt = next;
+        break;
+      case 'editOpens':
+        this.editOpensAt = next;
+        break;
+      case 'editCloses':
+        this.editClosesAt = next;
+        break;
+    }
+  }
+
+  onDateModelChange(
+    value: string | string[] | null | undefined,
+    target: 'newOpening' | 'editOpening',
+  ): void {
+    const raw = Array.isArray(value) ? value[0] : value;
+    const next = (raw || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(next)) return;
+    if (target === 'newOpening') this.newOpeningDate = next;
+    else this.editOpeningDate = next;
   }
 
   closeScheduleIncoherentDialog(): void {
