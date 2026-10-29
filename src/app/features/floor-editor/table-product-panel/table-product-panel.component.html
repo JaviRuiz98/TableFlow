@@ -5,19 +5,6 @@
           <h2>Mesas y reservados</h2>
           <p>{{ listedTargets.length }} elementos en el plano</p>
         </div>
-        @if (isAdmin) {
-          <div class="list-create-actions">
-            <ion-button fill="outline" class="target-create-button" (click)="addTarget('TABLE')" [disabled]="loading || !!creatingTarget">
-              @if (creatingTarget === 'TABLE') { <ion-spinner name="crescent"></ion-spinner> } @else { + Mesa }
-            </ion-button>
-            <ion-button fill="outline" class="target-create-button" (click)="addTarget('RESERVED')" [disabled]="loading || !!creatingTarget">
-              @if (creatingTarget === 'RESERVED') { <ion-spinner name="crescent"></ion-spinner> } @else { + Reservado }
-            </ion-button>
-            <ion-button class="add-button" (click)="openDialog()" [disabled]="loading || availableTargets.length === 0">
-              + Agregar producto
-            </ion-button>
-          </div>
-        }
       </div>
 
       @if (loading) {
@@ -104,55 +91,3 @@
         </div>
       }
     </aside>
-
-    @if (dialogOpen && isAdmin) {
-      <div class="dialog-backdrop" (click)="closeDialog()">
-        <section class="assignment-dialog" (click)="$event.stopPropagation()">
-          <header class="dialog-header">
-            <div>
-              <span class="eyebrow">ASIGNAR PRODUCTOS</span>
-              <h2>Añadir productos</h2>
-              <p>Selecciona una mesa o reservado y prepara su pedido.</p>
-            </div>
-            <button type="button" class="close-button" (click)="closeDialog()">×</button>
-          </header>
-
-          <div class="dialog-body">
-            <ion-select label="Mesa / reservado" labelPlacement="stacked" fill="outline" [(ngModel)]="selectedTargetId" (ionChange)="onTargetChange()">
-              <ion-select-option [value]="''">Seleccionar...</ion-select-option>
-              @for (target of availableTargets; track target.id) {
-                <ion-select-option [value]="target.id">{{ target.displayName }}</ion-select-option>
-              }
-            </ion-select>
-
-            @if (selectedTargetId) {
-              @for (group of productGroups; track group.id) {
-                <section class="product-section">
-                  <h3>{{ group.name }}</h3>
-                  @for (product of group.products; track product.id) {
-                    <div class="product-line">
-                      <span>{{ product.name }}</span>
-                      <div class="quantity-control">
-                        <button type="button" (click)="changeQuantity(productQuantities, product.id, -1)">−</button>
-                        <strong>{{ productQuantities[product.id] || 0 }}</strong>
-                        <button type="button" (click)="changeQuantity(productQuantities, product.id, 1)">+</button>
-                      </div>
-                    </div>
-                  }
-                </section>
-              } @empty {
-                <p class="empty-products">No hay productos activos en el catálogo.</p>
-              }
-            }
-          </div>
-
-          <footer class="dialog-actions">
-            <span class="dialog-error">{{ errorMessage }}</span>
-            <ion-button fill="outline" (click)="closeDialog()">Cancelar</ion-button>
-            <ion-button class="save-button" [disabled]="saving || !selectedTargetId || selectedItemCount === 0" (click)="saveAssignment()">
-              @if (saving) { <ion-spinner name="crescent"></ion-spinner> } @else { Guardar asignación }
-            </ion-button>
-          </footer>
-        </section>
-      </div>
-    }

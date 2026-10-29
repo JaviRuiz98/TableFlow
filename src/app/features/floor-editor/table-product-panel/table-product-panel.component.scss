@@ -51,16 +51,6 @@
   font-size: 12px;
 }
 
-.add-button,
-.save-button {
-  --background: #d4af7c;
-  --background-activated: #b8925e;
-  --background-hover: #d9bd91;
-  --color: #0b0b0f;
-  --border-radius: 10px;
-  font-weight: 700;
-}
-
 .target-list {
   overflow: visible;
   padding: 12px;
@@ -157,8 +147,7 @@
 }
 
 .no-items,
-.empty-panel,
-.empty-products {
+.empty-panel {
   color: #9a948a;
   font-size: 12px;
 }
@@ -181,146 +170,6 @@
   color: #9a948a;
   gap: 8px;
   padding: 2rem 1rem;
-}
-
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(11, 11, 15, 0.72);
-  display: grid;
-  place-items: center;
-  padding: 20px;
-}
-
-.assignment-dialog {
-  width: min(620px, 100%);
-  max-height: min(90vh, 800px);
-  overflow: hidden;
-  border-radius: 20px;
-  border: 1px solid rgba(212, 175, 124, 0.18);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 34%),
-    rgba(18, 18, 24, 0.98);
-  box-shadow:
-    0 0 0 1px rgba(11, 11, 15, 0.55) inset,
-    0 28px 80px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  color: #f4efe6;
-}
-
-.dialog-header {
-  padding: 22px 24px 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid rgba(212, 175, 124, 0.12);
-}
-
-.dialog-header h2 {
-  margin: 4px 0;
-  font-size: 23px;
-  color: #f4efe6;
-  font-weight: 650;
-}
-
-.dialog-header p {
-  margin: 0;
-  font-size: 13px;
-  color: #9a948a;
-}
-
-.close-button {
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(212, 175, 124, 0.2);
-  border-radius: 10px;
-  background: rgba(244, 239, 230, 0.04);
-  color: #9a948a;
-  font-size: 25px;
-  cursor: pointer;
-}
-
-.dialog-body {
-  padding: 20px 24px;
-  overflow: auto;
-}
-
-.dialog-body ion-select {
-  --background: #15151b;
-  --color: #f4efe6;
-  --placeholder-color: #9a948a;
-  --border-color: rgba(212, 175, 124, 0.28);
-  --border-radius: 12px;
-  --highlight-color-focused: #d4af7c;
-}
-
-.product-section {
-  margin-top: 20px;
-}
-
-.product-section h3 {
-  margin: 0 0 9px;
-  color: #d4af7c;
-  font-size: 15px;
-}
-
-.product-line {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 9px 0;
-  border-bottom: 1px solid rgba(244, 239, 230, 0.08);
-  gap: 15px;
-}
-
-.product-line span {
-  color: #f4efe6;
-  font-size: 14px;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.quantity-control button {
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(212, 175, 124, 0.28);
-  border-radius: 9px;
-  background: #15151b;
-  color: #d4af7c;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.quantity-control strong {
-  min-width: 24px;
-  text-align: center;
-  color: #f4efe6;
-}
-
-.dialog-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 15px 24px 20px;
-  border-top: 1px solid rgba(212, 175, 124, 0.12);
-}
-
-.dialog-actions ion-button[fill='outline'] {
-  --border-color: rgba(212, 175, 124, 0.35);
-  --color: #d4af7c;
-}
-
-.dialog-error {
-  margin-right: auto;
-  color: #e07a7a;
-  font-size: 12px;
 }
 
 .target-group {
@@ -394,25 +243,6 @@
   outline-offset: 2px;
 }
 
-.list-create-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.target-create-button {
-  --border-color: rgba(212, 175, 124, 0.35);
-  --color: #d4af7c;
-  --border-radius: 10px;
-  font-weight: 700;
-}
-
-.target-create-button ion-spinner {
-  width: 18px;
-  height: 18px;
-}
-
 .pending-observation {
   margin-top: 8px;
   padding: 8px 10px;
@@ -432,13 +262,6 @@
   .panel-header {
     padding: 12px;
   }
-
-  .dialog-header,
-  .dialog-body,
-  .dialog-actions {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
 }
 
 @media (max-width: 600px) {
@@ -452,19 +275,5 @@
 
   .target-card {
     padding: 15px;
-  }
-
-  .list-create-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .list-create-actions .add-button {
-    grid-column: 1 / -1;
-  }
-
-  .list-create-actions ion-button {
-    width: 100%;
-    margin: 0;
   }
 }

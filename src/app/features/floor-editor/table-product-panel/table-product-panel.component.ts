@@ -1,26 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { IonButton, IonSelect, IonSelectOption, IonSpinner } from '@ionic/angular/standalone';
+import { IonSpinner } from '@ionic/angular/standalone';
 
 import { FloorPlanService } from '../../floor-plans';
-import { ProductService } from '../../products';
 import { OrderService } from '../../orders';
-import { AuthService } from '../../../core/auth/auth.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import type { ClubTable, FloorPlan, OrderItemWithProduct, Product, TableType } from '../../../core/models/models';
+import type { ClubTable, FloorPlan, OrderItemWithProduct } from '../../../core/models/models';
 
 type AssignmentTarget = ClubTable & { displayName: string; kindLabel: string };
 type ListedItem = OrderItemWithProduct;
 type ListedTarget = AssignmentTarget & { items: ListedItem[] };
 
-type QuantityMap = Record<string, number>;
-type ProductGroup = { id: string; name: string; products: Product[] };
-
 @Component({
   selector: 'app-table-product-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonButton, IonSelect, IonSelectOption, IonSpinner],
+  imports: [CommonModule, IonSpinner],
   templateUrl: './table-product-panel.component.html',
   styleUrl: './table-product-panel.component.scss',
 })
@@ -29,35 +23,21 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
   @Output() targetSelected = new EventEmitter<ClubTable>();
 
   listedTargets: ListedTarget[] = [];
-  availableTargets: AssignmentTarget[] = [];
-  productGroups: ProductGroup[] = [];
-  dialogOpen = false;
   loading = false;
-  saving = false;
-  creatingTarget: TableType | null = null;
-  selectedTargetId = '';
-  productQuantities: QuantityMap = {};
   errorMessage = '';
   private realtimeChannel: RealtimeChannel | null = null;
   private loadVersion = 0;
 
   constructor(
     private readonly floors: FloorPlanService,
-    private readonly products: ProductService,
     private readonly orders: OrderService,
-    private readonly auth: AuthService,
     private readonly cdr: ChangeDetectorRef,
   ) {}
-
-  get isAdmin(): boolean {
-    return this.auth.hasRole('USER', 'ADMIN');
-  }
-
 
   get pendingTargets(): ListedTarget[] {
     return this.listedTargets
       .filter((target) => !target.attended && (this.currentItems(target).length > 0 || this.hasObservation(target)))
-      .sort((a, b) => a.type === b.type ? a.number - b.number : a.type === 'TABLE' ? -1 : 1);
+      .sort((a, b) => (a.type === b.type ? a.number - b.number : a.type === 'TABLE' ? -1 : 1));
   }
 
   hasObservation(target: ListedTarget): boolean {
@@ -76,10 +56,6 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
       .sort((a, b) => a.number - b.number);
   }
 
-  get selectedItemCount(): number {
-    return Object.values(this.productQuantities).reduce((sum, quantity) => sum + (quantity || 0), 0);
-  }
-
   async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['plan']?.currentValue?.id) {
       await this.load();
@@ -95,31 +71,12 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
     const version = ++this.loadVersion;
     this.loading = true;
     try {
-      const [snapshot, productList, categoryList] = await Promise.all([
-        this.floors.load(this.plan.id),
-        this.products.products(),
-        this.products.categories(),
-      ]);
+      const snapshot = await this.floors.load(this.plan.id);
       if (version !== this.loadVersion) return;
 
       const targets = [...(snapshot.tables ?? []), ...(snapshot.reserved ?? [])].sort((a, b) =>
         a.type === b.type ? a.number - b.number : a.type === 'TABLE' ? -1 : 1,
       );
-
-      this.productGroups = categoryList
-        .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
-        .map((category) => ({
-          id: category.id,
-          name: category.name,
-          products: productList.filter((product) => product.active !== false && product.category_id === category.id),
-        }))
-        .filter((group) => group.products.length > 0);
-
-      const knownCategoryIds = new Set(categoryList.map((category) => category.id));
-      const uncategorized = productList.filter((product) => product.active !== false && !knownCategoryIds.has(product.category_id));
-      if (uncategorized.length) {
-        this.productGroups.push({ id: 'uncategorized', name: 'Otros', products: uncategorized });
-      }
 
       const orderResults = await Promise.all(targets.map((table) => this.orders.forTable(table.id)));
       if (version !== this.loadVersion) return;
@@ -130,9 +87,6 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
         kindLabel: table.type === 'RESERVED' ? 'RESERVADO' : 'MESA',
         items: orderResults[index]?.items ?? [],
       }));
-
-      // Se puede añadir un nuevo pedido también a mesas/reservados con histórico atendido.
-      this.availableTargets = [...this.listedTargets];
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : 'No se pudo cargar la operativa';
     } finally {
@@ -143,69 +97,9 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
     }
   }
 
-
-
-  async addTarget(type: TableType): Promise<void> {
-    if (!this.isAdmin || this.loading || this.creatingTarget) return;
-    this.creatingTarget = type;
-    this.errorMessage = '';
-    try {
-      await this.floors.createOperationalTarget(this.plan.id, type);
-      await this.load();
-    } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : 'No se pudo crear el elemento';
-    } finally {
-      this.creatingTarget = null;
-      this.cdr.detectChanges();
-    }
-  }
-
   selectTarget(target: ListedTarget): void {
     this.targetSelected.emit(target);
   }
-
-  openDialog(): void {
-    if (!this.isAdmin) return;
-    this.errorMessage = '';
-    this.selectedTargetId = '';
-    this.productQuantities = {};
-    this.dialogOpen = true;
-  }
-
-  closeDialog(): void {
-    if (this.saving) return;
-    this.dialogOpen = false;
-    this.errorMessage = '';
-  }
-
-  onTargetChange(): void {
-    this.errorMessage = '';
-  }
-
-  changeQuantity(target: QuantityMap, productId: string, delta: number): void {
-    const next = Math.max(0, (target[productId] || 0) + delta);
-    if (next === 0) delete target[productId];
-    else target[productId] = next;
-  }
-
-  async saveAssignment(): Promise<void> {
-    if (!this.isAdmin) return;
-    if (!this.selectedTargetId || this.selectedItemCount === 0 || this.saving) return;
-    this.saving = true;
-    this.errorMessage = '';
-    try {
-      const items = Object.entries(this.productQuantities).map(([product_id, quantity]) => ({ product_id, quantity }));
-
-      await this.orders.assignProducts(this.selectedTargetId, items);
-      this.dialogOpen = false;
-      await this.load();
-    } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : 'No se pudo guardar la asignación';
-    } finally {
-      this.saving = false;
-    }
-  }
-
 
   currentItems(target: ListedTarget): ListedItem[] {
     return target.items.filter((item) => item.status === 'PENDING' && item.attended !== true);
@@ -219,5 +113,4 @@ export class TableProductPanelComponent implements OnChanges, OnDestroy {
     this.realtimeChannel?.unsubscribe?.();
     this.realtimeChannel = this.orders.subscribe(() => void this.load(), `table-product-panel-${this.plan.id}`);
   }
-
 }
