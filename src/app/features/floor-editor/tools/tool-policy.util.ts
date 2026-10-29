@@ -14,7 +14,11 @@ export function canEditPlanGeometry(input: {
 }
 
 export function isGeometryEditTool(tool: EditorTool): boolean {
-  return tool === 'draw' || tool === 'text';
+  return tool === 'draw' || tool === 'text' || tool === 'rect' || tool === 'ellipse';
+}
+
+export function isShapeTool(tool: EditorTool): tool is 'rect' | 'ellipse' {
+  return tool === 'rect' || tool === 'ellipse';
 }
 
 export interface ToolTransition {
@@ -47,6 +51,7 @@ export function planToolTransition(
     tool: requested,
     panMode: requested === 'pan',
     clearSelection: requested !== 'select',
+    // Keep freehand draft only while staying on draw; shape drafts clear via clearDrawing().
     clearDrawing: requested !== 'draw',
   };
 }
@@ -55,6 +60,8 @@ export function toolLabel(tool: EditorTool): string {
   if (tool === 'draw') return 'Dibujar paredes';
   if (tool === 'text') return 'Añadir texto';
   if (tool === 'pan') return 'Mover plano';
+  if (tool === 'rect') return 'Rectángulo';
+  if (tool === 'ellipse') return 'Óvalo';
   return 'Seleccionar';
 }
 
@@ -74,8 +81,11 @@ export function shouldAppendDrawingPoint(
 export function pointerDownAction(
   mode: EditorMode,
   tool: EditorTool,
-): 'text' | 'draw' | 'ignore' {
-  if (mode === 'editor' && tool === 'text') return 'text';
-  if (mode === 'editor' && tool === 'draw') return 'draw';
+): 'text' | 'draw' | 'rect' | 'ellipse' | 'ignore' {
+  if (mode !== 'editor') return 'ignore';
+  if (tool === 'text') return 'text';
+  if (tool === 'draw') return 'draw';
+  if (tool === 'rect') return 'rect';
+  if (tool === 'ellipse') return 'ellipse';
   return 'ignore';
 }

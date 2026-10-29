@@ -5,7 +5,7 @@
  */
 import Konva from 'konva';
 import { getLineEndpoints, moveLine, updateLineEndpoint } from '../geometry';
-import { elementsDraggable } from '../tools';
+import { elementsDraggable, isZoneShapeKind, ZONE_SHAPE_ELLIPSE } from '../tools';
 import type { ClubTable, FloorPlanElement } from '../../../core/models/models';
 import type { PlanEditorHost } from './plan-editor-host';
 
@@ -23,6 +23,10 @@ export class PlanEditorRenderer {
     for (const e of h.elements) {
       if (String(e.kind) === 'text') {
         this.renderTextElement(e);
+        continue;
+      }
+      if (String(e.kind) === 'zone' && isZoneShapeKind(e.label)) {
+        this.renderZoneShape(e);
         continue;
       }
       this.renderLineElement(e);
@@ -263,6 +267,166 @@ export class PlanEditorRenderer {
     h.layer.add(startCircle);
     h.layer.add(endCircle);
     h.endpointShape = endCircle;
+  }
+
+  private renderZoneShape(e: FloorPlanElement): void {
+    const h = this.host;
+    const selected = h.selectedElementId === e.id;
+    const stroke = selected ? '#8b5a3c' : '#6b4430';
+    const fill = selected ? 'rgba(139, 90, 60, 0.12)' : 'rgba(107, 68, 48, 0.06)';
+    const isEllipse = e.label === ZONE_SHAPE_ELLIPSE;
+
+    const shape: Konva.Shape = isEllipse
+      ? new Konva.Ellipse({
+          x: e.x + e.width / 2,
+          y: e.y + e.height / 2,
+          radiusX: Math.max(1, e.width / 2),
+          radiusY: Math.max(1, e.height / 2),
+          stroke,
+          strokeWidth: selected ? 4 : 3,
+          fill,
+          draggable: elementsDraggable(h.canEditGeometry, h.tool),
+          name: e.id,
+        })
+      : new Konva.Rect({
+          x: e.x,
+          y: e.y,
+          width: Math.max(1, e.width),
+          height: Math.max(1, e.height),
+          stroke,
+          strokeWidth: selected ? 4 : 3,
+          fill,
+          draggable: elementsDraggable(h.canEditGeometry, h.tool),
+          name: e.id,
+        });
+
+    shape.on('click tap', (event) => {
+      event.cancelBubble = true;
+      if (!elementsDraggable(h.canEditGeometry, h.tool)) {
+        return;
+      }
+      h.selectedElementId = e.id;
+      h.selectedTable = null;
+      h.selectedReserved = null;
+      h.activeEndpoint = null;
+      h.requestRender();
+    });
+
+    shape.on('dragend', () => {
+      if (isEllipse) {
+        e.x = shape.x() - e.width / 2;
+        e.y = shape.y() - e.height / 2;
+      } else {
+        e.x = shape.x();
+        e.y = shape.y();
+      }
+      e.updated_at = new Date().toISOString();
+      h.pushHistory();
+      h.requestRender();
+    });
+
+    h.layer.add(shape);
+
+    if (selected && elementsDraggable(h.canEditGeometry, h.tool)) {
+      this.attachZoneResizeHandles(e, shape);
+    }
+  }
+
+  private attachZoneResizeHandles(e: FloorPlanElement, shape: Konva.Shape): void {
+    const h = this.host;
+    const cornerKeys = ['nw', 'ne', 'sw', 'se'] as const;
+    const handles: Konva.Rect[] = [];
+
+    const syncHandles = (): void => {
+      const positions = [
+        { x: e.x, y: e.y },
+        { x: e.x + e.width, y: e.y },
+        { x: e.x, y: e.y + e.height },
+        { x: e.x + e.width, y: e.y + e.height },
+      ];
+      handles.forEach((handle, index) => {
+        handle.position({ x: positions[index].x - 6, y: positions[index].y - 6 });
+      });
+    };
+
+    for (const key of cornerKeys) {
+      const handle = new Konva.Rect({
+        x: 0,
+        y: 0,
+        width: 12,
+        height: 12,
+        fill: '#ffffff',
+        stroke: '#8b5a3c',
+        strokeWidth: 3,
+        draggable: true,
+        name: `${e.id}-resize-${key}`,
+      });
+
+      handle.on('mousedown touchstart', (event) => {
+        event.cancelBubble = true;
+        h.selectedElementId = e.id;
+      });
+      handle.on('dragstart', (event) => {
+        event.cancelBubble = true;
+      });
+      handle.on('dragmove', (event) => {
+        event.cancelBubble = true;
+        const point = h.getStagePointerPoint(event.evt);
+        if (!point) {
+          return;
+        }
+        this.applyZoneCornerResize(e, key, point);
+        this.syncZoneShapeNode(e, shape);
+        syncHandles();
+        h.layer.batchDraw();
+      });
+      handle.on('dragend', (event) => {
+        event.cancelBubble = true;
+        const point = h.getStagePointerPoint(event.evt);
+        if (point) {
+          this.applyZoneCornerResize(e, key, point);
+        }
+        e.updated_at = new Date().toISOString();
+        h.pushHistory();
+        h.requestRender();
+      });
+      handles.push(handle);
+      h.layer.add(handle);
+    }
+    syncHandles();
+  }
+
+  private syncZoneShapeNode(e: FloorPlanElement, shape: Konva.Shape): void {
+    if (e.label === ZONE_SHAPE_ELLIPSE) {
+      shape.position({ x: e.x + e.width / 2, y: e.y + e.height / 2 });
+      (shape as Konva.Ellipse).radiusX(Math.max(1, e.width / 2));
+      (shape as Konva.Ellipse).radiusY(Math.max(1, e.height / 2));
+      return;
+    }
+    shape.position({ x: e.x, y: e.y });
+    shape.size({ width: Math.max(1, e.width), height: Math.max(1, e.height) });
+  }
+
+  private applyZoneCornerResize(
+    e: FloorPlanElement,
+    corner: string,
+    point: { x: number; y: number },
+  ): void {
+    const min = 16;
+    let left = e.x;
+    let top = e.y;
+    let right = e.x + e.width;
+    let bottom = e.y + e.height;
+
+    if (corner.includes('w')) left = point.x;
+    if (corner.includes('e')) right = point.x;
+    if (corner.includes('n')) top = point.y;
+    if (corner.includes('s')) bottom = point.y;
+
+    e.x = Math.min(left, right);
+    e.y = Math.min(top, bottom);
+    e.width = Math.max(min, Math.abs(right - left));
+    e.height = Math.max(min, Math.abs(bottom - top));
   }
 
   renderTable(t: ClubTable): void {

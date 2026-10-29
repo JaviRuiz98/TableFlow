@@ -70,6 +70,10 @@ floor-editor/
 5. Save → snapshot `{ elements, tables, reserved }`  
 6. Destroy → unsubscribe + `teardownStageResources`
 
+## Shape tools (rect / ellipse)
+
+Beside freehand walls (`draw`), toolbar exposes **Rectángulo** and **Óvalo**: click-drag on the canvas creates a `floor_plan_elements` row with `kind: 'zone'` and `label: 'rect' | 'ellipse'`. In **Seleccionar**, corner handles resize width/height. No schema change.
+
 ## Konva lifecycle
 
 **Sole owner:** `PlanEditorComponent`. Helpers must not create Stage. Never instantiate Stage from `canvas/` helpers.

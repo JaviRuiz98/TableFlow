@@ -1,5 +1,11 @@
 import type { FloorPlanElement } from '../../../core/models/models';
 import type { Point, Segment } from '../geometry';
+import {
+  SHAPE_MIN_SIZE,
+  ZONE_SHAPE_ELLIPSE,
+  ZONE_SHAPE_RECT,
+  type ZoneShapeKind,
+} from './editor-tool.types';
 
 export function buildWallElementsFromSegments(input: {
   segments: Segment[];
@@ -25,6 +31,55 @@ export function buildWallElementsFromSegments(input: {
     created_at: input.now,
     updated_at: input.now,
   }));
+}
+
+export function bboxFromCorners(a: Point, b: Point): { x: number; y: number; width: number; height: number } {
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+  return {
+    x,
+    y,
+    width: Math.abs(b.x - a.x),
+    height: Math.abs(b.y - a.y),
+  };
+}
+
+export function isZoneShapeKind(value: string | null | undefined): value is ZoneShapeKind {
+  return value === ZONE_SHAPE_RECT || value === ZONE_SHAPE_ELLIPSE;
+}
+
+export function buildZoneShapeElement(input: {
+  planId: string;
+  shape: ZoneShapeKind;
+  origin: Point;
+  corner: Point;
+  zIndex: number;
+  now: string;
+  minSize?: number;
+  newId?: () => string;
+}): FloorPlanElement | null {
+  const box = bboxFromCorners(input.origin, input.corner);
+  const minSize = input.minSize ?? SHAPE_MIN_SIZE;
+  if (box.width < minSize || box.height < minSize) {
+    return null;
+  }
+  const newId = input.newId ?? (() => crypto.randomUUID());
+  return {
+    id: newId(),
+    floor_plan_id: input.planId,
+    kind: 'zone',
+    x: box.x,
+    y: box.y,
+    width: box.width,
+    height: box.height,
+    rotation: 0,
+    points: null,
+    label: input.shape,
+    font_size: null,
+    z_index: input.zIndex,
+    created_at: input.now,
+    updated_at: input.now,
+  };
 }
 
 export function buildTextElement(input: {

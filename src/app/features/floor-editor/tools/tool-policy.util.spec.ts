@@ -15,9 +15,11 @@ describe('tool-policy.util (PlanEditor characterization)', () => {
     expect(canEditPlanGeometry({ isAdmin: true, mode: 'editor', isLocked: true })).toBe(false);
   });
 
-  it('rejects draw/text when geometry locked; allows select/pan', () => {
+  it('rejects draw/text/shapes when geometry locked; allows select/pan', () => {
     expect(planToolTransition('draw', false).applied).toBe(false);
     expect(planToolTransition('text', false).applied).toBe(false);
+    expect(planToolTransition('rect', false).applied).toBe(false);
+    expect(planToolTransition('ellipse', false).applied).toBe(false);
     expect(planToolTransition('select', false)).toMatchObject({
       applied: true,
       panMode: false,
@@ -32,9 +34,13 @@ describe('tool-policy.util (PlanEditor characterization)', () => {
     });
   });
 
-  it('draw keeps drawing; select clears drawing and not selection', () => {
+  it('draw keeps freehand draft; shapes/select clear drawing', () => {
     expect(planToolTransition('draw', true)).toMatchObject({
       clearDrawing: false,
+      clearSelection: true,
+    });
+    expect(planToolTransition('rect', true)).toMatchObject({
+      clearDrawing: true,
       clearSelection: true,
     });
     expect(planToolTransition('select', true)).toMatchObject({
@@ -48,11 +54,14 @@ describe('tool-policy.util (PlanEditor characterization)', () => {
     expect(toolLabel('draw')).toBe('Dibujar paredes');
     expect(toolLabel('text')).toBe('Añadir texto');
     expect(toolLabel('pan')).toBe('Mover plano');
+    expect(toolLabel('rect')).toBe('Rectángulo');
+    expect(toolLabel('ellipse')).toBe('Óvalo');
   });
 
   it('elementsDraggable only in select with edit rights', () => {
     expect(elementsDraggable(true, 'select')).toBe(true);
     expect(elementsDraggable(true, 'draw')).toBe(false);
+    expect(elementsDraggable(true, 'rect')).toBe(false);
     expect(elementsDraggable(false, 'select')).toBe(false);
   });
 
@@ -65,6 +74,8 @@ describe('tool-policy.util (PlanEditor characterization)', () => {
   it('pointerDownAction maps mode+tool', () => {
     expect(pointerDownAction('editor', 'text')).toBe('text');
     expect(pointerDownAction('editor', 'draw')).toBe('draw');
+    expect(pointerDownAction('editor', 'rect')).toBe('rect');
+    expect(pointerDownAction('editor', 'ellipse')).toBe('ellipse');
     expect(pointerDownAction('operativo', 'draw')).toBe('ignore');
     expect(pointerDownAction('editor', 'select')).toBe('ignore');
   });

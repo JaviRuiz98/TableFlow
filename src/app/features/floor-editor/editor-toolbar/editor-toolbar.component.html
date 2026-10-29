@@ -3,6 +3,8 @@
     <div class="tool-group">
       <ion-button class="editor-button" size="small" [class.active]="tool === 'select'" (click)="setTool.emit('select')">↖ Seleccionar</ion-button>
       <ion-button class="editor-button" size="small" [class.active]="tool === 'draw'" [disabled]="!canEditGeometry" (click)="setTool.emit('draw')">✏️ Dibujar</ion-button>
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'rect'" [disabled]="!canEditGeometry" (click)="setTool.emit('rect')">▭ Rectángulo</ion-button>
+      <ion-button class="editor-button" size="small" [class.active]="tool === 'ellipse'" [disabled]="!canEditGeometry" (click)="setTool.emit('ellipse')">◯ Óvalo</ion-button>
       <ion-button class="editor-button" size="small" [class.active]="tool === 'text'" [disabled]="!canEditGeometry" (click)="setTool.emit('text')">T Texto</ion-button>
       <ion-button class="editor-button" size="small" [class.active]="tool === 'pan'" (click)="setTool.emit('pan')">✋ MOVER</ion-button>
     </div>

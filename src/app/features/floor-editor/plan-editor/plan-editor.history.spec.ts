@@ -160,12 +160,16 @@ describe('PlanEditorComponent history/permissions (characterization)', () => {
     expect(cmp.canEditGeometry).toBe(false);
   });
 
-  it('setTool ignores draw/text when geometry locked for role', () => {
+  it('setTool ignores draw/text/shapes when geometry locked for role', () => {
     auth.hasRole.mockReturnValue(false);
     cmp.tool = 'select';
     cmp.setTool('draw');
     expect(cmp.tool).toBe('select');
     cmp.setTool('text');
+    expect(cmp.tool).toBe('select');
+    cmp.setTool('rect');
+    expect(cmp.tool).toBe('select');
+    cmp.setTool('ellipse');
     expect(cmp.tool).toBe('select');
   });
 

@@ -1,6 +1,8 @@
 import {
+  bboxFromCorners,
   buildTextElement,
   buildWallElementsFromSegments,
+  buildZoneShapeElement,
   normalizeTextFontSize,
   shouldUpdateTextFontSize,
 } from './drawing-model.util';
@@ -47,6 +49,49 @@ describe('drawing-model.util (PlanEditor characterization)', () => {
       font_size: 22,
       points: null,
       z_index: 7,
+    });
+  });
+
+  it('bboxFromCorners normalizes inverted drag', () => {
+    expect(bboxFromCorners({ x: 40, y: 50 }, { x: 10, y: 20 })).toEqual({
+      x: 10,
+      y: 20,
+      width: 30,
+      height: 30,
+    });
+  });
+
+  it('buildZoneShapeElement creates zone rect and rejects tiny boxes', () => {
+    const tiny = buildZoneShapeElement({
+      planId: 'p',
+      shape: 'rect',
+      origin: { x: 0, y: 0 },
+      corner: { x: 8, y: 8 },
+      zIndex: 1,
+      now: 't0',
+      newId: () => 'z1',
+    });
+    expect(tiny).toBeNull();
+
+    const el = buildZoneShapeElement({
+      planId: 'p',
+      shape: 'ellipse',
+      origin: { x: 10, y: 20 },
+      corner: { x: 50, y: 80 },
+      zIndex: 4,
+      now: 't0',
+      newId: () => 'z2',
+    });
+    expect(el).toMatchObject({
+      id: 'z2',
+      kind: 'zone',
+      label: 'ellipse',
+      x: 10,
+      y: 20,
+      width: 40,
+      height: 60,
+      points: null,
+      z_index: 4,
     });
   });
 

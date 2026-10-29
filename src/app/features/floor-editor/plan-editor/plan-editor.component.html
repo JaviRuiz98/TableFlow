@@ -32,7 +32,7 @@
   <div
     class="canvas-area"
     #container
-    [class.draw-mode]="tool === 'draw'"
+    [class.draw-mode]="tool === 'draw' || tool === 'rect' || tool === 'ellipse'"
     [class.text-mode]="tool === 'text'"
     (pointerdown)="pointerDown($event)"
     (pointermove)="pointerMove($event)"
