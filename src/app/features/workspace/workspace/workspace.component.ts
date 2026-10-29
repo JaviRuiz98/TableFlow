@@ -314,6 +314,8 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
             () => this.showUserAlert(NEW_ORDER_ALERT),
             () => this.showUserAlert(NEW_OBSERVATION_ALERT),
           );
+          // Realtime only fires on new events — also alert if work was already pending.
+          void this.maybeShowReceptorPendingAlert();
         }
         this.channel = this.orders.subscribe(() => this.refreshOperationalData(), 'workspace-orders');
       }
@@ -329,6 +331,36 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
     // El aviso visual de nuevos pedidos se gestiona exclusivamente
     // mediante OrderNotificationService cuando se inserta un order_item.
     return;
+  }
+
+  /**
+   * RECEPTOR login: show the same alert modal if there are already pending
+   * orders/observations (Realtime alone would miss work created before subscribe).
+   */
+  private async maybeShowReceptorPendingAlert(): Promise<void> {
+    try {
+      const { pendingByTableId } = await this.orders.getOpenOrderQuantityMaps();
+      let pendingQty = 0;
+      for (const qty of pendingByTableId.values()) {
+        pendingQty += qty;
+      }
+      if (pendingQty > 0) {
+        this.showUserAlert(NEW_ORDER_ALERT);
+        return;
+      }
+
+      const plan = this.selectedPlan();
+      if (!plan) return;
+      const states = await this.floors.loadTableAttentionStates(plan.id);
+      const hasPendingObservation = states.some(
+        (row) => row.attended === false && Boolean((row.observation ?? '').trim()),
+      );
+      if (hasPendingObservation) {
+        this.showUserAlert(NEW_OBSERVATION_ALERT);
+      }
+    } catch {
+      // Non-blocking: Realtime subscription remains the primary path.
+    }
   }
 
   private showUserAlert(copy: typeof NEW_ORDER_ALERT): void {

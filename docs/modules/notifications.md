@@ -52,6 +52,8 @@ Requires DB `REPLICA IDENTITY FULL` on those tables (ops concern; do not change 
 
 Workspace stores the channel and must `unsubscribe()` on destroy (existing behaviour).
 
+On RECEPTOR bootstrap, Workspace also checks existing pending OPEN/`PENDING` items (and pending observations on the selected plan) so the alert modal appears even when work was created before Realtime subscribe.
+
 ## Tests vs multi-device
 
 Unit mocks verify rules/debounce/cleanup. Cross-device sync needs a later manual/integration check on TableFlow (authorized, non-destructive).

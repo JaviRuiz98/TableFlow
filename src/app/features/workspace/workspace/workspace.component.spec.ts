@@ -79,9 +79,14 @@ const samplePlan: FloorPlan = {
 describe('WorkspaceComponent (characterization)', () => {
   const floors = {
     list: vi.fn().mockResolvedValue([samplePlan]),
+    loadTableAttentionStates: vi.fn().mockResolvedValue([]),
   };
   const orders = {
     subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
+    getOpenOrderQuantityMaps: vi.fn().mockResolvedValue({
+      pendingByTableId: new Map(),
+      totalByTableId: new Map(),
+    }),
   };
   const notifications = {
     subscribeToNewOrderItems: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
@@ -113,7 +118,12 @@ describe('WorkspaceComponent (characterization)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     floors.list.mockResolvedValue([samplePlan]);
+    floors.loadTableAttentionStates.mockResolvedValue([]);
     orders.subscribe.mockReturnValue({ unsubscribe: vi.fn() });
+    orders.getOpenOrderQuantityMaps.mockResolvedValue({
+      pendingByTableId: new Map(),
+      totalByTableId: new Map(),
+    });
     notifications.subscribeToNewOrderItems.mockReturnValue({ unsubscribe: vi.fn() });
     mockRole('ADMIN');
     auth.session.mockReturnValue({ user: { id: 'u1' } });
@@ -298,6 +308,19 @@ describe('WorkspaceComponent (characterization)', () => {
     expect(cmp.shellVisibility.showProductosTab).toBe(false);
     expect(cmp.shellVisibility.showUsersButton).toBe(false);
     expect(notifications.subscribeToNewOrderItems).toHaveBeenCalledTimes(1);
+  });
+
+  it('RECEPTOR init shows order alert when pending work already exists', async () => {
+    mockRole('RECEPTOR');
+    orders.getOpenOrderQuantityMaps.mockResolvedValue({
+      pendingByTableId: new Map([['t1', 2]]),
+      totalByTableId: new Map([['t1', 2]]),
+    });
+    const { cmp, fixture } = await create();
+    await fixture.whenStable();
+    expect(orders.getOpenOrderQuantityMaps).toHaveBeenCalled();
+    expect(cmp.newOrderAlert()).toBe(true);
+    expect(cmp.userAlertTitle()).toBe('HAY NUEVOS PEDIDOS');
   });
 
   it('openPlan selects plan and switches to operativa (USER manager)', async () => {
