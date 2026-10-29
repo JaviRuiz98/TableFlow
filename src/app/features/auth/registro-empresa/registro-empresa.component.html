@@ -158,7 +158,13 @@
             Crear cuenta de empresa
           }
         </ion-button>
-        <p class="submit-hint" role="note">Te enviaremos un correo de verificación para activar tu empresa.</p>
+        @if (skipEmailVerification) {
+          <p class="submit-hint" role="note">
+            Temporal: la verificación por correo está desactivada; al registrarte la cuenta quedará activa al momento.
+          </p>
+        } @else {
+          <p class="submit-hint" role="note">Te enviaremos un correo de verificación para activar tu empresa.</p>
+        }
       </form>
 
       <p class="login-link-row">

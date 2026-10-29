@@ -8,6 +8,7 @@ import {
   extractAuthCallbackParams,
   stripAuthCallbackFromUrl,
 } from './auth-redirect';
+import { TEMP_SKIP_EMAIL_VERIFICATION } from './auth-temp-flags';
 import { usernameToInternalEmail } from './auth-identity';
 
 export interface CompanySignUpInput {
@@ -194,7 +195,12 @@ export class AuthService {
       email,
       password: input.password,
       options: {
-        emailRedirectTo: buildEmailConfirmRedirectUrl(),
+        // TEMP_SKIP_EMAIL_VERIFICATION: do not ask Auth to send the confirm email.
+        // Restore when re-enabling verification (and Confirm email in the dashboard):
+        // emailRedirectTo: buildEmailConfirmRedirectUrl(),
+        ...(TEMP_SKIP_EMAIL_VERIFICATION
+          ? {}
+          : { emailRedirectTo: buildEmailConfirmRedirectUrl() }),
         data: {
           full_name: fullName,
           establishment_name: establishmentName,
@@ -221,11 +227,30 @@ export class AuthService {
     }
 
     // With Confirm Email enabled, session is null until the user confirms.
-    const confirmationRequired = !data.session;
+    // TEMP: with Confirm email OFF + TEMP_SKIP_EMAIL_VERIFICATION, session should exist.
+    const confirmationRequired = TEMP_SKIP_EMAIL_VERIFICATION ? false : !data.session;
     if (data.session) {
       this.ensureSessionStartMarker();
       this.session.set(data.session);
       await this.loadProfile(data.session.user);
+      this.scheduleSessionExpiry();
+    } else if (TEMP_SKIP_EMAIL_VERIFICATION) {
+      // Simulate "clicked email link": establish session with the password just chosen.
+      const { data: signedIn, error: signInError } = await this.supabase.client.auth.signInWithPassword({
+        email,
+        password: input.password,
+      });
+      if (signInError || !signedIn.session) {
+        throw new Error(
+          this.errors.humanize(
+            signInError,
+            'Registro creado, pero no se pudo activar la sesión. Desactiva «Confirm email» en Supabase Auth (temporal).',
+          ),
+        );
+      }
+      this.ensureSessionStartMarker();
+      this.session.set(signedIn.session);
+      await this.loadProfile(signedIn.session.user);
       this.scheduleSessionExpiry();
     }
 
@@ -236,6 +261,21 @@ export class AuthService {
     if (!this.supabase.configured) {
       throw new Error('Supabase no está configurado.');
     }
+
+    // TEMP — email resend disabled while skipping verification.
+    if (TEMP_SKIP_EMAIL_VERIFICATION) {
+      // Original flow (restore when TEMP_SKIP_EMAIL_VERIFICATION is false):
+      // const { error } = await this.supabase.client.auth.resend({
+      //   type: 'signup',
+      //   email: email.trim().toLowerCase(),
+      //   options: { emailRedirectTo: buildEmailConfirmRedirectUrl() },
+      // });
+      // if (error) {
+      //   throw new Error(this.errors.humanize(error, 'No se pudo reenviar el correo de verificación'));
+      // }
+      return;
+    }
+
     const { error } = await this.supabase.client.auth.resend({
       type: 'signup',
       email: email.trim().toLowerCase(),

@@ -23,6 +23,8 @@ Session, profile/role loading, login UI, route guard, username↔internal email 
 4. `/registro-empresa/activar` only reports confirmation success — no second activation RPC.
 5. Staff create-user must not use reserved username `administrador` (Angular + Edge).
 
+**TEMP:** `TEMP_SKIP_EMAIL_VERIFICATION` in `core/auth/auth-temp-flags.ts` skips `emailRedirectTo` / pending-email UI and opens `/activar` after signup. Requires Auth **Confirm email** OFF in the Supabase dashboard (otherwise SMTP still 500s). Re-enable flag + Confirm email before production mail.
+
 Staff / RECEPTOR workers: Auth metadata without `establishment_name` → profile `RECEPTOR` (create-user Edge; migration `0022`). Enum also keeps reserved `USER` for a future operational view.
 
 ## Dependencies

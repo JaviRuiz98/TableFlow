@@ -73,6 +73,8 @@ export class RegistroEmpresaPendienteComponent implements OnInit {
     this.resending.set(true);
     this.message.set('');
     try {
+      // TEMP: AuthService.resendCompanySignupEmail is a no-op while
+      // TEMP_SKIP_EMAIL_VERIFICATION is true (original SMTP resend kept there, commented).
       await this.auth.resendCompanySignupEmail(target);
       this.message.set('Si el correo es válido, recibirás un nuevo enlace en breve.');
     } catch (e) {

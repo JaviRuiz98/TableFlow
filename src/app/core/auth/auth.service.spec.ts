@@ -147,11 +147,21 @@ describe('AuthService (integration with mocked Supabase)', () => {
     await expect(service.signIn('x', 'y')).rejects.toThrow('No se pudo iniciar sesión');
   });
 
-  it('signUpCompany sends metadata without role and does not mark session when confirmation is required', async () => {
+  it('signUpCompany sends metadata without role (TEMP skip treats confirmation as done)', async () => {
+    // TEMP_SKIP_EMAIL_VERIFICATION=true: null session → signInWithPassword to activate.
     signUp.mockResolvedValue({
       data: { user: { id: 'u-new' }, session: null },
       error: null,
     });
+    signInWithPassword.mockResolvedValue({
+      data: {
+        session: { access_token: 't', user: { id: 'u-new', email: 'boss@club.test' } },
+      },
+      error: null,
+    });
+    fromMock.mockReturnValue(
+      createQueryBuilder({ data: { ...fixtureProfileAdmin, id: 'u-new' }, error: null }),
+    );
     const service = await readyService();
     const result = await service.signUpCompany({
       email: 'boss@club.test',
@@ -164,10 +174,10 @@ describe('AuthService (integration with mocked Supabase)', () => {
     expect(result).toEqual({
       userId: 'u-new',
       email: 'boss@club.test',
-      confirmationRequired: true,
+      confirmationRequired: false,
     });
     expect(rpcMock).toHaveBeenCalledWith('is_company_name_available', { p_name: 'Club Test' });
-    expect(localStorage.getItem('tableflow.sessionStartedAt')).toBeNull();
+    expect(signInWithPassword).toHaveBeenCalled();
     expect(signUp).toHaveBeenCalledWith(
       expect.objectContaining({
         email: 'boss@club.test',
@@ -180,7 +190,9 @@ describe('AuthService (integration with mocked Supabase)', () => {
         }),
       }),
     );
-    const meta = signUp.mock.calls[0][0].options.data as Record<string, unknown>;
+    const signUpOptions = signUp.mock.calls[0][0].options as Record<string, unknown>;
+    expect(signUpOptions['emailRedirectTo']).toBeUndefined();
+    const meta = signUpOptions['data'] as Record<string, unknown>;
     expect(meta['role']).toBeUndefined();
   });
 

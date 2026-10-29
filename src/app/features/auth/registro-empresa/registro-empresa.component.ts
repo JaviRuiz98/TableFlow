@@ -12,6 +12,7 @@ import {
   IonText,
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../../core/auth/auth.service';
+import { TEMP_SKIP_EMAIL_VERIFICATION } from '../../../core/auth/auth-temp-flags';
 import { TABLEFLOW_DEFAULT_BRANDING } from '../../../core/branding';
 import { fieldErrorMessage, passwordsMatchValidator } from './registro-empresa.form';
 
@@ -35,6 +36,8 @@ import { fieldErrorMessage, passwordsMatchValidator } from './registro-empresa.f
 })
 export class RegistroEmpresaComponent {
   readonly branding = TABLEFLOW_DEFAULT_BRANDING;
+  /** TEMP: hide “we will email you” copy while verification is bypassed. */
+  readonly skipEmailVerification = TEMP_SKIP_EMAIL_VERIFICATION;
   readonly loading = signal(false);
   readonly formError = signal('');
 
@@ -105,9 +108,15 @@ export class RegistroEmpresaComponent {
         phone: value.phone,
       });
 
-      await this.router.navigate(['/registro-empresa/pendiente'], {
-        queryParams: { email: result.email },
-      });
+      // TEMP: treat signup as if the user already opened the confirm link.
+      // Original: navigate to /registro-empresa/pendiente with email query param.
+      if (TEMP_SKIP_EMAIL_VERIFICATION || !result.confirmationRequired) {
+        await this.router.navigate(['/registro-empresa/activar']);
+      } else {
+        await this.router.navigate(['/registro-empresa/pendiente'], {
+          queryParams: { email: result.email },
+        });
+      }
     } catch (e) {
       this.formError.set(e instanceof Error ? e.message : 'No se pudo completar el registro');
     } finally {
