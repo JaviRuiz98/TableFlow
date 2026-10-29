@@ -1,13 +1,13 @@
 # TableFlow — build + deploy (GitHub Pages)
 #
-# Requisitos en el repo (Settings):
-#   Secrets → Actions:
+# Requisitos en el repo (Settings → Secrets and variables → Actions):
+#   Secrets:
 #     SUPABASE_URL          (p.ej. https://xxxx.supabase.co)
 #     SUPABASE_ANON_KEY     (clave pública / publishable; NUNCA service_role)
-#   Variables → Actions (opcional):
+#   Variables (opcional):
 #     BASE_HREF             por defecto "/"; usa "/TableFlow/" si publicas en
 #                           https://<user>.github.io/TableFlow/
-#   Pages → Source: GitHub Actions
+#   Settings → Pages → Source: GitHub Actions
 #
 # Disparadores: push a main, o manual (Actions → Deploy → Run workflow).
 
@@ -30,15 +30,15 @@ permissions:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       - name: Install dependencies
@@ -49,8 +49,16 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "::error::Faltan secrets SUPABASE_URL y/o SUPABASE_ANON_KEY."
+          missing=0
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "::error title=Secret faltante::Añade SUPABASE_URL en Settings → Secrets and variables → Actions → New repository secret."
+            missing=1
+          fi
+          if [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error title=Secret faltante::Añade SUPABASE_ANON_KEY (clave pública) en Settings → Secrets and variables → Actions → New repository secret."
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
             exit 1
           fi
           case "$SUPABASE_ANON_KEY" in
@@ -75,7 +83,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
