@@ -1,6 +1,6 @@
 # Module: workspace (shell)
 
-**Agent (future):** `tableflow-workspace`  
+**Agent:** `tableflow-workspace` (`/tableflow-workspace`)  
 **Path:** `src/app/features/workspace/`
 
 ## Purpose

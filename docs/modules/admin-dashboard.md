@@ -1,5 +1,6 @@
 # Module: admin-dashboard
 
+**Agent:** `tableflow-admin-dashboard` (`/tableflow-admin-dashboard`)  
 **Path:** `src/app/features/admin-dashboard/`
 
 ## Purpose

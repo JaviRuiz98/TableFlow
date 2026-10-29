@@ -1,0 +1,14 @@
+---
+description: TableFlow ADMIN first-run onboarding checklist
+globs: src/app/features/onboarding/**/*
+alwaysApply: false
+---
+
+# Onboarding domain
+
+- Doc: `docs/modules/onboarding.md`
+- Agent: `/tableflow-onboarding`
+- Own: flags/progress, `OnboardingService`, setup intents, onboarding UI, onboarding + workspace-entry guards
+- Guided shell chrome in `features/workspace` → coordinate with `/tableflow-workspace`
+- No Konva, ProductService data APIs, create-user Edge internals, or flag/RLS migrations without authorization
+- Tests: `onboarding.progress.spec.ts`, `onboarding.service.spec.ts`, `workspace-entry.guard.spec.ts`

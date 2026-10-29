@@ -7,9 +7,11 @@
 
 | Logical domain | Current primary location | Target / status |
 |----------------|--------------------------|-----------------|
-| Authentication | `core/auth/*`, `features/auth/login.component.ts`, `core/guards/` | Keep; optional rename later |
+| Authentication | `core/auth/*`, `features/auth/` (login + registro-empresa), `core/guards/` | Keep; agent `/tableflow-auth` |
+| Onboarding | `features/onboarding/` (+ guided hooks in workspace) | [../modules/onboarding.md](../modules/onboarding.md) — agent `/tableflow-onboarding` |
 | Workspace shell | `features/workspace/` (~316 TS + components/ + user-admin) | **B11 + C2** — [../modules/workspace.md](../modules/workspace.md) |
-| Admin dashboard | `features/admin-dashboard/` (ADMIN enterprise shell) | [../modules/admin-dashboard.md](../modules/admin-dashboard.md) |
+| Admin dashboard | `features/admin-dashboard/` (ADMIN enterprise shell) | [../modules/admin-dashboard.md](../modules/admin-dashboard.md) — agent `/tableflow-admin-dashboard` |
+
 | Floor plans (data) | `features/floor-plans/` services + utils | **B6 done**; editor removed in **B7.5** |
 | Floor editor (UI) | `features/floor-editor/` (components/ + helpers + geometry/…) | **B8 + C1** — [../modules/floor-editor.md](../modules/floor-editor.md) |
 | Geometry | `features/floor-editor/geometry/` | **Done (B8.2)** — see [../modules/floor-editor.md](../modules/floor-editor.md) |

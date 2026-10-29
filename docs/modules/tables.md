@@ -1,7 +1,7 @@
 # Module: tables
 
-**Agent (future):** `tableflow-tables`  
-**Path:** `src/app/features/tables/`  
+**Agent:** `tableflow-tables` (`/tableflow-tables`)  
+**Path:** `src/app/features/tables/`
 **B9:** [../refactoring/B9_TABLES.md](../refactoring/B9_TABLES.md)
 
 ## Purpose

@@ -16,6 +16,7 @@ Executable Cursor config (not design-only):
 - Shared globals once; specialists point to module docs
 - Test-runner owns validation commands; db-contracts readonly by default
 - No automatic whole-repo exploration for small tasks
+- Newer domains: `/tableflow-onboarding`, `/tableflow-admin-dashboard` (B14.2); `registro-empresa` stays under `/tableflow-auth`
 
 ## Completion checklist (any specialist task)
 

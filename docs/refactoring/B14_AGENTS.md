@@ -17,9 +17,9 @@ Custom specialists are **subagents**, not top-level Desktop session-picker repla
 
 ## Laid down
 
-- 1 global rule + 11 domain/testing/db rules
-- 12 subagents (`orchestrator` … `db-contracts`)
-- `docs/agents/*`, `docs/modules/auth.md`, progress/plan updates
+- 1 global rule + domain/testing/db rules (see B14.2 for onboarding + admin-dashboard)
+- Subagents under `.cursor/agents/tableflow-*.md` (14 after B14.2)
+- `docs/agents/*`, `docs/modules/*`, progress/plan updates
 
 ## Context strategy
 
@@ -56,3 +56,26 @@ Run `npm test` / `lint` / `build` / `e2e` after B14 (expect 159 Vitest + 4 Playw
 ## Not claimed
 
 Real `/tableflow-*` slash invocation inside Cursor IDE was **not** re-verified in the agent harness (custom `subagent_type` unavailable there).
+
+---
+
+# B14.2 — Onboarding + admin-dashboard agents
+
+**Status:** DONE (config/docs only; no product/code/test changes; no commit/push)  
+**Branch:** `main`
+
+## Changes
+
+- Added specialists `/tableflow-onboarding` and `/tableflow-admin-dashboard` (`.cursor/agents` + domain `.mdc` globs)
+- Clarified `/tableflow-auth` owns `registro-empresa` (not a separate agent)
+- Updated `AGENT_MAP`, agents README, module docs, `MODULE_MAP`, workspace specialist coordinate notes
+- Totals: **14** subagents (orchestrator + 11 domain + test-runner + db-contracts; domain count now includes onboarding + admin-dashboard)
+
+## Boundaries
+
+| Edge | Rule |
+|------|------|
+| onboarding ↔ workspace | Flags/guards/checklist vs guided shell chrome |
+| admin-dashboard ↔ workspace | `/admin/*` vs operative `/sala` |
+| admin-dashboard ↔ users | Personal reuses `WorkspaceUserAdminComponent` |
+| auth ↔ onboarding | Signup UI vs post-signup checklist |

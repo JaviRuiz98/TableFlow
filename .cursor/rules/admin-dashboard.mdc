@@ -1,0 +1,15 @@
+---
+description: TableFlow ADMIN enterprise dashboard (jornadas KPIs)
+globs: src/app/features/admin-dashboard/**/*
+alwaysApply: false
+---
+
+# Admin dashboard domain
+
+- Doc: `docs/modules/admin-dashboard.md`
+- Agent: `/tableflow-admin-dashboard`
+- Own: `/admin` routes, guard, metrics/company context, overview/activity/sala/staff/settings
+- Keep KPIs tenant-scoped; never fake zeros on query failure
+- Personal/create-user → `/tableflow-users`; operative `/sala` → `/tableflow-workspace`; checklist → `/tableflow-onboarding`
+- No schema/RLS/Edge or onboarding-flow changes without authorization
+- Tests: `admin-metrics.service.spec.ts`, `admin-dashboard.guard.spec.ts`

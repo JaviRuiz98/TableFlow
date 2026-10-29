@@ -1,6 +1,7 @@
 # Module: onboarding
 
-**Paths:** `src/app/features/onboarding/` (+ guided shell hooks in `features/workspace`)
+**Agent:** `tableflow-onboarding` (`/tableflow-onboarding`)  
+**Paths:** `src/app/features/onboarding/` (+ guided shell hooks in `features/workspace` — coordinate with `/tableflow-workspace`)
 
 ## Purpose
 

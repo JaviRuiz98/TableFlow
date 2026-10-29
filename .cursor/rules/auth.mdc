@@ -8,6 +8,7 @@ alwaysApply: false
 
 - Doc: `docs/modules/auth.md`
 - Agent: `/tableflow-auth`
-- Own: `AuthService`, identity helpers, `authGuard`, login component
+- Own: `AuthService`, identity helpers, `authGuard`, login, `registro-empresa` (signup / pendiente / activar)
+- Post-signup ADMIN checklist → `/tableflow-onboarding`; staff Edge create-user → `/tableflow-users`
 - Do not change 12h session policy, Auth providers, or role semantics without authorization
-- Tests: `auth.service.spec.ts`, `auth.guard.spec.ts`
+- Tests: `auth.service.spec.ts`, `auth.guard.spec.ts`, `auth-redirect.spec.ts`

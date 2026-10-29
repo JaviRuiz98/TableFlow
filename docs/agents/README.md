@@ -11,7 +11,13 @@
 
 Each `.cursor/agents/*.md` `description` states **when to use**, **what it owns**, and **when not to use** it. Prefer the specialist whose description matches the task; do not stretch a domain agent into another module’s UI or RPCs.
 
-Notable boundary: `/tableflow-products` owns catalog **data** (`ProductService`). Catalog **UI** is `/tableflow-workspace` — products must not edit `features/workspace` without explicit authorization and that agent.
+Notable boundaries:
+
+- `/tableflow-products` owns catalog **data** (`ProductService`). Catalog **UI** is `/tableflow-workspace` — products must not edit `features/workspace` without explicit authorization and that agent.
+- `/tableflow-onboarding` owns ADMIN checklist / flags / entry guards; guided shell chrome in workspace needs `/tableflow-workspace`.
+- `/tableflow-admin-dashboard` owns `/admin/*` KPIs/shell; operative `/sala` stays `/tableflow-workspace`.
+- Company registration UI (`registro-empresa`) is `/tableflow-auth`, not onboarding.
+
 
 ## What loads automatically
 

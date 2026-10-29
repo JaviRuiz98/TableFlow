@@ -20,6 +20,11 @@ Workspace shell, utils, and `components/*` (plan-admin, catalog-panel, user-aler
 
 `workspace.component.spec.ts`, `components/**/*.spec.ts`, util specs, `workspace-user-admin.component.spec.ts`, `workspace-orders-integration.spec.ts` when shell↔orders wiring changes
 
+## Coordinate
+
+- Guided onboarding shell (`tf_setup` / incomplete ADMIN) → `/tableflow-onboarding` owns flags/guards/checklist; this agent owns shell chrome when coordinating
+- Onboarded ADMIN home `/admin` → `/tableflow-admin-dashboard` (operative `/sala` stays here)
+
 ## Forbidden
 
-Visual/HTML/SCSS/navigation changes without authorization; breaking USER management vs RECEPTOR receive vs ADMIN placeholder/Usuarios gates
+Visual/HTML/SCSS/navigation changes without authorization; breaking USER management vs RECEPTOR receive vs ADMIN placeholder/Usuarios gates; rewriting onboarding checklist semantics without `/tableflow-onboarding`

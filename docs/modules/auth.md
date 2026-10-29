@@ -1,7 +1,7 @@
 # Module: auth
 
 **Agent:** `tableflow-auth`  
-**Paths:** `src/app/core/auth/`, `src/app/core/guards/`, `src/app/features/auth/login/`
+**Paths:** `src/app/core/auth/`, `src/app/core/guards/`, `src/app/features/auth/` (login + `registro-empresa/`)
 
 ## Purpose
 
