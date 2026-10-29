@@ -244,8 +244,9 @@
                   <span class="kpi-icon" aria-hidden="true"><ion-icon name="calendar-outline"></ion-icon></span>
                 </div>
                 <strong class="kpi-value">{{ aperturasTotal(pk.aperturas) }}</strong>
+                <p class="kpi-foot">Jornadas de apertura en el periodo</p>
                 @if (pk.aperturas.value; as ap) {
-                  <p class="kpi-foot">
+                  <p class="kpi-foot kpi-foot--detail">
                     {{ ap.open }} abiertas · {{ ap.closed }} cerradas · {{ ap.scheduled }} programadas
                   </p>
                 }
@@ -257,6 +258,7 @@
                   <span class="kpi-icon" aria-hidden="true"><ion-icon name="bookmark-outline"></ion-icon></span>
                 </div>
                 <strong class="kpi-value">{{ displayRatio(pk.reservas) }}</strong>
+                <p class="kpi-foot">Mesas y reservados con reserva (abiertas y cerradas)</p>
               </article>
 
               <article class="kpi-card">
@@ -265,6 +267,7 @@
                   <span class="kpi-icon" aria-hidden="true"><ion-icon name="clipboard-outline"></ion-icon></span>
                 </div>
                 <strong class="kpi-value">{{ displayValue(pk.pedidosRecibidos) }}</strong>
+                <p class="kpi-foot">Pedidos abiertos o cerrados del periodo</p>
               </article>
 
               <article class="kpi-card">
@@ -273,6 +276,7 @@
                   <span class="kpi-icon" aria-hidden="true"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
                 </div>
                 <strong class="kpi-value">{{ displayValue(pk.pedidosAtendidos) }}</strong>
+                <p class="kpi-foot">Pedidos cerrados (botella atendida)</p>
               </article>
 
               <article class="kpi-card kpi-card-wide">
@@ -281,6 +285,7 @@
                   <span class="kpi-icon" aria-hidden="true"><ion-icon name="cash-outline"></ion-icon></span>
                 </div>
                 <strong class="kpi-value">{{ displayMoney(pk.facturacion) }}</strong>
+                <p class="kpi-foot">Importe de productos vendidos en el periodo</p>
               </article>
             </div>
 

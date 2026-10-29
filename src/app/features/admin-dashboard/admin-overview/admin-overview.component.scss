@@ -373,6 +373,14 @@
   color: var(--tf-muted-soft) !important;
 }
 
+.kpi-foot + .kpi-foot {
+  margin-top: 0.2rem;
+}
+
+.kpi-foot--detail {
+  opacity: 0.85;
+}
+
 .kpi-card-wide {
   grid-column: 1 / -1;
 }
