@@ -43,13 +43,13 @@ ion-button::part(native) {
 }
 
 ion-modal.order-modal .dialog-button {
-  --background-activated: #6b4430;
-  --background-focused: #6b4430;
+  --background-activated: #b8925e;
+  --background-focused: #b8925e;
 }
 
 ion-modal.order-modal .dialog-secondary {
-  --background-activated: #f4e7de;
-  --background-focused: #f4e7de;
+  --background-activated: rgba(212, 175, 124, 0.18);
+  --background-focused: rgba(212, 175, 124, 0.18);
 }
 
 /* =========================================================
@@ -63,17 +63,24 @@ ion-modal.order-modal {
   --max-height: calc(100vh - 24px);
   --border-radius: 20px;
   --backdrop-opacity: .48;
+  --background: #121218;
   z-index: 50000;
 }
 
 ion-modal.order-modal::part(backdrop) {
-  background: rgba(38, 25, 18, .58);
+  background: rgba(11, 11, 15, .72);
 }
 
 ion-modal.order-modal::part(content) {
   overflow: hidden;
   border-radius: 20px;
-  box-shadow: 0 24px 70px rgba(35, 23, 17, .30);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 34%),
+    rgba(18, 18, 24, 0.98);
+  border: 1px solid rgba(212, 175, 124, 0.18);
+  box-shadow:
+    0 0 0 1px rgba(11, 11, 15, 0.55) inset,
+    0 28px 80px rgba(0, 0, 0, 0.5);
 }
 
 ion-modal.order-modal .order-dialog {
@@ -89,13 +96,28 @@ ion-modal.order-modal .order-dialog {
   overflow-x: hidden !important;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  background: #121218 !important;
+  color: #f4efe6;
 }
 
 ion-modal.order-modal .order-dialog-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #fffaf7;
+  background: #121218 !important;
+  border-bottom: 1px solid rgba(212, 175, 124, 0.12);
+}
+
+ion-modal.order-modal .order-dialog-header h2 {
+  color: #f4efe6 !important;
+}
+
+ion-modal.order-modal .dialog-eyebrow {
+  color: #d4af7c;
+}
+
+ion-modal.order-modal .close-button {
+  --color: #9a948a;
 }
 
 ion-modal.order-modal .current-order {
