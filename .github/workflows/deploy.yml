@@ -1,0 +1,85 @@
+# TableFlow — build + deploy (GitHub Pages)
+#
+# Requisitos en el repo (Settings):
+#   Secrets → Actions:
+#     SUPABASE_URL          (p.ej. https://xxxx.supabase.co)
+#     SUPABASE_ANON_KEY     (clave pública / publishable; NUNCA service_role)
+#   Variables → Actions (opcional):
+#     BASE_HREF             por defecto "/"; usa "/TableFlow/" si publicas en
+#                           https://<user>.github.io/TableFlow/
+#   Pages → Source: GitHub Actions
+#
+# Disparadores: push a main, o manual (Actions → Deploy → Run workflow).
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check Supabase secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Faltan secrets SUPABASE_URL y/o SUPABASE_ANON_KEY."
+            exit 1
+          fi
+          case "$SUPABASE_ANON_KEY" in
+            sb_secret_*|*service_role*)
+              echo "::error::No uses service_role / sb_secret_* en el frontend."
+              exit 1
+              ;;
+          esac
+
+      - name: Build production
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          BASE_HREF: ${{ vars.BASE_HREF || '/' }}
+        run: npm run build -- --base-href "$BASE_HREF"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/discoteca/browser
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
