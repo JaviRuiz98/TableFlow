@@ -5,8 +5,8 @@
 #     SUPABASE_URL          (p.ej. https://xxxx.supabase.co)
 #     SUPABASE_ANON_KEY     (clave pública / publishable; NUNCA service_role)
 #   Variables (opcional):
-#     BASE_HREF             por defecto "/"; usa "/TableFlow/" si publicas en
-#                           https://<user>.github.io/TableFlow/
+#     BASE_HREF             por defecto "/<nombre-repo>/" (GitHub Pages de proyecto).
+#                           Pon "/" si usas dominio propio en la raíz.
 #   Settings → Pages → Source: GitHub Actions
 #
 # Disparadores: push a main, o manual (Actions → Deploy → Run workflow).
@@ -72,7 +72,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          BASE_HREF: ${{ vars.BASE_HREF || '/' }}
+          # Project Pages live at /<repo>/; override with vars.BASE_HREF="/" for a root custom domain.
+          BASE_HREF: ${{ vars.BASE_HREF || format('/{0}/', github.event.repository.name) }}
         run: npm run build -- --base-href "$BASE_HREF"
 
       - name: Upload Pages artifact
