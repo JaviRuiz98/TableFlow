@@ -57,7 +57,8 @@ tables/
 
 ## Permissions
 
-- Deletion: server ADMIN + password; UI already ADMIN-gated via `canEditGeometry`
+- Mesa deletion: server ADMIN + password (`table_deletion`); UI already ADMIN-gated via `canEditGeometry`
+- Reservado deletion in editor: no password UI — local remove, then `replace_floor_plan_snapshot` on save drops the row
 - Validation: pure client helpers
 
 ## Agent restrictions

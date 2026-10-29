@@ -74,6 +74,18 @@ floor-editor/
 
 Beside freehand walls (`draw`), toolbar exposes **Rectángulo** and **Óvalo**: click-drag on the canvas creates a `floor_plan_elements` row with `kind: 'zone'` and `label: 'rect' | 'ellipse'`. In **Seleccionar**, corner handles resize width/height. No schema change.
 
+## Freehand walls + «Borrar dibujo»
+
+While **Dibujar**, a stroke stays as a dashed draft after pointer-up until the next stroke, leaving the draw tool, or **Guardar diseño**.
+
+**Borrar dibujo** asks for confirm, then clears **all** geometry (`elements` + draft): walls, zones, text. Mesas/reservados are kept. Undo works until save.
+
+## Delete selection
+
+- Geometry element → immediate local remove  
+- **Reservado** → local remove (no password; persists on next save via snapshot)  
+- **Mesa** → password dialog → RPC `delete_table_with_orders` (+ served warning if needed)
+
 ## Konva lifecycle
 
 **Sole owner:** `PlanEditorComponent`. Helpers must not create Stage. Never instantiate Stage from `canvas/` helpers.

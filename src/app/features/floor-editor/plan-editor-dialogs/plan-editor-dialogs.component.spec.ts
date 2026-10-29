@@ -38,10 +38,16 @@ describe('PlanEditorDialogsComponent', () => {
     expect(passSpy).toHaveBeenCalledWith('secret');
   });
 
-  it('renders pending delete target type label for reserved', () => {
-    cmp.showDeletePasswordDialog = true;
-    cmp.pendingDeleteTargetType = 'RESERVED';
+  it('renders clear-drawing confirm copy', () => {
+    cmp.showClearDrawingDialog = true;
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('reservado');
+    expect(fixture.nativeElement.textContent).toContain('¿Borrar todo el dibujo?');
+  });
+
+  it('renders mesa password delete copy', () => {
+    cmp.showDeletePasswordDialog = true;
+    cmp.pendingDeleteTargetType = 'TABLE';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('eliminar esta mesa');
   });
 });

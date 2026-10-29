@@ -11,6 +11,7 @@
     [historyIndex]="historyIndex"
     [historyLength]="history.length"
     [drawingLength]="drawing.length"
+    [elementCount]="elements.length"
     [selectedElementId]="selectedElementId"
     [selectedTable]="selectedTable"
     [selectedReserved]="selectedReserved"
@@ -53,6 +54,7 @@
 
   <app-plan-editor-dialogs
     [showUnlockDialog]="showUnlockDialog"
+    [showClearDrawingDialog]="showClearDrawingDialog"
     [showDeletePasswordDialog]="showDeletePasswordDialog"
     [showServedDeleteWarning]="showServedDeleteWarning"
     [showTextDialog]="showTextDialog"
@@ -63,6 +65,8 @@
     [pendingDeleteTargetType]="pendingDeleteTarget?.type ?? null"
     (closeUnlock)="closeUnlockDialog()"
     (confirmUnlock)="confirmUnlock()"
+    (closeClearDrawing)="closeClearDrawingDialog()"
+    (confirmClearDrawing)="confirmClearDrawing()"
     (closeDeletePassword)="closeDeletePasswordDialog()"
     (confirmProtectedDelete)="confirmProtectedDelete()"
     (cancelServedDelete)="cancelServedDelete()"

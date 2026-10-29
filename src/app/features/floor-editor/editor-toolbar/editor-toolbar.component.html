@@ -13,7 +13,7 @@
       <ion-button class="editor-button primary" size="small" (click)="save.emit()" [disabled]="!isAdmin">💾 Guardar diseño</ion-button>
       <ion-button class="editor-button lock-button" size="small" [class.locked]="isLocked" (click)="lockToggle.emit()">{{ isLocked ? '🔒 Fijado' : '🔓 Fijar' }}</ion-button>
       <ion-button class="editor-button danger" size="small" (click)="deleteSelected.emit()" [disabled]="!canEditGeometry || (!selectedElementId && !selectedTable && !selectedReserved)">🧹 Borrar</ion-button>
-      <ion-button class="editor-button" size="small" (click)="clearDrawing.emit()" [disabled]="!canEditGeometry || drawingLength === 0">Borrar dibujo</ion-button>
+      <ion-button class="editor-button" size="small" (click)="clearDrawing.emit()" [disabled]="!canEditGeometry || (drawingLength === 0 && elementCount === 0)">Borrar dibujo</ion-button>
       <ion-button class="editor-button" size="small" (click)="addTable.emit()" [disabled]="!canEditGeometry">+ Mesa</ion-button>
       <ion-button class="editor-button reserved-button" size="small" (click)="addReserved.emit()" [disabled]="!canEditGeometry">+ Reservado</ion-button>
       <ion-button class="editor-button icon-button" size="small" (click)="undo.emit()" [disabled]="historyIndex < 1">↶</ion-button>

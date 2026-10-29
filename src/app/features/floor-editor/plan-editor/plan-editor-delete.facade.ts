@@ -27,6 +27,11 @@ export class PlanEditorDeleteFacade {
     }
     const target = h.selectedTable ?? h.selectedReserved;
     if (!target) return;
+    // Reservados: sin contraseña (salen del snapshot al guardar). Mesas: borrado protegido.
+    if (target.type === 'RESERVED') {
+      this.removeTargetLocally(target.id);
+      return;
+    }
     h.pendingDeleteTarget = target;
     h.deletePassword = '';
     h.deleteError = '';

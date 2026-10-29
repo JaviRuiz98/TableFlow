@@ -26,6 +26,8 @@ export class EditorToolbarComponent {
   @Input() historyIndex = -1;
   @Input() historyLength = 0;
   @Input() drawingLength = 0;
+  /** Committed geometry (walls / zones / text) — drives «Borrar dibujo». */
+  @Input() elementCount = 0;
   @Input() selectedElementId: string | null = null;
   @Input() selectedTable: ClubTable | null = null;
   @Input() selectedReserved: ClubTable | null = null;

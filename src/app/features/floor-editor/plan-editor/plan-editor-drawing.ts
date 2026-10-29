@@ -55,6 +55,10 @@ export class PlanEditorDrawing {
     if (!p) {
       return;
     }
+    // Previous unfinished stroke becomes walls; a new gesture starts a fresh draft.
+    if (this.host.drawing.length >= 2) {
+      this.commitDrawingSegments();
+    }
     this.drawingPointerId = ev.pointerId;
     this.startDrawingAt(p);
   }
@@ -99,9 +103,11 @@ export class PlanEditorDrawing {
     this.drawingPointerId = null;
     if (!this.drawingShape || this.host.drawing.length < 2) {
       this.clearDrawing();
+      this.host.cdr.markForCheck();
       return;
     }
-    this.commitDrawingSegments();
+    // Keep the dashed draft until Borrar dibujo / next stroke / tool change / save.
+    this.host.cdr.markForCheck();
   }
 
   /** Commit current stroke as wall elements (also used by saveDesign). */
@@ -127,6 +133,7 @@ export class PlanEditorDrawing {
       this.host.draftLayer.destroyChildren();
       this.host.draftLayer.draw();
     }
+    this.host.cdr.markForCheck();
   }
 
   private startDrawingAt(point: { x: number; y: number }): void {

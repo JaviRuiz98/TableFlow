@@ -110,6 +110,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   tool: EditorTool = 'select';
   showTextDialog = false;
   showUnlockDialog = false;
+  showClearDrawingDialog = false;
   showDeletePasswordDialog = false;
   showServedDeleteWarning = false;
   pendingDeleteTarget: ClubTable | null = null;
@@ -456,7 +457,12 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       this.selectedReserved = null;
     }
     if (transition.clearDrawing) {
-      this.clearDrawing();
+      // Commit freehand draft when leaving Dibujar so walls are not lost.
+      if (this.drawing.length >= 2) {
+        this.drawingSession.convertDrawing();
+      } else {
+        this.clearDrawing();
+      }
     }
     this.render();
   }
@@ -469,8 +475,27 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   pointerUp(ev: PointerEvent) {
     this.drawingSession.pointerUp(ev);
   }
+  /** Toolbar «Borrar dibujo» — opens confirm; does not wipe until accepted. */
   clearDrawing() {
+    if (!this.canEditGeometry) return;
+    if (this.elements.length === 0 && this.drawing.length === 0) return;
+    this.showClearDrawingDialog = true;
+  }
+
+  closeClearDrawingDialog() {
+    this.showClearDrawingDialog = false;
+  }
+
+  confirmClearDrawing() {
+    if (!this.canEditGeometry) return;
+    this.showClearDrawingDialog = false;
+    this.elements = [];
+    this.selectedElementId = null;
+    this.activeEndpoint = null;
+    this.endpointShape = null;
     this.drawingSession.clearDrawing();
+    this.pushHistory();
+    this.render();
   }
   get selectedTextElement(): FloorPlanElement | null {
     if (!this.selectedElementId) return null;

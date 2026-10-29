@@ -9,11 +9,31 @@
   </div>
 }
 
+@if (showClearDrawingDialog) {
+  <div class="dialog-backdrop" (click)="closeClearDrawing.emit()">
+    <div class="text-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-icon">🧹</div>
+      <div class="dialog-content">
+        <span class="dialog-eyebrow">BORRAR DIBUJO</span>
+        <h2>¿Borrar todo el dibujo?</h2>
+        <p>
+          Se eliminarán todas las paredes, formas y textos del plano. Las mesas y reservados no se borran.
+          Esta acción se puede deshacer con ↶ hasta que guardes.
+        </p>
+        <div class="dialog-actions">
+          <ion-button class="dialog-secondary" (click)="closeClearDrawing.emit()">Cancelar</ion-button>
+          <ion-button color="danger" class="danger-confirm" (click)="confirmClearDrawing.emit()">Sí, borrar todo</ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
 @if (showDeletePasswordDialog) {
   <div class="dialog-backdrop" (click)="closeDeletePassword.emit()">
     <div class="text-dialog" (click)="$event.stopPropagation()">
       <div class="dialog-icon">🔐</div>
-      <div class="dialog-content"><span class="dialog-eyebrow">BORRADO PROTEGIDO</span><h2>Contraseña necesaria</h2><p>Introduce la contraseña autorizada para eliminar esta {{ pendingDeleteTargetType === 'RESERVED' ? 'reservado' : 'mesa' }}.</p>
+      <div class="dialog-content"><span class="dialog-eyebrow">BORRADO PROTEGIDO</span><h2>Contraseña necesaria</h2><p>Introduce la contraseña autorizada para eliminar esta mesa.</p>
         <ion-input class="text-input" type="password" label="Contraseña de borrado" labelPlacement="stacked" [ngModel]="deletePassword" (ngModelChange)="onDeletePassword($event)" (keydown.enter)="confirmProtectedDelete.emit()"><ion-input-password-toggle slot="end"></ion-input-password-toggle></ion-input>
         @if (deleteError) { <p class="delete-error">{{ deleteError }}</p> }
         <div class="dialog-actions"><ion-button class="dialog-secondary" (click)="closeDeletePassword.emit()">Cancelar</ion-button><ion-button class="dialog-button" [disabled]="!deletePassword" (click)="confirmProtectedDelete.emit()">Continuar</ion-button></div>

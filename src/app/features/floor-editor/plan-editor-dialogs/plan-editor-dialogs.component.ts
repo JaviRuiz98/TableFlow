@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonButton, IonInput, IonInputPasswordToggle } from '@ionic/angular/standalone';
 
 /**
- * Overlay dialogs for PlanEditor (unlock, delete password, served warning, add text, save success).
+ * Overlay dialogs for PlanEditor (unlock, clear drawing, delete password, served warning, add text, save success).
  * Parent keeps service calls; this component is presentation + two-way field binding.
  */
 @Component({
@@ -16,6 +16,7 @@ import { IonButton, IonInput, IonInputPasswordToggle } from '@ionic/angular/stan
 })
 export class PlanEditorDialogsComponent {
   @Input() showUnlockDialog = false;
+  @Input() showClearDrawingDialog = false;
   @Input() showDeletePasswordDialog = false;
   @Input() showServedDeleteWarning = false;
   @Input() showTextDialog = false;
@@ -30,6 +31,8 @@ export class PlanEditorDialogsComponent {
 
   @Output() closeUnlock = new EventEmitter<void>();
   @Output() confirmUnlock = new EventEmitter<void>();
+  @Output() closeClearDrawing = new EventEmitter<void>();
+  @Output() confirmClearDrawing = new EventEmitter<void>();
   @Output() closeDeletePassword = new EventEmitter<void>();
   @Output() confirmProtectedDelete = new EventEmitter<void>();
   @Output() cancelServedDelete = new EventEmitter<void>();
