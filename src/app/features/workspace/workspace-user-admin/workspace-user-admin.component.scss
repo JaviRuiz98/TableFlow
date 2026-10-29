@@ -1,3 +1,35 @@
 @use '../styles/workspace-dialog.styles.scss';
 
 ion-button { --border-radius:10px; --box-shadow:none; font-weight:700; text-transform:none; }
+
+.field-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-info-btn {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 124, 0.55);
+  background: rgba(212, 175, 124, 0.12);
+  color: #d4af7c;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+  line-height: 1;
+  cursor: help;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.role-info-btn:hover,
+.role-info-btn:focus-visible {
+  background: rgba(212, 175, 124, 0.22);
+  border-color: #d4af7c;
+  outline: none;
+}

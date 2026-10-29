@@ -53,16 +53,12 @@
             class="jornada-datetime-button"
             aria-labelledby="jornada-opens-label"
           ></ion-datetime-button>
-          <ion-popover
-            [keepContentsMounted]="true"
-            side="bottom"
-            alignment="start"
-            class="jornada-datetime-popover"
-          >
+          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
             <ng-template>
               <ion-datetime
                 id="create-jornada-opens"
                 class="jornada-datetime"
+                mode="ios"
                 presentation="time"
                 locale="es-ES"
                 hourCycle="h23"
@@ -74,7 +70,7 @@
                 (ionChange)="onTimeModelChange($event.detail.value, 'newOpens')"
               ></ion-datetime>
             </ng-template>
-          </ion-popover>
+          </ion-modal>
         </div>
 
         <div class="datetime-field">
@@ -84,16 +80,12 @@
             class="jornada-datetime-button"
             aria-labelledby="jornada-closes-label"
           ></ion-datetime-button>
-          <ion-popover
-            [keepContentsMounted]="true"
-            side="bottom"
-            alignment="start"
-            class="jornada-datetime-popover"
-          >
+          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
             <ng-template>
               <ion-datetime
                 id="create-jornada-closes"
                 class="jornada-datetime"
+                mode="ios"
                 presentation="time"
                 locale="es-ES"
                 hourCycle="h23"
@@ -105,7 +97,7 @@
                 (ionChange)="onTimeModelChange($event.detail.value, 'newCloses')"
               ></ion-datetime>
             </ng-template>
-          </ion-popover>
+          </ion-modal>
         </div>
 
         <label class="check-row">
@@ -235,16 +227,12 @@
             class="jornada-datetime-button"
             aria-labelledby="edit-jornada-opens-label"
           ></ion-datetime-button>
-          <ion-popover
-            [keepContentsMounted]="true"
-            side="bottom"
-            alignment="start"
-            class="jornada-datetime-popover"
-          >
+          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
             <ng-template>
               <ion-datetime
                 id="edit-jornada-opens"
                 class="jornada-datetime"
+                mode="ios"
                 presentation="time"
                 locale="es-ES"
                 hourCycle="h23"
@@ -256,7 +244,7 @@
                 (ionChange)="onTimeModelChange($event.detail.value, 'editOpens')"
               ></ion-datetime>
             </ng-template>
-          </ion-popover>
+          </ion-modal>
         </div>
 
         <div class="datetime-field">
@@ -266,16 +254,12 @@
             class="jornada-datetime-button"
             aria-labelledby="edit-jornada-closes-label"
           ></ion-datetime-button>
-          <ion-popover
-            [keepContentsMounted]="true"
-            side="bottom"
-            alignment="start"
-            class="jornada-datetime-popover"
-          >
+          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
             <ng-template>
               <ion-datetime
                 id="edit-jornada-closes"
                 class="jornada-datetime"
+                mode="ios"
                 presentation="time"
                 locale="es-ES"
                 hourCycle="h23"
@@ -287,7 +271,7 @@
                 (ionChange)="onTimeModelChange($event.detail.value, 'editCloses')"
               ></ion-datetime>
             </ng-template>
-          </ion-popover>
+          </ion-modal>
         </div>
 
         <label class="check-row">

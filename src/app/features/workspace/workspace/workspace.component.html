@@ -188,6 +188,8 @@
             <ion-select
               label="Plano"
               labelPlacement="stacked"
+              interface="popover"
+              [interfaceOptions]="planSelectOptions"
               [value]="selectedPlan()?.id"
               (ionChange)="openPlanById($any($event.detail.value))"
             >

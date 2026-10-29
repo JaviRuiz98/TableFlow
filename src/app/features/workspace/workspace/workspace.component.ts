@@ -92,6 +92,9 @@ export class WorkspaceComponent implements OnInit, OnDestroy, ViewWillEnter {
   @ViewChild('catalogPanel') private catalogPanel?: WorkspaceCatalogPanelComponent;
 
   readonly branding = TABLEFLOW_DEFAULT_BRANDING;
+  readonly planSelectOptions = {
+    cssClass: 'tf-plan-select-popover',
+  };
 
   activeTab = signal<'planos' | 'operativo' | 'productos'>('planos');
   editorMode = signal<'editor' | 'operativo'>('editor');

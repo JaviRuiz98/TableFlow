@@ -82,7 +82,50 @@
           </div>
 
           <div class="field">
-            <label class="field-label" for="newUserRole">Rol</label>
+            <div class="field-label-row">
+              <label class="field-label" for="newUserRole">Rol</label>
+              <button
+                type="button"
+                class="role-info-btn"
+                aria-label="Información sobre los roles"
+                [attr.aria-expanded]="roleInfoOpen()"
+                (mouseenter)="openRoleInfo()"
+                (mouseleave)="closeRoleInfoSoon()"
+                (focus)="openRoleInfo()"
+                (blur)="closeRoleInfoSoon()"
+                (click)="toggleRoleInfo($event)"
+              >
+                i
+              </button>
+            </div>
+            <ion-popover
+              [isOpen]="roleInfoOpen()"
+              side="bottom"
+              alignment="start"
+              [showBackdrop]="false"
+              [dismissOnSelect]="false"
+              class="tf-role-info-popover"
+              (didDismiss)="onRoleInfoDismissed()"
+              (mouseenter)="openRoleInfo()"
+              (mouseleave)="closeRoleInfoSoon()"
+            >
+              <ng-template>
+                <div class="role-info-content" role="tooltip">
+                  <p>
+                    <strong>Administrador</strong>
+                    Panel de empresa, usuarios, jornadas, catálogo y operativa completa.
+                  </p>
+                  <p>
+                    <strong>Usuario</strong>
+                    Gestión del día a día: planos, productos y operativa (sin panel admin ni crear usuarios).
+                  </p>
+                  <p>
+                    <strong>Receptor</strong>
+                    Solo operativa: recibe y atiende pedidos/alertas de mesas y reservados.
+                  </p>
+                </div>
+              </ng-template>
+            </ion-popover>
             <ion-select
               id="newUserRole"
               class="auth-select"

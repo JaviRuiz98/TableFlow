@@ -6,6 +6,7 @@ import {
   IonInput,
   IonInputPasswordToggle,
   IonModal,
+  IonPopover,
   IonSelect,
   IonSelectOption,
 } from '@ionic/angular/standalone';
@@ -31,6 +32,7 @@ import { canSubmitNewUserForm, validateNewUserForm } from './workspace-user-form
     IonInput,
     IonInputPasswordToggle,
     IonModal,
+    IonPopover,
     IonSelect,
     IonSelectOption,
   ],
@@ -55,10 +57,12 @@ export class WorkspaceUserAdminComponent {
   newUserUsername = '';
   newUserPassword = '';
   newUserRole: Role = 'RECEPTOR';
+  roleInfoOpen = signal(false);
   readonly roleSelectOptions = {
     cssClass: 'tf-role-select-popover',
   };
   private unlockTimer: ReturnType<typeof setTimeout> | null = null;
+  private roleInfoCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly userAdmin: UserAdminService,
@@ -78,9 +82,33 @@ export class WorkspaceUserAdminComponent {
     this.fieldsInteractive.set(true);
   }
 
+  openRoleInfo(): void {
+    this.clearRoleInfoCloseTimer();
+    this.roleInfoOpen.set(true);
+  }
+
+  closeRoleInfoSoon(): void {
+    this.clearRoleInfoCloseTimer();
+    this.roleInfoCloseTimer = setTimeout(() => this.roleInfoOpen.set(false), 160);
+  }
+
+  toggleRoleInfo(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearRoleInfoCloseTimer();
+    this.roleInfoOpen.update((open) => !open);
+  }
+
+  onRoleInfoDismissed(): void {
+    this.clearRoleInfoCloseTimer();
+    this.roleInfoOpen.set(false);
+  }
+
   /** Clears overlays/forms — called from Workspace resetTransientUi / logout. */
   reset(): void {
     this.clearUnlockTimer();
+    this.clearRoleInfoCloseTimer();
+    this.roleInfoOpen.set(false);
     this.createUserDialog.set(false);
     this.creatingUser.set(false);
     this.fieldsInteractive.set(false);
@@ -90,6 +118,8 @@ export class WorkspaceUserAdminComponent {
 
   closeCreateUserDialog(): void {
     this.clearUnlockTimer();
+    this.clearRoleInfoCloseTimer();
+    this.roleInfoOpen.set(false);
     this.createUserDialog.set(false);
     this.fieldsInteractive.set(false);
     this.resetNewUserForm();
@@ -108,6 +138,13 @@ export class WorkspaceUserAdminComponent {
     if (this.unlockTimer) {
       clearTimeout(this.unlockTimer);
       this.unlockTimer = null;
+    }
+  }
+
+  private clearRoleInfoCloseTimer(): void {
+    if (this.roleInfoCloseTimer) {
+      clearTimeout(this.roleInfoCloseTimer);
+      this.roleInfoCloseTimer = null;
     }
   }
 

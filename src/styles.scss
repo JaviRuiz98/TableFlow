@@ -263,8 +263,9 @@ ion-modal.user-create-modal .auth-like-form ion-select.auth-select::part(icon) {
   opacity: 1;
 }
 
-/* Role select popover (create-user) — overlay is outside component encapsulation */
-.tf-role-select-popover {
+/* Select popovers (create-user role + workspace plan) — overlay outside encapsulation */
+.tf-role-select-popover,
+.tf-plan-select-popover {
   --background: #19191f;
   --color: #f4efe6;
   --width: min(320px, calc(100vw - 48px));
@@ -274,12 +275,21 @@ ion-modal.user-create-modal .auth-like-form ion-select.auth-select::part(icon) {
   overflow: hidden;
 }
 
-.tf-role-select-popover ion-list {
-  background: #19191f;
-  padding: 0.35rem 0;
+.tf-plan-select-popover {
+  --width: min(360px, calc(100vw - 32px));
+  --max-height: min(420px, 70vh);
 }
 
-.tf-role-select-popover ion-item {
+.tf-role-select-popover ion-list,
+.tf-plan-select-popover ion-list {
+  background: #19191f;
+  padding: 0.35rem 0;
+  max-height: min(400px, 65vh);
+  overflow: auto;
+}
+
+.tf-role-select-popover ion-item,
+.tf-plan-select-popover ion-item {
   --background: #19191f;
   --color: #f4efe6;
   --background-hover: rgba(212, 175, 124, 0.12);
@@ -291,22 +301,70 @@ ion-modal.user-create-modal .auth-like-form ion-select.auth-select::part(icon) {
   font-size: 0.92rem;
 }
 
-.tf-role-select-popover ion-radio {
+.tf-role-select-popover ion-radio,
+.tf-plan-select-popover ion-radio {
   --color: #9a948a;
   --color-checked: #d4af7c;
 }
 
-.tf-role-select-popover .item-radio-checked {
+.tf-role-select-popover .item-radio-checked,
+.tf-plan-select-popover .item-radio-checked {
   --color: #d4af7c;
   color: #d4af7c;
 }
 
+/* Role info tooltip (create-user) — teleported overlay */
+ion-popover.tf-role-info-popover {
+  --width: min(320px, calc(100vw - 40px));
+  --max-width: calc(100vw - 40px);
+  --backdrop-opacity: 0;
+  --box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --background: transparent;
+}
+
+ion-popover.tf-role-info-popover::part(content) {
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 124, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+    #19191f;
+  overflow: hidden;
+}
+
+ion-popover.tf-role-info-popover .role-info-content {
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+  color: #f4efe6;
+}
+
+ion-popover.tf-role-info-popover .role-info-content p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #c4beb3;
+}
+
+ion-popover.tf-role-info-popover .role-info-content strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #d4af7c;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 /* Jornada date/time pickers — overlay outside component encapsulation */
-ion-popover.jornada-datetime-popover {
+ion-popover.jornada-datetime-popover,
+ion-modal.jornada-datetime-modal {
   --width: min(340px, calc(100vw - 28px));
   --max-width: calc(100vw - 28px);
+  --height: auto;
+  --max-height: min(520px, calc(100vh - 48px));
+  --border-radius: 16px;
   --box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
-  --backdrop-opacity: 0.35;
+  --backdrop-opacity: 0.45;
+  --background: transparent;
   /* Override Ionic default blue primary inside teleported overlay */
   --ion-color-primary: #d4af7c;
   --ion-color-primary-rgb: 212, 175, 124;
@@ -316,7 +374,13 @@ ion-popover.jornada-datetime-popover {
   --ion-color-primary-tint: #d9bd91;
 }
 
-ion-popover.jornada-datetime-popover::part(content) {
+ion-modal.jornada-datetime-modal {
+  --width: min(360px, calc(100vw - 28px));
+  --height: min(420px, calc(100vh - 48px));
+}
+
+ion-popover.jornada-datetime-popover::part(content),
+ion-modal.jornada-datetime-modal::part(content) {
   border-radius: 16px;
   border: 1px solid rgba(212, 175, 124, 0.28);
   background:
@@ -325,7 +389,8 @@ ion-popover.jornada-datetime-popover::part(content) {
   overflow: hidden;
 }
 
-ion-popover.jornada-datetime-popover .jornada-datetime {
+ion-popover.jornada-datetime-popover .jornada-datetime,
+ion-modal.jornada-datetime-modal .jornada-datetime {
   --background: #15151b;
   --background-rgb: 21, 21, 27;
   --title-color: #f4efe6;
@@ -340,7 +405,16 @@ ion-popover.jornada-datetime-popover .jornada-datetime {
   color: #f4efe6;
 }
 
-ion-popover.jornada-datetime-popover .jornada-datetime::part(calendar-day active) {
+/* Wheel columns: allow drag/scroll (nested overlays used to trap gestures). */
+ion-modal.jornada-datetime-modal ion-picker-column,
+ion-modal.jornada-datetime-modal .picker-opts {
+  touch-action: pan-y;
+  pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+ion-popover.jornada-datetime-popover .jornada-datetime::part(calendar-day active),
+ion-modal.jornada-datetime-modal .jornada-datetime::part(calendar-day active) {
   background: rgba(212, 175, 124, 0.22);
   color: #d4af7c;
   border-radius: 10px;
@@ -349,11 +423,16 @@ ion-popover.jornada-datetime-popover .jornada-datetime::part(calendar-day active
 ion-popover.jornada-datetime-popover .jornada-datetime::part(calendar-day today),
 ion-popover.jornada-datetime-popover .jornada-datetime::part(month-year-button),
 ion-popover.jornada-datetime-popover .jornada-datetime::part(time-button),
-ion-popover.jornada-datetime-popover .jornada-datetime::part(wheel-item active) {
+ion-popover.jornada-datetime-popover .jornada-datetime::part(wheel-item active),
+ion-modal.jornada-datetime-modal .jornada-datetime::part(calendar-day today),
+ion-modal.jornada-datetime-modal .jornada-datetime::part(month-year-button),
+ion-modal.jornada-datetime-modal .jornada-datetime::part(time-button),
+ion-modal.jornada-datetime-modal .jornada-datetime::part(wheel-item active) {
   color: #d4af7c;
 }
 
-ion-popover.jornada-datetime-popover .jornada-datetime ion-button {
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button,
+ion-modal.jornada-datetime-modal .jornada-datetime ion-button {
   --color: #d4af7c;
   --color-activated: #d9bd91;
   --background: transparent;
@@ -366,12 +445,15 @@ ion-popover.jornada-datetime-popover .jornada-datetime ion-button {
   text-transform: none;
 }
 
-ion-popover.jornada-datetime-popover .jornada-datetime ion-button::part(native) {
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button::part(native),
+ion-modal.jornada-datetime-modal .jornada-datetime ion-button::part(native) {
   color: #d4af7c;
 }
 
 ion-popover.jornada-datetime-popover .jornada-datetime .datetime-footer ion-button:last-child,
-ion-popover.jornada-datetime-popover .jornada-datetime ion-button.ion-color-primary {
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button.ion-color-primary,
+ion-modal.jornada-datetime-modal .jornada-datetime .datetime-footer ion-button:last-child,
+ion-modal.jornada-datetime-modal .jornada-datetime ion-button.ion-color-primary {
   --background: #d4af7c;
   --background-activated: #b8925e;
   --background-focused: #d4af7c;
@@ -381,7 +463,9 @@ ion-popover.jornada-datetime-popover .jornada-datetime ion-button.ion-color-prim
 }
 
 ion-popover.jornada-datetime-popover .jornada-datetime .datetime-footer ion-button:last-child::part(native),
-ion-popover.jornada-datetime-popover .jornada-datetime ion-button.ion-color-primary::part(native) {
+ion-popover.jornada-datetime-popover .jornada-datetime ion-button.ion-color-primary::part(native),
+ion-modal.jornada-datetime-modal .jornada-datetime .datetime-footer ion-button:last-child::part(native),
+ion-modal.jornada-datetime-modal .jornada-datetime ion-button.ion-color-primary::part(native) {
   background: #d4af7c;
   color: #0b0b0f;
 }
