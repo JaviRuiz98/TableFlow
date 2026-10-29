@@ -83,8 +83,8 @@ While **Dibujar**, a stroke stays as a dashed draft after pointer-up until the n
 ## Delete selection
 
 - Geometry element → immediate local remove  
-- **Reservado** → local remove (no password; persists on next save via snapshot)  
-- **Mesa** → password dialog → RPC `delete_table_with_orders` (+ served warning if needed)
+- **Mesa / Reservado** → local remove (no password; persists on next save via `replace_floor_plan_snapshot`)  
+- Legacy password RPC `delete_table_with_orders` remains in `tables` module but is not used by the editor toolbar delete path
 
 ## Konva lifecycle
 

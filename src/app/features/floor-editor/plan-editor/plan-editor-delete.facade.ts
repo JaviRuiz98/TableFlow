@@ -1,6 +1,7 @@
 /**
- * Password-gated table/reserved deletion UX for PlanEditor.
- * Calls TableDeletionService; local model updates stay on the host.
+ * Table/reserved deletion UX for PlanEditor.
+ * Editor removes locally; `replace_floor_plan_snapshot` on save drops DB rows.
+ * Password RPC (`delete_table_with_orders`) kept for optional force paths / legacy dialogs.
  */
 import type { TableDeletionService } from '../../tables';
 import type { PlanEditorHost } from './plan-editor-host';
@@ -27,16 +28,8 @@ export class PlanEditorDeleteFacade {
     }
     const target = h.selectedTable ?? h.selectedReserved;
     if (!target) return;
-    // Reservados: sin contraseña (salen del snapshot al guardar). Mesas: borrado protegido.
-    if (target.type === 'RESERVED') {
-      this.removeTargetLocally(target.id);
-      return;
-    }
-    h.pendingDeleteTarget = target;
-    h.deletePassword = '';
-    h.deleteError = '';
-    this.verifiedDeletePassword = '';
-    h.showDeletePasswordDialog = true;
+    // Mesa y reservado: sin contraseña (salen del snapshot al guardar).
+    this.removeTargetLocally(target.id);
   }
 
   closeDeletePasswordDialog(): void {
