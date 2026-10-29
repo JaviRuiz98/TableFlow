@@ -187,23 +187,23 @@ describe('PlanEditorComponent history/permissions (characterization)', () => {
     expect(cmp.selectedTable?.id).toBe(created!.id);
   });
 
-  it('addTable skips numbers already used by reserved', () => {
+  it('addTable uses its own number space (ignores reserved numbers)', () => {
     cmp.tables = [];
     cmp.reserved = [table({ id: 'r1', number: 1, type: 'RESERVED' })];
     cmp.elements = [] as FloorPlanElement[];
     cmp.addTable();
-    expect(cmp.tables[0]?.number).toBe(2);
+    expect(cmp.tables[0]?.number).toBe(1);
   });
 
-  it('addReserved skips numbers already used by tables', () => {
+  it('addReserved uses its own number space (ignores table numbers)', () => {
     cmp.tables = [table({ id: 't1', number: 1, type: 'TABLE' })];
     cmp.reserved = [];
     cmp.elements = [] as FloorPlanElement[];
     cmp.addReserved();
-    expect(cmp.reserved[0]?.number).toBe(2);
+    expect(cmp.reserved[0]?.number).toBe(1);
   });
 
-  it('saveDesign remaps colliding numbers before snapshot RPC', async () => {
+  it('saveDesign keeps Mesa 1 and Reservado 1 (per-type uniqueness)', async () => {
     cmp.tables = [table({ id: 't1', number: 1, type: 'TABLE' })];
     cmp.reserved = [table({ id: 'r1', number: 1, type: 'RESERVED' })];
     cmp.elements = [];
@@ -211,9 +211,9 @@ describe('PlanEditorComponent history/permissions (characterization)', () => {
     expect(floors.saveSnapshot).toHaveBeenCalledWith('plan-1', {
       elements: [],
       tables: [expect.objectContaining({ id: 't1', number: 1 })],
-      reserved: [expect.objectContaining({ id: 'r1', number: 2 })],
+      reserved: [expect.objectContaining({ id: 'r1', number: 1 })],
     });
-    expect(cmp.reserved[0]?.number).toBe(2);
+    expect(cmp.reserved[0]?.number).toBe(1);
   });
 
   it('saveDesign returns false for non-admin without calling floors', async () => {

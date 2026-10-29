@@ -8,7 +8,7 @@ export function splitTablesByType(allTables: ClubTable[]): Pick<FloorSnapshot, '
   };
 }
 
-/** Next free number in the shared TABLE+RESERVED space (matches DB unique (floor_plan_id, number)). */
+/** Next free number within one type's number space (matches DB unique (floor_plan_id, type, number)). */
 export function nextFreeTableNumber(used: Iterable<number>): number {
   const numbers = new Set(used);
   let n = 1;
@@ -17,14 +17,14 @@ export function nextFreeTableNumber(used: Iterable<number>): number {
 }
 
 /**
- * Ensures table/reserved numbers are unique across the snapshot.
- * Keeps the first occurrence of each number; renumbers later collisions.
+ * Ensures numbers are unique **per type** (TABLE and RESERVED are independent).
+ * Keeps the first occurrence of each number within that type; renumbers later collisions.
  * Preserves ids (orders stay attached).
  */
 export function ensureUniqueTableNumbers(snapshot: FloorSnapshot): FloorSnapshot {
-  const used = new Set<number>();
-  const remap = (rows: ClubTable[]): ClubTable[] =>
-    rows.map((row) => {
+  const remapWithinType = (rows: ClubTable[]): ClubTable[] => {
+    const used = new Set<number>();
+    return rows.map((row) => {
       if (!used.has(row.number)) {
         used.add(row.number);
         return row;
@@ -33,11 +33,12 @@ export function ensureUniqueTableNumbers(snapshot: FloorSnapshot): FloorSnapshot
       used.add(number);
       return { ...row, number };
     });
+  };
 
   return {
     ...snapshot,
-    tables: remap(snapshot.tables ?? []),
-    reserved: remap(snapshot.reserved ?? []),
+    tables: remapWithinType(snapshot.tables ?? []),
+    reserved: remapWithinType(snapshot.reserved ?? []),
   };
 }
 

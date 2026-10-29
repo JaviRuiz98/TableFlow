@@ -4,9 +4,20 @@ import type { ClubTable } from '../../../core/models/models';
 /** Pure table/reserved validation helpers (no I/O). */
 @Injectable({ providedIn: 'root' })
 export class TableValidationService {
+  /** Unique numbers within each type (TABLE / RESERVED are independent). */
   validateUniqueNumbers(tables: ClubTable[]): boolean {
-    const s = new Set(tables.map((t) => t.number));
-    return s.size === tables.length;
+    const byType = new Map<string, Set<number>>();
+    for (const row of tables) {
+      const key = row.type ?? 'TABLE';
+      let used = byType.get(key);
+      if (!used) {
+        used = new Set();
+        byType.set(key, used);
+      }
+      if (used.has(row.number)) return false;
+      used.add(row.number);
+    }
+    return true;
   }
 
   clampPosition(table: ClubTable, width: number, height: number): ClubTable {

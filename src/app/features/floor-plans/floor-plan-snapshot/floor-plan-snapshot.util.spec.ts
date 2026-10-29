@@ -33,12 +33,12 @@ describe('floor-plan-snapshot.util', () => {
     expect(split.reserved?.map((t) => t.id)).toEqual(['b']);
   });
 
-  it('nextFreeTableNumber skips numbers used by tables and reserved', () => {
+  it('nextFreeTableNumber skips used numbers in one type space', () => {
     expect(nextFreeTableNumber([1, 3])).toBe(2);
     expect(nextFreeTableNumber([1, 2])).toBe(3);
   });
 
-  it('ensureUniqueTableNumbers remaps reserved colliding with a table number', () => {
+  it('ensureUniqueTableNumbers allows Mesa 1 and Reservado 1', () => {
     const fixed = ensureUniqueTableNumbers({
       elements: [],
       tables: [table({ id: 't1', type: 'TABLE', number: 1 })],
@@ -46,10 +46,23 @@ describe('floor-plan-snapshot.util', () => {
     });
     expect(fixed.tables[0].number).toBe(1);
     expect(fixed.reserved?.[0].id).toBe('r1');
-    expect(fixed.reserved?.[0].number).toBe(2);
+    expect(fixed.reserved?.[0].number).toBe(1);
   });
 
-  it('builds RPC payload remapping duplicate numbers across type', () => {
+  it('ensureUniqueTableNumbers remaps duplicates within the same type only', () => {
+    const fixed = ensureUniqueTableNumbers({
+      elements: [],
+      tables: [
+        table({ id: 't1', type: 'TABLE', number: 1 }),
+        table({ id: 't2', type: 'TABLE', number: 1 }),
+      ],
+      reserved: [table({ id: 'r1', type: 'RESERVED', number: 1, shape: 'rectangle' })],
+    });
+    expect(fixed.tables.map((t) => t.number)).toEqual([1, 2]);
+    expect(fixed.reserved?.[0].number).toBe(1);
+  });
+
+  it('builds RPC payload keeping independent numbers per type', () => {
     const snapshot: FloorSnapshot = {
       elements: [],
       tables: [table({ id: 'keep-me', type: 'TABLE', number: 1, attended: true })],
@@ -57,7 +70,7 @@ describe('floor-plan-snapshot.util', () => {
     };
     const payload = buildReplaceSnapshotPayload('plan-1', snapshot);
     expect(payload.p_tables.map((t) => t.id)).toEqual(['keep-me', 'res-1']);
-    expect(payload.p_tables.map((t) => t.number)).toEqual([1, 2]);
+    expect(payload.p_tables.map((t) => t.number)).toEqual([1, 1]);
   });
 
   it('builds RPC payload preserving table ids and merging reserved', () => {

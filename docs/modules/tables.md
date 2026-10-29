@@ -25,7 +25,7 @@ tables/
 |--------|------|
 | `TableDeletionService.delete(tableId, password, force?)` | RPC `delete_table_with_orders` |
 | `DeleteTableResult` | `{ ok, reason }` — `DELETED` / `NOT_PERSISTED` / `BAD_PASSWORD` / `SERVED_PRODUCTS` |
-| `TableValidationService.validateUniqueNumbers` | Unique `number` across list |
+| `TableValidationService.validateUniqueNumbers` | Unique `number` **per type** (TABLE / RESERVED) |
 | `TableValidationService.clampPosition` | Clamp x/y inside plan size |
 
 ## RPC / integrity (do not change without auth)

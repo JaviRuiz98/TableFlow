@@ -551,7 +551,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       if (this.drawing.length >= 2) {
         this.drawingSession.convertDrawing();
       }
-      // DB unique (floor_plan_id, number) spans TABLE + RESERVED — heal collisions before RPC.
+      // DB unique (floor_plan_id, type, number) — heal collisions within each type before RPC.
       const unique = ensureUniqueTableNumbers({
         elements: this.elements,
         tables: this.tables,
@@ -577,10 +577,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   }
   addTable() {
     if (!this.canEditGeometry) return;
-    const n = nextFreeTableNumber([
-      ...this.tables.map((t) => t.number),
-      ...this.reserved.map((r) => r.number),
-    ]);
+    const n = nextFreeTableNumber(this.tables.map((t) => t.number));
     const now = new Date().toISOString();
     const table: ClubTable = {
       id: crypto.randomUUID(),
@@ -608,10 +605,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   }
   addReserved() {
     if (!this.canEditGeometry) return;
-    const n = nextFreeTableNumber([
-      ...this.tables.map((t) => t.number),
-      ...this.reserved.map((r) => r.number),
-    ]);
+    const n = nextFreeTableNumber(this.reserved.map((r) => r.number));
     const now = new Date().toISOString();
     const reserved: ClubTable = {
       id: crypto.randomUUID(),

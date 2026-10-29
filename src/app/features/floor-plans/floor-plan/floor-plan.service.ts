@@ -243,6 +243,7 @@ export class FloorPlanService {
       .from('tables')
       .select('number')
       .eq('floor_plan_id', planId)
+      .eq('type', type)
       .order('number', { ascending: false })
       .limit(1);
 

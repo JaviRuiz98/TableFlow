@@ -51,7 +51,7 @@ If source `is_locked`, copy is locked after save. **Does not** copy orders/histo
 
 `saveSnapshot` sends **existing table ids** in `p_tables`. RPC upserts/deletes by snapshot membership — cascading deletes are server-side. Do not drop ids from normal saves.
 
-`tables` UNIQUE is `(floor_plan_id, number)` across **TABLE and RESERVED**. Editor `addTable`/`addReserved` and `ensureUniqueTableNumbers` (used by payload + save) share one number space so Mesa 1 + Reservado 1 cannot collide on save.
+`tables` UNIQUE is `(floor_plan_id, type, number)` (migration `0034`). Mesa and Reservado have **independent** number spaces (Mesa 1 + Reservado 1 is valid). Editor `addTable`/`addReserved` and `ensureUniqueTableNumbers` only heal collisions **within** each type.
 
 ## Supabase
 

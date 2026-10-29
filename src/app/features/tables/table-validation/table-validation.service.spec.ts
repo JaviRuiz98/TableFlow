@@ -8,9 +8,25 @@ describe('TableValidationService', () => {
     s = TestBed.inject(TableValidationService);
   });
 
-  it('rejects duplicate numbers across tables/reserved lists', () => {
-    expect(s.validateUniqueNumbers([{ number: 1 }, { number: 1 }] as ClubTable[])).toBe(false);
-    expect(s.validateUniqueNumbers([{ number: 1 }, { number: 2 }] as ClubTable[])).toBe(true);
+  it('rejects duplicate numbers within the same type only', () => {
+    expect(
+      s.validateUniqueNumbers([
+        { number: 1, type: 'TABLE' },
+        { number: 1, type: 'TABLE' },
+      ] as ClubTable[]),
+    ).toBe(false);
+    expect(
+      s.validateUniqueNumbers([
+        { number: 1, type: 'TABLE' },
+        { number: 1, type: 'RESERVED' },
+      ] as ClubTable[]),
+    ).toBe(true);
+    expect(
+      s.validateUniqueNumbers([
+        { number: 1, type: 'TABLE' },
+        { number: 2, type: 'TABLE' },
+      ] as ClubTable[]),
+    ).toBe(true);
   });
 
   it('clamps logical coordinates inside plan bounds', () => {

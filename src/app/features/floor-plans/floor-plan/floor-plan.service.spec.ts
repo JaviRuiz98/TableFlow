@@ -123,7 +123,7 @@ describe('FloorPlanService', () => {
     });
   });
 
-  it('createOperationalTarget inserts next number with attended false', async () => {
+  it('createOperationalTarget inserts next number within the same type', async () => {
     fromMock
       .mockReturnValueOnce(createQueryBuilder({ data: [{ number: 3 }], error: null }))
       .mockReturnValueOnce(
@@ -135,5 +135,7 @@ describe('FloorPlanService', () => {
     const created = await service.createOperationalTarget(fixturePlan.id, 'TABLE');
     expect(created.number).toBe(4);
     expect(created.attended).toBe(false);
+    const selectBuilder = fromMock.mock.results[0]?.value;
+    expect(selectBuilder.eq).toHaveBeenCalledWith('type', 'TABLE');
   });
 });

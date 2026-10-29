@@ -130,7 +130,7 @@ create table if not exists public.tables (
   observation text null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (floor_plan_id, number)
+  unique (floor_plan_id, type, number)
 );
 
 comment on column public.tables.observation is
