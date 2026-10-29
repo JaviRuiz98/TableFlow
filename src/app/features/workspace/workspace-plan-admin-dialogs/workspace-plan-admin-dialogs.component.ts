@@ -68,6 +68,8 @@ export class WorkspacePlanAdminDialogsComponent {
   editOpensAt = '22:00';
   editClosesAt = '06:00';
   editClosesNextDay = true;
+  /** Inline time wheel (avoids nested modal/popover gesture bugs). */
+  timeWheelOpen = signal<'create-opens' | 'create-closes' | 'edit-opens' | 'edit-closes' | null>(null);
 
   constructor(
     private readonly auth: AuthService,
@@ -98,6 +100,7 @@ export class WorkspacePlanAdminDialogsComponent {
     this.newClosesAt = '06:00';
     this.newClosesNextDay = true;
     this.newSourcePlanId = '';
+    this.timeWheelOpen.set(null);
     this.createPlanDialog.set(true);
   }
 
@@ -132,6 +135,7 @@ export class WorkspacePlanAdminDialogsComponent {
     this.editOpensAt = (plan.opens_at || '22:00').slice(0, 5);
     this.editClosesAt = (plan.closes_at || '06:00').slice(0, 5);
     this.editClosesNextDay = !!plan.closes_next_day;
+    this.timeWheelOpen.set(null);
     this.editScheduleDialog.set(true);
   }
 
@@ -143,6 +147,7 @@ export class WorkspacePlanAdminDialogsComponent {
     this.deletePlanDialog.set(false);
     this.scheduleIncoherentDialog.set(false);
     this.editScheduleDialog.set(false);
+    this.timeWheelOpen.set(null);
     this.newPlanName = '';
     this.copyPlanName = '';
     this.renamePlanName = '';
@@ -155,8 +160,13 @@ export class WorkspacePlanAdminDialogsComponent {
   closeCreatePlanDialog(): void {
     this.createPlanDialog.set(false);
     this.scheduleIncoherentDialog.set(false);
+    this.timeWheelOpen.set(null);
     this.newPlanName = '';
     this.newSourcePlanId = '';
+  }
+
+  toggleTimeWheel(id: 'create-opens' | 'create-closes' | 'edit-opens' | 'edit-closes'): void {
+    this.timeWheelOpen.update((current) => (current === id ? null : id));
   }
 
   /** True when close time is earlier than open time on the same calendar day. */
@@ -269,6 +279,7 @@ export class WorkspacePlanAdminDialogsComponent {
   closeEditScheduleDialog(): void {
     this.editScheduleDialog.set(false);
     this.planToEditSchedule.set(null);
+    this.timeWheelOpen.set(null);
   }
 
   get canSubmitScheduleEdit(): boolean {

@@ -48,56 +48,54 @@
 
         <div class="datetime-field">
           <span class="field-label" id="jornada-opens-label">Hora de apertura</span>
-          <ion-datetime-button
-            datetime="create-jornada-opens"
-            class="jornada-datetime-button"
+          <button
+            type="button"
+            class="jornada-time-toggle"
+            [class.open]="timeWheelOpen() === 'create-opens'"
             aria-labelledby="jornada-opens-label"
-          ></ion-datetime-button>
-          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
-            <ng-template>
-              <ion-datetime
-                id="create-jornada-opens"
-                class="jornada-datetime"
-                mode="ios"
-                presentation="time"
-                locale="es-ES"
-                hourCycle="h23"
-                [preferWheel]="true"
-                [showDefaultButtons]="true"
-                doneText="Listo"
-                cancelText="Cancelar"
-                [value]="timeToIso(newOpensAt)"
-                (ionChange)="onTimeModelChange($event.detail.value, 'newOpens')"
-              ></ion-datetime>
-            </ng-template>
-          </ion-modal>
+            [attr.aria-expanded]="timeWheelOpen() === 'create-opens'"
+            (click)="toggleTimeWheel('create-opens')"
+          >
+            {{ newOpensAt }}
+          </button>
+          @if (timeWheelOpen() === 'create-opens') {
+            <ion-datetime
+              class="jornada-datetime jornada-time-inline"
+              mode="ios"
+              presentation="time"
+              locale="es-ES"
+              hourCycle="h23"
+              [preferWheel]="true"
+              [value]="timeToIso(newOpensAt)"
+              (ionChange)="onTimeModelChange($event.detail.value, 'newOpens')"
+            ></ion-datetime>
+          }
         </div>
 
         <div class="datetime-field">
           <span class="field-label" id="jornada-closes-label">Hora de cierre</span>
-          <ion-datetime-button
-            datetime="create-jornada-closes"
-            class="jornada-datetime-button"
+          <button
+            type="button"
+            class="jornada-time-toggle"
+            [class.open]="timeWheelOpen() === 'create-closes'"
             aria-labelledby="jornada-closes-label"
-          ></ion-datetime-button>
-          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
-            <ng-template>
-              <ion-datetime
-                id="create-jornada-closes"
-                class="jornada-datetime"
-                mode="ios"
-                presentation="time"
-                locale="es-ES"
-                hourCycle="h23"
-                [preferWheel]="true"
-                [showDefaultButtons]="true"
-                doneText="Listo"
-                cancelText="Cancelar"
-                [value]="timeToIso(newClosesAt)"
-                (ionChange)="onTimeModelChange($event.detail.value, 'newCloses')"
-              ></ion-datetime>
-            </ng-template>
-          </ion-modal>
+            [attr.aria-expanded]="timeWheelOpen() === 'create-closes'"
+            (click)="toggleTimeWheel('create-closes')"
+          >
+            {{ newClosesAt }}
+          </button>
+          @if (timeWheelOpen() === 'create-closes') {
+            <ion-datetime
+              class="jornada-datetime jornada-time-inline"
+              mode="ios"
+              presentation="time"
+              locale="es-ES"
+              hourCycle="h23"
+              [preferWheel]="true"
+              [value]="timeToIso(newClosesAt)"
+              (ionChange)="onTimeModelChange($event.detail.value, 'newCloses')"
+            ></ion-datetime>
+          }
         </div>
 
         <label class="check-row">
@@ -222,56 +220,54 @@
 
         <div class="datetime-field">
           <span class="field-label" id="edit-jornada-opens-label">Hora de apertura</span>
-          <ion-datetime-button
-            datetime="edit-jornada-opens"
-            class="jornada-datetime-button"
+          <button
+            type="button"
+            class="jornada-time-toggle"
+            [class.open]="timeWheelOpen() === 'edit-opens'"
             aria-labelledby="edit-jornada-opens-label"
-          ></ion-datetime-button>
-          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
-            <ng-template>
-              <ion-datetime
-                id="edit-jornada-opens"
-                class="jornada-datetime"
-                mode="ios"
-                presentation="time"
-                locale="es-ES"
-                hourCycle="h23"
-                [preferWheel]="true"
-                [showDefaultButtons]="true"
-                doneText="Listo"
-                cancelText="Cancelar"
-                [value]="timeToIso(editOpensAt)"
-                (ionChange)="onTimeModelChange($event.detail.value, 'editOpens')"
-              ></ion-datetime>
-            </ng-template>
-          </ion-modal>
+            [attr.aria-expanded]="timeWheelOpen() === 'edit-opens'"
+            (click)="toggleTimeWheel('edit-opens')"
+          >
+            {{ editOpensAt }}
+          </button>
+          @if (timeWheelOpen() === 'edit-opens') {
+            <ion-datetime
+              class="jornada-datetime jornada-time-inline"
+              mode="ios"
+              presentation="time"
+              locale="es-ES"
+              hourCycle="h23"
+              [preferWheel]="true"
+              [value]="timeToIso(editOpensAt)"
+              (ionChange)="onTimeModelChange($event.detail.value, 'editOpens')"
+            ></ion-datetime>
+          }
         </div>
 
         <div class="datetime-field">
           <span class="field-label" id="edit-jornada-closes-label">Hora de cierre</span>
-          <ion-datetime-button
-            datetime="edit-jornada-closes"
-            class="jornada-datetime-button"
+          <button
+            type="button"
+            class="jornada-time-toggle"
+            [class.open]="timeWheelOpen() === 'edit-closes'"
             aria-labelledby="edit-jornada-closes-label"
-          ></ion-datetime-button>
-          <ion-modal [keepContentsMounted]="true" class="jornada-datetime-modal">
-            <ng-template>
-              <ion-datetime
-                id="edit-jornada-closes"
-                class="jornada-datetime"
-                mode="ios"
-                presentation="time"
-                locale="es-ES"
-                hourCycle="h23"
-                [preferWheel]="true"
-                [showDefaultButtons]="true"
-                doneText="Listo"
-                cancelText="Cancelar"
-                [value]="timeToIso(editClosesAt)"
-                (ionChange)="onTimeModelChange($event.detail.value, 'editCloses')"
-              ></ion-datetime>
-            </ng-template>
-          </ion-modal>
+            [attr.aria-expanded]="timeWheelOpen() === 'edit-closes'"
+            (click)="toggleTimeWheel('edit-closes')"
+          >
+            {{ editClosesAt }}
+          </button>
+          @if (timeWheelOpen() === 'edit-closes') {
+            <ion-datetime
+              class="jornada-datetime jornada-time-inline"
+              mode="ios"
+              presentation="time"
+              locale="es-ES"
+              hourCycle="h23"
+              [preferWheel]="true"
+              [value]="timeToIso(editClosesAt)"
+              (ionChange)="onTimeModelChange($event.detail.value, 'editCloses')"
+            ></ion-datetime>
+          }
         </div>
 
         <label class="check-row">
