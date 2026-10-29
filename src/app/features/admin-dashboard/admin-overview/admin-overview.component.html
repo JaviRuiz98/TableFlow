@@ -296,27 +296,43 @@
               } @else if (!pk.facturacionSeries.value?.length) {
                 <p class="muted">{{ pk.facturacionSeries.detail || 'Sin datos de facturación.' }}</p>
               } @else {
-                <div class="chart-wrap" role="img" [attr.aria-label]="'Facturación diaria del periodo'">
-                  <svg
+                <div
+                  class="chart-wrap"
+                  role="img"
+                  [attr.aria-label]="'Facturación diaria del periodo. Pasa el ratón por cada barra para ver el importe.'"
+                >
+                  <div
                     class="billing-chart"
-                    viewBox="0 0 640 220"
-                    preserveAspectRatio="none"
-                    aria-hidden="true"
+                    [style.--billing-cols]="pk.facturacionSeries.value?.length || 1"
                   >
                     @for (bar of chartBars(pk.facturacionSeries.value); track bar.date) {
-                      <rect
-                        class="billing-bar"
-                        [attr.x]="bar.x"
-                        [attr.y]="bar.y"
-                        [attr.width]="bar.width"
-                        [attr.height]="bar.height"
-                        rx="3"
-                      ></rect>
-                    }
-                  </svg>
-                  <div class="chart-labels">
-                    @for (bar of chartLabelTicks(pk.facturacionSeries.value); track bar.date) {
-                      <span>{{ bar.label }}</span>
+                      <div
+                        class="billing-col"
+                        (mouseenter)="onBillingBarEnter(bar.date)"
+                        (mouseleave)="onBillingBarLeave()"
+                        (focusin)="onBillingBarEnter(bar.date)"
+                        (focusout)="onBillingBarLeave()"
+                        tabindex="0"
+                        [attr.aria-label]="formatChartDay(bar.date) + ': ' + formatMoney(bar.amount)"
+                      >
+                        <div class="billing-bar-track">
+                          @if (hoveredBillingDate() === bar.date) {
+                            <div class="billing-tooltip" role="tooltip">
+                              <span class="billing-tooltip-day">{{ formatChartDay(bar.date) }}</span>
+                              <strong>{{ formatMoney(bar.amount) }}</strong>
+                            </div>
+                          }
+                          <div
+                            class="billing-bar"
+                            [class.is-empty]="bar.amount <= 0"
+                            [class.is-hovered]="hoveredBillingDate() === bar.date"
+                            [style.height.%]="bar.pct"
+                          ></div>
+                        </div>
+                        <span class="chart-label" [class.is-visible]="bar.showLabel">
+                          {{ bar.showLabel ? bar.dayLabel : '' }}
+                        </span>
+                      </div>
                     }
                   </div>
                   <div class="chart-legend">
@@ -362,8 +378,8 @@
                         <span class="activity-plan">Plano · {{ item.floor_plan_name }}</span>
                       }
                     </div>
-                    <span class="activity-status" [attr.data-status]="item.status">
-                      {{ orderStatusLabel(item.status) }}
+                    <span class="activity-status" [attr.data-status]="item.displayStatus">
+                      {{ activityStatusLabel(item.displayStatus) }}
                     </span>
                   </div>
                   <time>{{ formatDateTime(item.created_at) }}</time>

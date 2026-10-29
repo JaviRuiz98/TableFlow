@@ -110,13 +110,26 @@ export interface PeriodKpis {
   facturacionSeries: AdminMetric<FacturacionPoint[]>;
 }
 
+/** Operational badge in Actividad (aligned with floor colors, not raw order.status). */
+export type ActivityDisplayStatus = 'PENDIENTE' | 'ATENDIDO' | 'RESERVADA';
+
 export interface ActivityItem {
   id: string;
+  /** Raw order status (OPEN/CLOSED/…). */
   status: OrderStatus;
+  /**
+   * UI badge:
+   * - ATENDIDO: mesa `attended` o pedido CLOSED (verde)
+   * - PENDIENTE: pedido OPEN sin atender (rojo)
+   * - RESERVADA: reserved sin pedido pendiente ni atención (dorado)
+   */
+  displayStatus: ActivityDisplayStatus;
   created_at: string;
   table_number: number | null;
   /** TABLE | RESERVED — for activity labels. */
   table_type?: 'TABLE' | 'RESERVED' | null;
+  table_reserved?: boolean;
+  table_attended?: boolean;
   floor_plan_id: string;
   floor_plan_name: string | null;
 }
@@ -1107,7 +1120,7 @@ export class AdminMetricsService {
     const { data, error } = await this.db.client
       .from('orders')
       .select(
-        'id, status, created_at, tables!inner(number, type, floor_plan_id, floor_plans!inner(id, name, company_id))',
+        'id, status, created_at, tables!inner(number, type, reserved, attended, floor_plan_id, floor_plans!inner(id, name, company_id))',
       )
       .eq('tables.floor_plans.company_id', companyId)
       .in('tables.floor_plan_id', floorPlanIds)
@@ -1124,36 +1137,36 @@ export class AdminMetricsService {
     }
 
     type PlanEmbed = { id: string; name: string; company_id: string } | null;
+    type TableEmbed = {
+      number: number | null;
+      type?: string | null;
+      reserved?: boolean | null;
+      attended?: boolean | null;
+      floor_plan_id: string;
+      floor_plans: PlanEmbed | PlanEmbed[];
+    };
     type OrderRow = {
       id: string;
       status: OrderStatus;
       created_at: string;
-      tables:
-        | {
-            number: number | null;
-            type?: string | null;
-            floor_plan_id: string;
-            floor_plans: PlanEmbed | PlanEmbed[];
-          }
-        | {
-            number: number | null;
-            type?: string | null;
-            floor_plan_id: string;
-            floor_plans: PlanEmbed | PlanEmbed[];
-          }[]
-        | null;
+      tables: TableEmbed | TableEmbed[] | null;
     };
 
     const items: ActivityItem[] = ((data ?? []) as unknown as OrderRow[]).map((row) => {
       const table = Array.isArray(row.tables) ? row.tables[0] : row.tables;
       const planRaw = table?.floor_plans ?? null;
       const plan = Array.isArray(planRaw) ? planRaw[0] : planRaw;
+      const attended = Boolean(table?.attended);
+      const reserved = Boolean(table?.reserved);
       return {
         id: row.id,
         status: row.status,
+        displayStatus: this.activityDisplayStatus(row.status, attended, reserved),
         created_at: row.created_at,
         table_number: table?.number ?? null,
         table_type: table?.type === 'RESERVED' ? 'RESERVED' : 'TABLE',
+        table_reserved: reserved,
+        table_attended: attended,
         floor_plan_id: table?.floor_plan_id ?? plan?.id ?? '',
         floor_plan_name: plan?.name?.trim() || null,
       };
@@ -1164,5 +1177,26 @@ export class AdminMetricsService {
       value: items,
       detail: items.length ? undefined : 'Sin actividad reciente.',
     };
+  }
+
+  /**
+   * Align activity badges with the floor map:
+   * attended/CLOSED → ATENDIDO; OPEN without attend → PENDIENTE; else reserved → RESERVADA.
+   */
+  private activityDisplayStatus(
+    orderStatus: OrderStatus,
+    attended: boolean,
+    reserved: boolean,
+  ): ActivityDisplayStatus {
+    if (attended || orderStatus === 'CLOSED') {
+      return 'ATENDIDO';
+    }
+    if (orderStatus === 'OPEN') {
+      return 'PENDIENTE';
+    }
+    if (reserved) {
+      return 'RESERVADA';
+    }
+    return 'PENDIENTE';
   }
 }

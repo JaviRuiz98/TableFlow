@@ -129,7 +129,8 @@
                 <li>
                   <strong>{{ item.floor_plan_name ?? 'Jornada' }}</strong>
                   <span>
-                    Mesa {{ item.table_number ?? '—' }} · {{ item.status }} ·
+                    {{ item.table_type === 'RESERVED' ? 'Reservado' : 'Mesa' }}
+                    {{ item.table_number ?? '—' }} · {{ item.displayStatus }} ·
                     {{ item.created_at | date: 'short' }}
                   </span>
                 </li>

@@ -54,6 +54,8 @@ export class AdminOverviewComponent implements OnInit {
   readonly customFrom = signal('');
   readonly customTo = signal('');
   readonly datePickerOpen = signal(false);
+  /** Hovered day in the period billing chart (tooltip). */
+  readonly hoveredBillingDate = signal<string | null>(null);
 
   readonly jornadas = computed(() => this.snapshot()?.jornadas.value ?? []);
 
@@ -121,6 +123,7 @@ export class AdminOverviewComponent implements OnInit {
         if (snap.scope.to) this.customTo.set(snap.scope.to);
       }
     } finally {
+      this.hoveredBillingDate.set(null);
       this.initialLoading.set(false);
       this.refreshing.set(false);
     }
@@ -207,43 +210,50 @@ export class AdminOverviewComponent implements OnInit {
 
   chartBars(points: FacturacionPoint[] | null | undefined): Array<{
     date: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+    amount: number;
+    pct: number;
+    dayLabel: string;
+    showLabel: boolean;
   }> {
     if (!points?.length) return [];
     const max = Math.max(this.chartMax(points), 1);
-    const n = points.length;
-    const padX = 8;
-    const chartW = 640 - padX * 2;
-    const chartH = 180;
-    const gap = n > 20 ? 1.5 : n > 10 ? 3 : 6;
-    const barW = Math.max(2, (chartW - gap * (n - 1)) / n);
-    return points.map((p, i) => {
-      const height = Math.max(p.amount > 0 ? 4 : 0, (p.amount / max) * chartH);
-      return {
-        date: p.date,
-        x: padX + i * (barW + gap),
-        y: 200 - height,
-        width: barW,
-        height,
-      };
-    });
+    const maxLabels = points.length <= 7 ? points.length : points.length <= 14 ? 7 : 8;
+    const step = Math.max(1, Math.round((points.length - 1) / Math.max(maxLabels - 1, 1)));
+    const labelIndexes = new Set<number>();
+    for (let i = 0; i < points.length; i += step) {
+      labelIndexes.add(i);
+    }
+    labelIndexes.add(points.length - 1);
+
+    return points.map((p, i) => ({
+      date: p.date,
+      amount: p.amount,
+      pct: Math.max(p.amount > 0 ? 3 : 0, (p.amount / max) * 100),
+      dayLabel: p.date.slice(8),
+      showLabel: labelIndexes.has(i),
+    }));
   }
 
-  chartLabelTicks(
-    points: FacturacionPoint[] | null | undefined,
-  ): Array<{ date: string; label: string }> {
-    if (!points?.length) return [];
-    const maxLabels = points.length <= 7 ? points.length : 6;
-    const step = Math.max(1, Math.ceil(points.length / maxLabels));
-    return points
-      .filter((_, i) => i % step === 0 || i === points.length - 1)
-      .map((p) => ({
-        date: p.date,
-        label: p.date.slice(8),
-      }));
+  onBillingBarEnter(date: string): void {
+    this.hoveredBillingDate.set(date);
+  }
+
+  onBillingBarLeave(): void {
+    this.hoveredBillingDate.set(null);
+  }
+
+  formatChartDay(date: string): string {
+    const [y, m, d] = date.split('-').map(Number);
+    if (!y || !m || !d) return date;
+    try {
+      return new Intl.DateTimeFormat('es-ES', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+      }).format(new Date(y, m - 1, d));
+    } catch {
+      return date;
+    }
   }
 
   aperturasTotal(metric: AdminMetric<AperturasBreakdown> | undefined): string {
@@ -321,10 +331,10 @@ export class AdminOverviewComponent implements OnInit {
     }
   }
 
-  orderStatusLabel(status: string): string {
-    if (status === 'OPEN') return 'Pendiente';
-    if (status === 'CLOSED') return 'Atendido';
-    if (status === 'CANCELLED') return 'Cancelado';
+  activityStatusLabel(status: string): string {
+    if (status === 'PENDIENTE') return 'Pendiente';
+    if (status === 'ATENDIDO') return 'Atendido';
+    if (status === 'RESERVADA') return 'Reservada';
     return status;
   }
 

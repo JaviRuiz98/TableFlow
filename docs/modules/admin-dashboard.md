@@ -34,7 +34,7 @@ Onboarding and `tf_setup` intents are unchanged.
 | Periodo | Pedidos recibidos / atendidos | OPEN+CLOSED / CLOSED on those historical plans |
 | Periodo | Facturación + gráfica diaria | same sales sum, grouped by `floor_plans.opening_date` (dense series with zeros) |
 | Both | Próximas aperturas | `scheduled` with `opening_date >= today` |
-| Both | Actividad reciente | latest OPEN/CLOSED orders in selected scope (`OPEN`→Pendiente, `CLOSED`→Atendido; marcar mesa atendida en sala cierra el pedido) |
+| Both | Actividad reciente | latest OPEN/CLOSED orders; badge = `attended`/CLOSED→Atendido (verde), OPEN sin atender→Pendiente (rojo), reserved sin atender→Reservada (dorado) |
 
 Also loads company name, active products, workers/staff for Personal/Configuración. Never runs global cross-tenant aggregates. Query failures → `error` / `unavailable` (never fake zeros). Schema/RLS reasons stay in docs, not in ADMIN UI copy.
 

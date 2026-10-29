@@ -79,6 +79,8 @@ describe('AdminMetricsService', () => {
       tables: {
         number: number;
         type?: string;
+        reserved?: boolean;
+        attended?: boolean;
         floor_plan_id: string;
         floor_plans: { id: string; name: string; company_id: string };
       };
@@ -179,6 +181,21 @@ describe('AdminMetricsService', () => {
           tables: {
             number: 12,
             type: 'TABLE',
+            reserved: false,
+            attended: false,
+            floor_plan_id: 'fp-open',
+            floor_plans: { id: 'fp-open', name: 'Viernes VIP', company_id: 'co-1' },
+          },
+        },
+        {
+          id: 'o-attended-open',
+          status: 'OPEN',
+          created_at: '2026-10-24T22:50:00Z',
+          tables: {
+            number: 101,
+            type: 'RESERVED',
+            reserved: true,
+            attended: true,
             floor_plan_id: 'fp-open',
             floor_plans: { id: 'fp-open', name: 'Viernes VIP', company_id: 'co-1' },
           },
@@ -290,7 +307,10 @@ describe('AdminMetricsService', () => {
     expect(snap.upcomingOpenings.value?.map((j) => j.id)).toContain('fp-sched');
     expect(snap.recentActivity.availability).toBe('ready');
     expect(snap.recentActivity.value?.[0]?.table_number).toBe(12);
+    expect(snap.recentActivity.value?.[0]?.displayStatus).toBe('PENDIENTE');
     expect(snap.recentActivity.value?.[0]?.floor_plan_name).toBe('Viernes VIP');
+    expect(snap.recentActivity.value?.[1]?.table_number).toBe(101);
+    expect(snap.recentActivity.value?.[1]?.displayStatus).toBe('ATENDIDO');
     expect(snap.staff.availability).toBe('ready');
   });
 
