@@ -10,9 +10,10 @@ export const TABLEFLOW_DEFAULT_BRANDING: BrandingConfig = {
   tagline: 'Gestión inteligente para tu discoteca',
   accessLabel: 'Acceso a TableFlow',
   assets: {
-    logoPrimaryUrl: '/brand/tableflow/logo-primary.svg',
-    logoCompactUrl: '/brand/tableflow/logo-compact.svg',
-    loginBackgroundUrl: '/brand/tableflow/login-background.webp',
+    // Relative to <base href> so GitHub Pages (/TableFlow/) and local (/) both resolve.
+    logoPrimaryUrl: 'brand/tableflow/logo-primary.svg',
+    logoCompactUrl: 'brand/tableflow/logo-compact.svg',
+    loginBackgroundUrl: 'brand/tableflow/login-background.webp',
   },
   colors: {
     primary: '#D4AF7C',
