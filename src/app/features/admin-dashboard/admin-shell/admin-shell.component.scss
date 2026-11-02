@@ -8,9 +8,11 @@
 }
 
 .admin-app {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background:
     radial-gradient(1100px 480px at 8% -12%, rgba(212, 175, 124, 0.09), transparent 55%),
     var(--tf-bg);
@@ -83,6 +85,10 @@
   padding: 0.48rem 0.82rem;
   border-radius: 999px;
   transition: color 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .admin-nav a:hover,
@@ -166,14 +172,23 @@
   padding: 0.55rem 0.75rem;
   overflow-x: auto;
   border-bottom: 1px solid var(--tf-border);
-  background: rgba(25, 25, 31, 0.85);
+  background: rgba(25, 25, 31, 0.92);
+  position: relative;
+  z-index: 25;
+  flex-shrink: 0;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
 }
 
 .admin-content {
   --background: transparent;
   --color: #f4efe6;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
+  height: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .admin-content::part(scroll) {
@@ -197,6 +212,7 @@
     padding: 0.75rem 0.85rem;
     padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
     padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+    flex-shrink: 0;
   }
 
   .admin-nav {

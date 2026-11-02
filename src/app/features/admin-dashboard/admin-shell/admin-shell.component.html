@@ -13,12 +13,16 @@
       </div>
     </div>
 
-    <nav class="admin-nav" aria-label="Navegación administración">
-      <a routerLink="/admin/resumen" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
-      <a routerLink="/admin/actividad" routerLinkActive="active">Actividad</a>
-      <a routerLink="/admin/sala" routerLinkActive="active">Gestión de sala</a>
-      <a routerLink="/admin/personal" routerLinkActive="active">Personal</a>
-      <a routerLink="/admin/configuracion" routerLinkActive="active">Configuración</a>
+    <nav class="admin-nav" aria-label="Navegación administración" (click)="$event.stopPropagation()">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="item.exact ? { exact: true } : { exact: false }"
+          (click)="goAdminSection($event, item.path)"
+          >{{ item.desktopLabel }}</a
+        >
+      }
     </nav>
 
     <div class="top-actions" (click)="$event.stopPropagation()">
@@ -43,15 +47,23 @@
     </div>
   </header>
 
-  <nav class="admin-nav-mobile" aria-label="Secciones">
-    <a routerLink="/admin/resumen" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Resumen</a>
-    <a routerLink="/admin/actividad" routerLinkActive="active">Actividad</a>
-    <a routerLink="/admin/sala" routerLinkActive="active">Sala</a>
-    <a routerLink="/admin/personal" routerLinkActive="active">Personal</a>
-    <a routerLink="/admin/configuracion" routerLinkActive="active">Config</a>
+  <!--
+    Outside ion-content on purpose: fullscreen content overlays custom chrome on mobile
+    and steals taps. Explicit navigate avoids overflow-x scroll eating the first touch.
+  -->
+  <nav class="admin-nav-mobile" aria-label="Secciones" (click)="$event.stopPropagation()">
+    @for (item of navItems; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="item.exact ? { exact: true } : { exact: false }"
+        (click)="goAdminSection($event, item.path)"
+        >{{ item.mobileLabel }}</a
+      >
+    }
   </nav>
 
-  <ion-content class="admin-content" [fullscreen]="true">
+  <ion-content class="admin-content">
     <div class="admin-page">
       <router-outlet />
     </div>

@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { TABLEFLOW_DEFAULT_BRANDING } from '../../../core/branding';
 import { AdminCompanyContextService } from '../admin-company-context.service';
 import { AdminMetricsService } from '../admin-metrics.service';
+import { ADMIN_NAV_ITEMS, prepareAdminNavClick } from './admin-shell-nav.util';
 
 @Component({
   selector: 'app-admin-shell',
@@ -22,6 +23,7 @@ export class AdminShellComponent implements OnInit {
   readonly branding = TABLEFLOW_DEFAULT_BRANDING;
   readonly userMenuOpen = signal(false);
   readonly companyName = this.companyCtx.companyName;
+  readonly navItems = ADMIN_NAV_ITEMS;
 
   readonly adminLabel = computed(() => {
     const p = this.auth.profile();
@@ -53,7 +55,16 @@ export class AdminShellComponent implements OnInit {
   }
 
   closeUserMenu(): void {
-    this.userMenuOpen.set(false);
+    if (this.userMenuOpen()) {
+      this.userMenuOpen.set(false);
+    }
+  }
+
+  /** Explicit navigation so mobile overflow-x / overlays cannot swallow routerLink taps. */
+  goAdminSection(event: Event, path: string): void {
+    prepareAdminNavClick(event);
+    this.closeUserMenu();
+    void this.router.navigateByUrl(path);
   }
 
   async logout(): Promise<void> {
