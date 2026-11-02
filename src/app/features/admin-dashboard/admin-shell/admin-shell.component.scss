@@ -30,7 +30,8 @@
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
-  z-index: 20;
+  /* Above admin-nav-mobile so the user dropdown is not covered on small screens. */
+  z-index: 40;
 }
 
 .brand-block {
@@ -174,7 +175,8 @@
   border-bottom: 1px solid var(--tf-border);
   background: rgba(25, 25, 31, 0.92);
   position: relative;
-  z-index: 25;
+  /* Below topbar (dropdown) but above ion-content. */
+  z-index: 10;
   flex-shrink: 0;
   touch-action: pan-x;
   overscroll-behavior-x: contain;
