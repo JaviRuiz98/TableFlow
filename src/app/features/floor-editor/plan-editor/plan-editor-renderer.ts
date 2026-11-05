@@ -107,60 +107,6 @@ export class PlanEditorRenderer {
       h.requestRender();
     });
     h.layer.add(text);
-    if (selected && elementsDraggable(h.canEditGeometry, h.tool)) {
-      this.attachTextRotateHandle(e, text);
-    }
-  }
-
-  /** Drag handle above the text; angle from text origin → pointer sets rotation. */
-  private attachTextRotateHandle(e: FloorPlanElement, textNode: Konva.Text): void {
-    const h = this.host;
-    const box = textNode.getClientRect({ relativeTo: h.layer });
-    const handle = new Konva.Circle({
-      x: box.x + box.width / 2,
-      y: box.y - 22,
-      radius: 8,
-      fill: '#ffffff',
-      stroke: '#8b5a3c',
-      strokeWidth: 3,
-      draggable: true,
-      name: `${e.id}-rotate`,
-    });
-
-    const applyRotationFromPointer = (evt: MouseEvent | TouchEvent): void => {
-      const point = h.getStagePointerPoint(evt);
-      if (!point) return;
-      const degrees = (Math.atan2(point.y - e.y, point.x - e.x) * 180) / Math.PI;
-      const next = ((Math.round(degrees) % 360) + 360) % 360;
-      e.rotation = next;
-      textNode.rotation(next);
-      const nextBox = textNode.getClientRect({ relativeTo: h.layer });
-      handle.position({
-        x: nextBox.x + nextBox.width / 2,
-        y: nextBox.y - 22,
-      });
-      h.layer.batchDraw();
-    };
-
-    handle.on('mousedown touchstart', (event) => {
-      event.cancelBubble = true;
-      h.selectedElementId = e.id;
-    });
-    handle.on('dragstart', (event) => {
-      event.cancelBubble = true;
-    });
-    handle.on('dragmove', (event) => {
-      event.cancelBubble = true;
-      applyRotationFromPointer(event.evt);
-    });
-    handle.on('dragend', (event) => {
-      event.cancelBubble = true;
-      applyRotationFromPointer(event.evt);
-      e.updated_at = new Date().toISOString();
-      h.pushHistory();
-      h.requestRender();
-    });
-    h.layer.add(handle);
   }
 
   private renderLineElement(e: FloorPlanElement): void {
@@ -544,25 +490,34 @@ export class PlanEditorRenderer {
         : t.reserved
           ? 'RESERVADA'
           : null;
+    const isCircle = t.shape === 'circle';
+    const diameter = Math.min(t.width, t.height);
+    const textWidth = isCircle ? diameter : t.width;
+    const textHeight = isCircle ? diameter : t.height;
+    const textX = isCircle ? t.x + (t.width - diameter) / 2 : t.x;
+    const textY = isCircle ? t.y + (t.height - diameter) / 2 : t.y;
+    // Fit status labels (e.g. RESERVADA) inside the circle diameter.
+    const statusFont = Math.max(10, Math.min(14, Math.floor(diameter / 8)));
     const numberText = new Konva.Text({
-      x: t.x,
-      y: t.y,
+      x: textX,
+      y: textY,
       text: statusHint ? `${t.number}\n${statusHint}` : `${t.number}`,
       fill: '#ffffff',
-      fontSize: statusHint ? 14 : 18,
+      fontSize: statusHint ? statusFont : Math.max(14, Math.min(18, Math.floor(diameter / 5))),
       fontStyle: 'bold',
-      width: t.width,
-      height: t.height,
+      width: textWidth,
+      height: textHeight,
       align: 'center',
       verticalAlign: 'middle',
       listening: false,
       lineHeight: 1.15,
+      padding: isCircle ? 4 : 0,
     });
     shape.on('dragmove', () => {
-      if (t.shape === 'circle') {
+      if (isCircle) {
         numberText.position({
-          x: shape.x() - t.width / 2,
-          y: shape.y() - t.height / 2,
+          x: shape.x() - diameter / 2,
+          y: shape.y() - diameter / 2,
         });
       } else {
         numberText.position({

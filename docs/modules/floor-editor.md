@@ -76,7 +76,7 @@ Beside freehand walls (`draw`), toolbar exposes **Rectángulo** and **Óvalo**: 
 
 ## Text (size + rotation)
 
-With a text element selected in **Seleccionar**: toolbar **A− / A+** (and px input) change `font_size` (8–120); **↺ / ↻** (and ° input) change `rotation`. A canvas rotate handle above the text also sets the angle. Persisted via snapshot (`font_size`, `rotation`).
+With a text element selected in **Seleccionar**: toolbar **A− / A+** (and px input) change `font_size` (8–120); **↺ / ↻** (and ° input) change `rotation`. Persisted via snapshot (`font_size`, `rotation`).
 
 ## Freehand walls + «Borrar dibujo»
 

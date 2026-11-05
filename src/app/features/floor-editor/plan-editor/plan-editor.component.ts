@@ -662,8 +662,9 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       type: 'TABLE',
       x: 300 + this.tables.length * 20,
       y: 300 + this.tables.length * 20,
-      width: 100,
-      height: 80,
+      // Circle uses min(width, height); keep square so «RESERVADA» fits.
+      width: 120,
+      height: 120,
       rotation: 0,
       shape: 'circle',
       created_at: now,
