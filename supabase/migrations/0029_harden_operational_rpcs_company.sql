@@ -2,7 +2,12 @@
 -- 0029_harden_operational_rpcs_company.sql
 -- TableFlow ONLY — NEVER run against Sala Chocolatte / CreadorSala.
 --
--- STATUS: READY FOR OPERATOR REVIEW — DO NOT APPLY UNTIL EXPLICITLY AUTHORIZED.
+-- STATUS: DO NOT APPLY THIS FILE WHOLESALE on current TableFlow.
+--   2026-11-05: remaining DEFINER guards applied via 0037 / MCP
+--   harden_remaining_0029_operational_rpcs_company (assign_products,
+--   set_table_observation, delete_table_with_orders).
+--   set_table_attended + replace_floor_plan_snapshot already had tenant
+--   checks from 0032 / 0033 — re-running this file would regress them.
 -- Requires: 0027 + 0028 (current_company_id, table_belongs_to_current_company).
 --
 -- Goal: SECURITY DEFINER RPCs must refuse cross-tenant table/product IDs.

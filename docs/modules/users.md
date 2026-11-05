@@ -58,6 +58,7 @@ Only ADMIN may invoke create-user. Edge binds the new profile with service-role 
 - UI still gates ADMIN; server enforces again
 - `create-user/config.toml` sets `verify_jwt = false` so browser OPTIONS preflight works; the function still validates JWT + ADMIN role + `company_id ===` token company
 - Migration `0035` must be applied before relying on metadata-ignore; redeploy `create-user` after code changes
+- Migration `0036` scopes `profiles` RLS to self + same-company ADMIN (no cross-tenant staff listing/edit)
 
 ## Restrictions
 
