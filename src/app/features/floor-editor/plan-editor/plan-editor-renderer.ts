@@ -40,12 +40,17 @@ export class PlanEditorRenderer {
     h.layer.draw();
   }
 
+  /** Idle fill for RESERVED blocks — distinct from mesa «reservada» gold. */
+  static readonly RESERVED_BLOCK_COLOR = '#3b2a4a';
+  /** Status fill when reserved=true (mesa or reservado). */
+  static readonly RESERVED_STATUS_COLOR = '#c4a574';
+
   /**
    * Colores de mesa/reservado en modo operativo (alineados con el panel):
-   *  - Pedido pendiente / observación -> rojo (hay que llevar botella)
+   *  - Pedido pendiente / observación -> rojo
    *  - Mesa atendida (botella puesta) -> verde
-   *  - Reservada                      -> dorado champagne
-   *  - Resto                          -> color normal (editor)
+   *  - Flag reserved=true             -> dorado champagne
+   *  - Resto                          -> normal (mesa negra / bloque morado)
    */
   tableColor(t: ClubTable, _hasProducts: boolean, normalColor = '#111111'): string {
     const pendingQty = this.host.pendingMap?.get(t.id) ?? 0;
@@ -58,7 +63,7 @@ export class PlanEditorRenderer {
       return '#4c8b62';
     }
     if (t.reserved) {
-      return '#c4a574';
+      return PlanEditorRenderer.RESERVED_STATUS_COLOR;
     }
     return normalColor;
   }
@@ -534,6 +539,15 @@ export class PlanEditorRenderer {
     const h = this.host;
     const active = h.selectedReserved?.id === r.id;
     const hasProducts = (h.orderCountMap.get(r.id) ?? 0) > 0;
+    const fill = this.tableColor(r, hasProducts, PlanEditorRenderer.RESERVED_BLOCK_COLOR);
+    const idleStroke =
+      fill === PlanEditorRenderer.RESERVED_STATUS_COLOR
+        ? '#b8925e'
+        : fill === '#9f2f3a'
+          ? '#7a2430'
+          : fill === '#4c8b62'
+            ? '#3a6b4c'
+            : '#5c4570';
     const shape = new Konva.Rect({
       x: r.x,
       y: r.y,
@@ -541,8 +555,8 @@ export class PlanEditorRenderer {
       height: r.height,
       rotation: r.rotation,
       cornerRadius: 14,
-      fill: this.tableColor(r, hasProducts, '#d4af7c'),
-      stroke: active ? '#b8925e' : '#c4a574',
+      fill,
+      stroke: active ? '#d4af7c' : idleStroke,
       strokeWidth: active ? 5 : 3,
       draggable: elementsDraggable(h.canEditGeometry, h.tool),
       name: r.id,

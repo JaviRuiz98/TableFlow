@@ -75,6 +75,25 @@ import { PlanEditorViewport } from './plan-editor-viewport';
 import { PlanEditorDrawing } from './plan-editor-drawing';
 import { PlanEditorDeleteFacade } from './plan-editor-delete.facade';
 
+/** Default diameter for circular tables (status labels like RESERVADA need room). */
+const DEFAULT_TABLE_CIRCLE_SIZE = 150;
+
+/** Grow undersized circle tables around their center (does not shrink larger ones). */
+function enlargeCircleTableIfSmall(table: ClubTable, size: number): ClubTable {
+  if (table.shape !== 'circle') return table;
+  const diameter = Math.min(table.width, table.height);
+  if (diameter >= size) return table;
+  const cx = table.x + table.width / 2;
+  const cy = table.y + table.height / 2;
+  return {
+    ...table,
+    width: size,
+    height: size,
+    x: cx - size / 2,
+    y: cy - size / 2,
+  };
+}
+
 @Component({
   selector: 'app-plan-editor',
   standalone: true,
@@ -197,7 +216,9 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     this.viewport.initialViewPending = true;
     const snap = await this.floors.load(this.plan.id);
     this.elements = snap.elements;
-    this.tables = (snap.tables ?? []).filter((t) => t.type !== 'RESERVED');
+    this.tables = (snap.tables ?? [])
+      .filter((t) => t.type !== 'RESERVED')
+      .map((t) => enlargeCircleTableIfSmall(t, DEFAULT_TABLE_CIRCLE_SIZE));
     const snapshotReserved = snap.reserved ?? [];
     const legacyReserved = (snap.tables ?? []).filter((t) => t.type === 'RESERVED');
     this.reserved = [
@@ -662,9 +683,9 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
       type: 'TABLE',
       x: 300 + this.tables.length * 20,
       y: 300 + this.tables.length * 20,
-      // Circle uses min(width, height); keep square so «RESERVADA» fits.
-      width: 120,
-      height: 120,
+      // Circle uses min(width, height); keep square so status labels fit.
+      width: DEFAULT_TABLE_CIRCLE_SIZE,
+      height: DEFAULT_TABLE_CIRCLE_SIZE,
       rotation: 0,
       shape: 'circle',
       created_at: now,
