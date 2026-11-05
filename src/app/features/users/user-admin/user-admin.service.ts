@@ -7,6 +7,11 @@ export interface CreateUserRequest {
   username: string;
   password: string;
   role: Role;
+  /**
+   * Optional in callers: resolved from the ADMIN session profile when omitted.
+   * Edge requires it and checks it matches the JWT ADMIN company_id.
+   */
+  company_id?: string;
   /** Required outside onboarding; Edge re-checks via verify_app_secret when present. */
   admin_password?: string;
 }
@@ -56,12 +61,36 @@ export class UserAdminService {
       data: { session },
     } = await this.db.client.auth.getSession();
 
-    if (!session?.access_token) {
+    if (!session?.access_token || !session.user?.id) {
       throw new Error('La sesión ha caducado. Cierra sesión y vuelve a entrar.');
     }
 
+    let companyId = request.company_id?.trim() || '';
+    if (!companyId) {
+      const { data: profile, error: profileError } = await this.db.client
+        .from('profiles')
+        .select('company_id')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) {
+        throw new Error(this.errors.humanize(profileError, 'No se pudo leer la empresa de tu perfil'));
+      }
+
+      companyId = typeof profile?.company_id === 'string' ? profile.company_id : '';
+    }
+
+    if (!companyId) {
+      throw new Error('Tu perfil no tiene empresa asociada. No se pueden crear trabajadores.');
+    }
+
+    const body: CreateUserRequest = {
+      ...request,
+      company_id: companyId,
+    };
+
     const { data, error } = await this.db.client.functions.invoke('create-user', {
-      body: request,
+      body,
       headers: {
         Authorization: `Bearer ${session.access_token}`,
       },

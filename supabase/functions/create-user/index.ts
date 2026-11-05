@@ -6,6 +6,8 @@ interface CreateUserPayload {
   username: string;
   password: string;
   role: "ADMIN" | "USER" | "RECEPTOR";
+  /** Must match the calling ADMIN profile.company_id (from JWT). */
+  company_id: string;
   /** Optional when caller is already an authenticated ADMIN (e.g. onboarding). */
   admin_password?: string;
 }
@@ -132,10 +134,18 @@ Deno.serve(async (req: Request) => {
     const username = normalizeUsername(body.username ?? "");
     const password = body.password;
     const role = body.role;
+    const requestedCompanyId = typeof body.company_id === "string" ? body.company_id.trim() : "";
     const adminPassword = typeof body.admin_password === "string" ? body.admin_password.trim() : "";
 
-    if (!fullName || !username || !password || !role) {
+    if (!fullName || !username || !password || !role || !requestedCompanyId) {
       return jsonResponse({ error: "Completa todos los campos obligatorios." }, 400);
+    }
+
+    if (requestedCompanyId !== adminCompanyId) {
+      return jsonResponse(
+        { error: "El company_id no coincide con la empresa de tu sesión." },
+        403,
+      );
     }
 
     if (isReservedUsername(username)) {
@@ -196,8 +206,8 @@ Deno.serve(async (req: Request) => {
 
     const internalEmail = `${username}@${INTERNAL_AUTH_DOMAIN}`;
 
-    // company_id is taken from the calling ADMIN profile (server-side), never from the request body.
-    // Requires handle_new_user to copy metadata.company_id on staff INSERT (migration 0019).
+    // Do NOT put company_id in user_metadata — handle_new_user ignores it (0035).
+    // Bind tenant only via service-role UPDATE after Auth insert, using the JWT ADMIN company.
     const { data: createdUser, error: createError } = await adminClient.auth.admin.createUser({
       email: internalEmail,
       password,
@@ -205,7 +215,6 @@ Deno.serve(async (req: Request) => {
       user_metadata: {
         full_name: fullName,
         username,
-        company_id: adminCompanyId,
       },
     });
 
@@ -219,8 +228,9 @@ Deno.serve(async (req: Request) => {
     const newUserId = createdUser.user.id;
     const { error: roleError } = await adminClient
       .from("profiles")
-      .update({ full_name: fullName, username, role })
-      .eq("id", newUserId);
+      .update({ full_name: fullName, username, role, company_id: adminCompanyId })
+      .eq("id", newUserId)
+      .is("company_id", null);
 
     if (roleError) {
       await adminClient.auth.admin.deleteUser(newUserId);
@@ -236,13 +246,18 @@ Deno.serve(async (req: Request) => {
       .eq("id", newUserId)
       .single();
 
-    if (createdProfileError || createdProfile?.company_id !== adminCompanyId) {
+    if (
+      createdProfileError ||
+      createdProfile?.company_id !== adminCompanyId ||
+      createdProfile?.role !== role
+    ) {
       await adminClient.auth.admin.deleteUser(newUserId);
       return jsonResponse(
         {
           error:
-            "No se pudo asociar el trabajador a tu empresa. Aplica la migración 0019_staff_profile_company_id.sql y vuelve a desplegar create-user.",
-          detail: createdProfileError?.message ?? `company_id=${createdProfile?.company_id ?? "null"}`,
+            "No se pudo asociar el trabajador a tu empresa. Aplica la migración 0035 y vuelve a desplegar create-user.",
+          detail: createdProfileError?.message ??
+            `company_id=${createdProfile?.company_id ?? "null"} role=${createdProfile?.role ?? "null"}`,
         },
         500,
       );

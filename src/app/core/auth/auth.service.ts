@@ -175,9 +175,10 @@ export class AuthService {
   }
 
   /**
-   * Public company registration via Auth signUp.
-   * Never sends role/company_id/username. Server handle_new_user creates company + ADMIN
-   * (username Administrador) from establishment_name metadata. Login blocked until email confirm.
+   * Public company registration via Edge `register-company` (not staff create-user).
+   * Never sends role/company_id/username. Server creates company + ADMIN
+   * (username Administrador) from establishment_name. Login blocked until email confirm
+   * unless TEMP_SKIP_EMAIL_VERIFICATION is on.
    */
   async signUpCompany(input: CompanySignUpInput): Promise<CompanySignUpResult> {
     if (!this.supabase.configured) {
@@ -191,51 +192,53 @@ export class AuthService {
 
     await this.assertCompanyNameAvailable(establishmentName);
 
-    const { data, error } = await this.supabase.client.auth.signUp({
-      email,
-      password: input.password,
-      options: {
-        // TEMP_SKIP_EMAIL_VERIFICATION: do not ask Auth to send the confirm email.
-        // Restore when re-enabling verification (and Confirm email in the dashboard):
-        // emailRedirectTo: buildEmailConfirmRedirectUrl(),
+    const { data, error } = await this.supabase.client.functions.invoke('register-company', {
+      body: {
+        email,
+        password: input.password,
+        full_name: fullName,
+        establishment_name: establishmentName,
+        phone,
         ...(TEMP_SKIP_EMAIL_VERIFICATION
           ? {}
-          : { emailRedirectTo: buildEmailConfirmRedirectUrl() }),
-        data: {
-          full_name: fullName,
-          establishment_name: establishmentName,
-          phone,
-          // Never send role or company_id — server assigns ADMIN only for this path.
-        },
+          : { email_redirect_to: buildEmailConfirmRedirectUrl() }),
       },
     });
 
     if (error) {
-      throw new Error(this.errors.humanize(error, 'No se pudo completar el registro'));
+      let detail = error.message;
+      const context = (error as { context?: Response }).context;
+      if (context && typeof context.clone === 'function') {
+        try {
+          const payload = (await context.clone().json()) as {
+            error?: string;
+            message?: string;
+            detail?: string;
+          };
+          detail = payload.error ?? payload.message ?? payload.detail ?? detail;
+        } catch {
+          // keep original message
+        }
+      }
+      throw new Error(this.errors.humanize(detail, 'No se pudo completar el registro'));
     }
 
-    const user = data.user;
-    // With "Confirm email" enabled, Auth may return a fake user (empty identities)
-    // instead of an error when the email is already registered.
-    if (user && Array.isArray(user.identities) && user.identities.length === 0) {
-      throw new Error('Ese correo ya está registrado.');
+    if (data?.error) {
+      throw new Error(this.errors.humanize(data.error, 'No se pudo completar el registro'));
     }
 
-    const userId = user?.id;
-    if (!userId) {
-      throw new Error('Supabase no devolvió el usuario registrado.');
+    if (!data?.success || typeof data.userId !== 'string') {
+      throw new Error('El servidor no confirmó el registro de la empresa.');
     }
 
-    // With Confirm Email enabled, session is null until the user confirms.
-    // TEMP: with Confirm email OFF + TEMP_SKIP_EMAIL_VERIFICATION, session should exist.
-    const confirmationRequired = TEMP_SKIP_EMAIL_VERIFICATION ? false : !data.session;
-    if (data.session) {
-      this.ensureSessionStartMarker();
-      this.session.set(data.session);
-      await this.loadProfile(data.session.user);
-      this.scheduleSessionExpiry();
-    } else if (TEMP_SKIP_EMAIL_VERIFICATION) {
-      // Simulate "clicked email link": establish session with the password just chosen.
+    const userId = data.userId as string;
+    // Edge reports confirmationRequired from Auth session presence.
+    // TEMP: force session via password sign-in when verification is skipped.
+    const confirmationRequired = TEMP_SKIP_EMAIL_VERIFICATION
+      ? false
+      : Boolean(data.confirmationRequired);
+
+    if (TEMP_SKIP_EMAIL_VERIFICATION || data.hasSession) {
       const { data: signedIn, error: signInError } = await this.supabase.client.auth.signInWithPassword({
         email,
         password: input.password,
@@ -244,7 +247,9 @@ export class AuthService {
         throw new Error(
           this.errors.humanize(
             signInError,
-            'Registro creado, pero no se pudo activar la sesión. Desactiva «Confirm email» en Supabase Auth (temporal).',
+            TEMP_SKIP_EMAIL_VERIFICATION
+              ? 'Registro creado, pero no se pudo activar la sesión. Desactiva «Confirm email» en Supabase Auth (temporal).'
+              : 'Registro creado, pero no se pudo iniciar sesión.',
           ),
         );
       }

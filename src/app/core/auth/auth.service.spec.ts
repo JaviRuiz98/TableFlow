@@ -14,6 +14,7 @@ describe('AuthService (integration with mocked Supabase)', () => {
   let onAuthStateChange: ReturnType<typeof vi.fn>;
   let fromMock: ReturnType<typeof vi.fn>;
   let rpcMock: ReturnType<typeof vi.fn>;
+  let invokeMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     localStorage.clear();
@@ -25,6 +26,7 @@ describe('AuthService (integration with mocked Supabase)', () => {
     onAuthStateChange = vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
     fromMock = vi.fn();
     rpcMock = vi.fn().mockResolvedValue({ data: true, error: null });
+    invokeMock = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
@@ -44,13 +46,15 @@ describe('AuthService (integration with mocked Supabase)', () => {
               },
               from: fromMock,
               rpc: rpcMock,
+              functions: { invoke: invokeMock },
             },
           },
         },
         {
           provide: ErrorMessageService,
           useValue: {
-            humanize: (_e: unknown, fallback: string) => fallback,
+            humanize: (e: unknown, fallback: string) =>
+              typeof e === 'string' && e.trim() ? e : fallback,
           },
         },
       ],
@@ -147,10 +151,16 @@ describe('AuthService (integration with mocked Supabase)', () => {
     await expect(service.signIn('x', 'y')).rejects.toThrow('No se pudo iniciar sesión');
   });
 
-  it('signUpCompany sends metadata without role (TEMP skip treats confirmation as done)', async () => {
-    // TEMP_SKIP_EMAIL_VERIFICATION=true: null session → signInWithPassword to activate.
-    signUp.mockResolvedValue({
-      data: { user: { id: 'u-new' }, session: null },
+  it('signUpCompany invokes register-company without role/company_id (TEMP skip signs in)', async () => {
+    invokeMock.mockResolvedValue({
+      data: {
+        success: true,
+        userId: 'u-new',
+        email: 'boss@club.test',
+        confirmationRequired: true,
+        hasSession: false,
+        company_id: 'co-1',
+      },
       error: null,
     });
     signInWithPassword.mockResolvedValue({
@@ -178,22 +188,22 @@ describe('AuthService (integration with mocked Supabase)', () => {
     });
     expect(rpcMock).toHaveBeenCalledWith('is_company_name_available', { p_name: 'Club Test' });
     expect(signInWithPassword).toHaveBeenCalled();
-    expect(signUp).toHaveBeenCalledWith(
+    expect(invokeMock).toHaveBeenCalledWith(
+      'register-company',
       expect.objectContaining({
-        email: 'boss@club.test',
-        options: expect.objectContaining({
-          data: expect.objectContaining({
-            full_name: 'Boss Club',
-            establishment_name: 'Club Test',
-            phone: '+34 600 000 000',
-          }),
+        body: expect.objectContaining({
+          email: 'boss@club.test',
+          full_name: 'Boss Club',
+          establishment_name: 'Club Test',
+          phone: '+34 600 000 000',
         }),
       }),
     );
-    const signUpOptions = signUp.mock.calls[0][0].options as Record<string, unknown>;
-    expect(signUpOptions['emailRedirectTo']).toBeUndefined();
-    const meta = signUpOptions['data'] as Record<string, unknown>;
-    expect(meta['role']).toBeUndefined();
+    const body = invokeMock.mock.calls[0][1].body as Record<string, unknown>;
+    expect(body['role']).toBeUndefined();
+    expect(body['company_id']).toBeUndefined();
+    expect(body['email_redirect_to']).toBeUndefined();
+    expect(signUp).not.toHaveBeenCalled();
   });
 
   it('signUpCompany blocks when commercial name is already taken', async () => {
@@ -208,15 +218,12 @@ describe('AuthService (integration with mocked Supabase)', () => {
         phone: '+34 600 000 000',
       }),
     ).rejects.toThrow(/Ya existe una empresa/);
-    expect(signUp).not.toHaveBeenCalled();
+    expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  it('signUpCompany rejects already-registered email (empty identities obfuscation)', async () => {
-    signUp.mockResolvedValue({
-      data: {
-        user: { id: 'u-dup', email: 'boss@club.test', identities: [] },
-        session: null,
-      },
+  it('signUpCompany rejects already-registered email from Edge', async () => {
+    invokeMock.mockResolvedValue({
+      data: { error: 'Ese correo ya está registrado.' },
       error: null,
     });
     const service = await readyService();

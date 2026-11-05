@@ -75,10 +75,14 @@ describe('UserAdminService', () => {
     await expect(service.verifyAccess('bad')).resolves.toBe(false);
   });
 
-  it('createUser invokes create-user with bearer session token', async () => {
+  it('createUser invokes create-user with bearer token and session company_id', async () => {
     getSessionMock.mockResolvedValue({
-      data: { session: { access_token: 'tok-123' } },
+      data: { session: { access_token: 'tok-123', user: { id: 'admin-1' } } },
     });
+    const single = vi.fn().mockResolvedValue({ data: { company_id: 'co-1' }, error: null });
+    const eq = vi.fn().mockReturnValue({ single });
+    const select = vi.fn().mockReturnValue({ eq });
+    fromMock.mockReturnValue({ select });
     invokeMock.mockResolvedValue({ data: { success: true }, error: null });
 
     const request = {
@@ -90,8 +94,9 @@ describe('UserAdminService', () => {
     };
 
     await expect(service.createUser(request)).resolves.toBeUndefined();
+    expect(fromMock).toHaveBeenCalledWith('profiles');
     expect(invokeMock).toHaveBeenCalledWith('create-user', {
-      body: request,
+      body: { ...request, company_id: 'co-1' },
       headers: { Authorization: 'Bearer tok-123' },
     });
   });
@@ -112,7 +117,7 @@ describe('UserAdminService', () => {
 
   it('createUser maps authorization-style function errors via humanize', async () => {
     getSessionMock.mockResolvedValue({
-      data: { session: { access_token: 'tok' } },
+      data: { session: { access_token: 'tok', user: { id: 'admin-1' } } },
     });
     invokeMock.mockResolvedValue({
       data: null,
@@ -127,13 +132,14 @@ describe('UserAdminService', () => {
         password: 'secret12',
         role: 'RECEPTOR',
         admin_password: 'admin-secret',
+        company_id: 'co-1',
       }),
     ).rejects.toThrow('No tienes permisos para realizar esta operación.');
   });
 
   it('createUser rejects payloads without success confirmation', async () => {
     getSessionMock.mockResolvedValue({
-      data: { session: { access_token: 'tok' } },
+      data: { session: { access_token: 'tok', user: { id: 'admin-1' } } },
     });
     invokeMock.mockResolvedValue({ data: {}, error: null });
 
@@ -144,6 +150,7 @@ describe('UserAdminService', () => {
         password: 'secret12',
         role: 'ADMIN',
         admin_password: 'admin-secret',
+        company_id: 'co-1',
       }),
     ).rejects.toThrow('El servidor no confirmó la creación del usuario.');
   });

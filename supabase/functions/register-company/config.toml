@@ -1,0 +1,4 @@
+# Public company registration — no caller JWT.
+# Authz: validates payload server-side; never accepts company_id / role from client.
+# Gateway JWT off so browser OPTIONS preflight works (same pattern as create-user).
+verify_jwt = false
