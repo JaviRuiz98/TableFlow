@@ -74,6 +74,7 @@ export class PlanEditorRenderer {
       fontSize: e.font_size ?? 22,
       fontStyle: 'bold',
       padding: 6,
+      rotation: e.rotation ?? 0,
       draggable: elementsDraggable(h.canEditGeometry, h.tool),
       name: e.id,
       shadowColor: 'rgba(0,0,0,.12)',
@@ -106,6 +107,60 @@ export class PlanEditorRenderer {
       h.requestRender();
     });
     h.layer.add(text);
+    if (selected && elementsDraggable(h.canEditGeometry, h.tool)) {
+      this.attachTextRotateHandle(e, text);
+    }
+  }
+
+  /** Drag handle above the text; angle from text origin → pointer sets rotation. */
+  private attachTextRotateHandle(e: FloorPlanElement, textNode: Konva.Text): void {
+    const h = this.host;
+    const box = textNode.getClientRect({ relativeTo: h.layer });
+    const handle = new Konva.Circle({
+      x: box.x + box.width / 2,
+      y: box.y - 22,
+      radius: 8,
+      fill: '#ffffff',
+      stroke: '#8b5a3c',
+      strokeWidth: 3,
+      draggable: true,
+      name: `${e.id}-rotate`,
+    });
+
+    const applyRotationFromPointer = (evt: MouseEvent | TouchEvent): void => {
+      const point = h.getStagePointerPoint(evt);
+      if (!point) return;
+      const degrees = (Math.atan2(point.y - e.y, point.x - e.x) * 180) / Math.PI;
+      const next = ((Math.round(degrees) % 360) + 360) % 360;
+      e.rotation = next;
+      textNode.rotation(next);
+      const nextBox = textNode.getClientRect({ relativeTo: h.layer });
+      handle.position({
+        x: nextBox.x + nextBox.width / 2,
+        y: nextBox.y - 22,
+      });
+      h.layer.batchDraw();
+    };
+
+    handle.on('mousedown touchstart', (event) => {
+      event.cancelBubble = true;
+      h.selectedElementId = e.id;
+    });
+    handle.on('dragstart', (event) => {
+      event.cancelBubble = true;
+    });
+    handle.on('dragmove', (event) => {
+      event.cancelBubble = true;
+      applyRotationFromPointer(event.evt);
+    });
+    handle.on('dragend', (event) => {
+      event.cancelBubble = true;
+      applyRotationFromPointer(event.evt);
+      e.updated_at = new Date().toISOString();
+      h.pushHistory();
+      h.requestRender();
+    });
+    h.layer.add(handle);
   }
 
   private renderLineElement(e: FloorPlanElement): void {
@@ -438,7 +493,7 @@ export class PlanEditorRenderer {
       draggable: elementsDraggable(h.canEditGeometry, h.tool),
       name: t.id,
       fill: this.tableColor(t, hasProducts),
-      stroke: active ? '#704936' : '#000000',
+      stroke: active ? '#b8925e' : '#000000',
       strokeWidth: active ? 4 : 3,
     };
     const shape: Konva.Shape =
@@ -531,8 +586,8 @@ export class PlanEditorRenderer {
       height: r.height,
       rotation: r.rotation,
       cornerRadius: 14,
-      fill: this.tableColor(r, hasProducts, '#704936'),
-      stroke: active ? '#3d2417' : '#704936',
+      fill: this.tableColor(r, hasProducts, '#d4af7c'),
+      stroke: active ? '#b8925e' : '#c4a574',
       strokeWidth: active ? 5 : 3,
       draggable: elementsDraggable(h.canEditGeometry, h.tool),
       name: r.id,

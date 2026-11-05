@@ -44,6 +44,16 @@ describe('PlanEditorDialogsComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('¿Borrar todo el dibujo?');
   });
 
+  it('save success shows company name instead of hardcoded tenant', () => {
+    cmp.showSaveDialog = true;
+    cmp.companyName = 'Club Test';
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Club Test');
+    expect(text).toContain('Diseño guardado');
+    expect(text).not.toContain('SALA CHOCOLATTE');
+  });
+
   it('renders mesa password delete copy', () => {
     cmp.showDeletePasswordDialog = true;
     cmp.pendingDeleteTargetType = 'TABLE';

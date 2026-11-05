@@ -39,58 +39,61 @@
 
 .editor-button{
   --background:#fffaf6;
-  --background-hover:#f4e7de;
-  --background-activated:#ead8ca;
-  --color:#5b3928;
-  --border-color:#d8c4b6;
+  --background-hover:rgba(212, 175, 124, 0.16);
+  --background-activated:rgba(212, 175, 124, 0.24);
+  --color:var(--tf-brand-secondary, #3b2a4a);
+  --border-color:rgba(212, 175, 124, 0.45);
   --border-style:solid;
   --border-width:1px;
-  --border-radius:9px;
+  --border-radius:12px;
   --box-shadow:none;
-  font-weight:700;
+  font-weight:600;
   font-size:12px;
   margin:0;
+  text-transform:none;
 }
 
 .editor-button:hover{
-  --background:#f4e7de;
+  --background:rgba(212, 175, 124, 0.16);
 }
 
 .editor-button.active{
-  --background:#704936;
-  --color:#ffffff;
-  --border-color:#704936;
+  --background:var(--tf-brand-primary, #d4af7c);
+  --background-hover:#d9bd91;
+  --background-activated:#b8925e;
+  --color:var(--tf-brand-on-primary, #0b0b0f);
+  --border-color:var(--tf-brand-primary, #d4af7c);
 }
 
-.editor-button.lock-button.locked{--background:#35261f;--color:#fff;--border-color:#35261f}
-.editor-button.primary{
-  --background:#6b4430;
-  --color:#ffffff;
-  --border-color:#6b4430;
+.editor-button.lock-button.locked{
+  --background:var(--tf-brand-secondary, #3b2a4a);
+  --color:var(--tf-brand-text, #f4efe6);
+  --border-color:var(--tf-brand-secondary, #3b2a4a);
 }
 
-.editor-button.primary:hover{
-  --background:#593624;
+.editor-button.primary,
+.editor-button.reserved-button{
+  --background:var(--tf-brand-primary, #d4af7c);
+  --background-hover:#d9bd91;
+  --background-activated:#b8925e;
+  --color:var(--tf-brand-on-primary, #0b0b0f);
+  --border-color:var(--tf-brand-primary, #d4af7c);
+  --box-shadow:0 10px 28px rgba(212, 175, 124, 0.18);
+}
+
+.editor-button.primary:hover,
+.editor-button.reserved-button:hover{
+  --background:#d9bd91;
 }
 
 .editor-button.danger{
-  --color:#8c3f3f;
-  --border-color:#d9b7b0;
+  --color:var(--tf-brand-danger, #e07a7a);
+  --border-color:rgba(224, 122, 122, 0.45);
 }
 
 .editor-button.danger:hover{
-  --background:#f8e8e5;
-  --color:#783333;
-}
-
-.editor-button.reserved-button{
-  --background:#7a4b2e;
-  --color:#ffffff;
-  --border-color:#7a4b2e;
-}
-
-.editor-button.reserved-button:hover{
-  --background:#653c24;
+  --background:rgba(224, 122, 122, 0.12);
+  --color:var(--tf-brand-danger, #e07a7a);
 }
 
 .editor-button.full{
@@ -124,14 +127,15 @@
 }
 
 .selected-status{
-  color:#8b5a3c;
+  color:var(--tf-brand-primary, #d4af7c);
   font-weight:700;
 }
 
 .text-size-control{
   display:flex;
   align-items:center;
-  gap:7px;
+  flex-wrap:wrap;
+  gap:6px;
   padding:6px 10px;
   border:1px solid #ddcfc5;
   border-radius:12px;
@@ -141,11 +145,11 @@
   font-weight:800;
 }
 .text-size-control input{
-  width:68px;
+  width:56px;
   height:32px;
   border:1px solid #d8c7bb;
   border-radius:8px;
-  padding:0 8px;
+  padding:0 6px;
   background:#fff;
   color:#2d211b;
   font:inherit;
@@ -154,6 +158,10 @@
 .text-size-control input:focus{
   outline:2px solid rgba(139,90,60,.24);
   outline-offset:1px;
+}
+.text-size-control .icon-button{
+  min-width:36px;
+  margin:0;
 }
 
 @media (max-width:800px){

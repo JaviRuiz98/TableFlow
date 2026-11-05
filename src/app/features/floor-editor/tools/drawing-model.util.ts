@@ -110,6 +110,9 @@ export function buildTextElement(input: {
   };
 }
 
+export const TEXT_FONT_SIZE_STEP = 2;
+export const TEXT_ROTATION_STEP_DEG = 15;
+
 /** Returns null if value is not a finite number; otherwise clamped 8..120 rounded. */
 export function normalizeTextFontSize(value: string | number | null | undefined): number | null {
   const parsed = Number(value);
@@ -122,4 +125,19 @@ export function shouldUpdateTextFontSize(
   next: number,
 ): boolean {
   return (current ?? 22) !== next;
+}
+
+/** Normalizes degrees into [0, 360). Non-finite → null. */
+export function normalizeTextRotation(value: string | number | null | undefined): number | null {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  const rounded = Math.round(parsed);
+  return ((rounded % 360) + 360) % 360;
+}
+
+export function shouldUpdateTextRotation(
+  current: number | null | undefined,
+  next: number,
+): boolean {
+  return normalizeTextRotation(current ?? 0) !== next;
 }

@@ -42,8 +42,12 @@ import {
   buildTextElement,
   canEditPlanGeometry,
   normalizeTextFontSize,
+  normalizeTextRotation,
   planToolTransition,
   shouldUpdateTextFontSize,
+  shouldUpdateTextRotation,
+  TEXT_FONT_SIZE_STEP,
+  TEXT_ROTATION_STEP_DEG,
   toolLabel as editorToolLabel,
 } from '../tools';
 import {
@@ -53,6 +57,7 @@ import {
   undoEditorHistoryIndex,
 } from '../history';
 import { AuthService } from '../../../core/auth/auth.service';
+import { SupabaseService } from '../../../core/infrastructure';
 import { OrderService } from '../../orders';
 import { TableDeletionService } from '../../tables';
 import type {
@@ -126,6 +131,9 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   pendingMap = new Map<string, number>();
   orderCountMap = new Map<string, number>();
   showSaveDialog = false;
+  /** Resolved from `companies.name` for the signed-in tenant (save-success dialog). */
+  companyName = 'TableFlow';
+  private companyNameLoaded = false;
   private _panMode = false;
 
   private readonly viewport: PlanEditorViewport;
@@ -169,6 +177,7 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     private geometry: GeometryService,
     private auth: AuthService,
     private orders: OrderService,
+    private db: SupabaseService,
     tableDeletion: TableDeletionService,
     public cdr: ChangeDetectorRef,
   ) {
@@ -484,7 +493,14 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   /** Toolbar «Borrar dibujo» — opens confirm; does not wipe until accepted. */
   requestClearAllDrawing() {
     if (!this.canEditGeometry) return;
-    if (this.elements.length === 0 && this.drawing.length === 0) return;
+    if (
+      this.elements.length === 0 &&
+      this.drawing.length === 0 &&
+      this.tables.length === 0 &&
+      this.reserved.length === 0
+    ) {
+      return;
+    }
     this.showClearDrawingDialog = true;
   }
 
@@ -496,7 +512,11 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     if (!this.canEditGeometry) return;
     this.showClearDrawingDialog = false;
     this.elements = [];
+    this.tables = [];
+    this.reserved = [];
     this.selectedElementId = null;
+    this.selectedTable = null;
+    this.selectedReserved = null;
     this.activeEndpoint = null;
     this.endpointShape = null;
     this.clearDrawingDraft();
@@ -511,6 +531,9 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   get selectedTextFontSize(): number {
     return this.selectedTextElement?.font_size ?? 22;
   }
+  get selectedTextRotation(): number {
+    return normalizeTextRotation(this.selectedTextElement?.rotation ?? 0) ?? 0;
+  }
   setSelectedTextFontSize(value: string | number | null | undefined) {
     const element = this.selectedTextElement;
     if (!element || !this.canEditGeometry) return;
@@ -522,6 +545,26 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
     this.pushHistory();
     this.render();
   }
+  nudgeSelectedTextFontSize(delta: number) {
+    this.setSelectedTextFontSize(this.selectedTextFontSize + delta);
+  }
+  setSelectedTextRotation(value: string | number | null | undefined) {
+    const element = this.selectedTextElement;
+    if (!element || !this.canEditGeometry) return;
+    const next = normalizeTextRotation(value);
+    if (next === null) return;
+    if (!shouldUpdateTextRotation(element.rotation, next)) return;
+    element.rotation = next;
+    element.updated_at = new Date().toISOString();
+    this.pushHistory();
+    this.render();
+  }
+  nudgeSelectedTextRotation(deltaDeg: number) {
+    this.setSelectedTextRotation(this.selectedTextRotation + deltaDeg);
+  }
+  /** Toolbar helpers — keep step constants in one place for the template. */
+  readonly textFontSizeStep = TEXT_FONT_SIZE_STEP;
+  readonly textRotationStepDeg = TEXT_ROTATION_STEP_DEG;
   closeTextDialog() {
     this.showTextDialog = false;
     this.newText = '';
@@ -571,7 +614,10 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
         reserved: this.reserved,
       });
       this.render();
-      if (showConfirmation) this.showSaveDialog = true;
+      if (showConfirmation) {
+        await this.ensureCompanyName();
+        this.showSaveDialog = true;
+      }
       return true;
     } catch (e) {
       console.error('Error guardando diseño:', e);
@@ -580,6 +626,30 @@ export class PlanEditorComponent implements OnChanges, OnDestroy, PlanEditorHost
   }
   closeSaveDialog() {
     this.showSaveDialog = false;
+  }
+
+  /** Loads commercial name once for dialogs (tenant-scoped via profile.company_id). */
+  private async ensureCompanyName(): Promise<void> {
+    if (this.companyNameLoaded) return;
+    const companyId = this.auth.profile()?.company_id;
+    if (!companyId || !this.db.configured) {
+      this.companyNameLoaded = true;
+      return;
+    }
+    try {
+      const { data, error } = await this.db.client
+        .from('companies')
+        .select('name')
+        .eq('id', companyId)
+        .maybeSingle();
+      if (!error && data?.name?.trim()) {
+        this.companyName = data.name.trim();
+      }
+    } catch {
+      // Keep fallback label.
+    } finally {
+      this.companyNameLoaded = true;
+    }
   }
   addTable() {
     if (!this.canEditGeometry) return;

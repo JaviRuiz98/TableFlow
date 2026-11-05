@@ -23,5 +23,9 @@ export {
   buildTextElement,
   isZoneShapeKind,
   normalizeTextFontSize,
+  normalizeTextRotation,
   shouldUpdateTextFontSize,
+  shouldUpdateTextRotation,
+  TEXT_FONT_SIZE_STEP,
+  TEXT_ROTATION_STEP_DEG,
 } from './drawing-model.util';

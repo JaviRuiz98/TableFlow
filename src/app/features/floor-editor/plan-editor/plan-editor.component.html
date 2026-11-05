@@ -12,11 +12,16 @@
     [historyLength]="history.length"
     [drawingLength]="drawing.length"
     [elementCount]="elements.length"
+    [tableCount]="tables.length"
+    [reservedCount]="reserved.length"
     [selectedElementId]="selectedElementId"
     [selectedTable]="selectedTable"
     [selectedReserved]="selectedReserved"
     [showTextSizeControl]="!!selectedTextElement"
     [selectedTextFontSize]="selectedTextFontSize"
+    [selectedTextRotation]="selectedTextRotation"
+    [textFontSizeStep]="textFontSizeStep"
+    [textRotationStepDeg]="textRotationStepDeg"
     (setTool)="setTool($event)"
     (save)="saveDesign()"
     (lockToggle)="togglePlanLock()"
@@ -27,7 +32,10 @@
     (undo)="undo()"
     (redo)="redo()"
     (zoom)="zoom($event)"
-    (textFontSizeChange)="setSelectedTextFontSize($event)">
+    (textFontSizeChange)="setSelectedTextFontSize($event)"
+    (textFontSizeNudge)="nudgeSelectedTextFontSize($event)"
+    (textRotationChange)="setSelectedTextRotation($event)"
+    (textRotationNudge)="nudgeSelectedTextRotation($event)">
   </app-editor-toolbar>
 
   <div
@@ -59,6 +67,7 @@
     [showServedDeleteWarning]="showServedDeleteWarning"
     [showTextDialog]="showTextDialog"
     [showSaveDialog]="showSaveDialog"
+    [companyName]="companyName"
     [(newText)]="newText"
     [(deletePassword)]="deletePassword"
     [deleteError]="deleteError"

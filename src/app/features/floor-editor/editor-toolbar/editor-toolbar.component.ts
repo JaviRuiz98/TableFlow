@@ -28,11 +28,17 @@ export class EditorToolbarComponent {
   @Input() drawingLength = 0;
   /** Committed geometry (walls / zones / text) — drives «Borrar dibujo». */
   @Input() elementCount = 0;
+  /** Tables / reserved — also cleared by «Borrar dibujo». */
+  @Input() tableCount = 0;
+  @Input() reservedCount = 0;
   @Input() selectedElementId: string | null = null;
   @Input() selectedTable: ClubTable | null = null;
   @Input() selectedReserved: ClubTable | null = null;
   @Input() showTextSizeControl = false;
   @Input() selectedTextFontSize = 22;
+  @Input() selectedTextRotation = 0;
+  @Input() textFontSizeStep = 2;
+  @Input() textRotationStepDeg = 15;
 
   @Output() setTool = new EventEmitter<EditorTool>();
   @Output() save = new EventEmitter<void>();
@@ -45,4 +51,7 @@ export class EditorToolbarComponent {
   @Output() redo = new EventEmitter<void>();
   @Output() zoom = new EventEmitter<number>();
   @Output() textFontSizeChange = new EventEmitter<string | number>();
+  @Output() textFontSizeNudge = new EventEmitter<number>();
+  @Output() textRotationChange = new EventEmitter<string | number>();
+  @Output() textRotationNudge = new EventEmitter<number>();
 }

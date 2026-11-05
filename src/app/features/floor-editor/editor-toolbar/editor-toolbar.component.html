@@ -13,7 +13,7 @@
       <ion-button class="editor-button primary" size="small" (click)="save.emit()" [disabled]="!isAdmin">💾 Guardar diseño</ion-button>
       <ion-button class="editor-button lock-button" size="small" [class.locked]="isLocked" (click)="lockToggle.emit()">{{ isLocked ? '🔒 Fijado' : '🔓 Fijar' }}</ion-button>
       <ion-button class="editor-button danger" size="small" (click)="deleteSelected.emit()" [disabled]="!canEditGeometry || (!selectedElementId && !selectedTable && !selectedReserved)">🧹 Borrar</ion-button>
-      <ion-button class="editor-button" size="small" (click)="clearDrawing.emit()" [disabled]="!canEditGeometry || (drawingLength === 0 && elementCount === 0)">Borrar dibujo</ion-button>
+      <ion-button class="editor-button" size="small" (click)="clearDrawing.emit()" [disabled]="!canEditGeometry || (drawingLength === 0 && elementCount === 0 && tableCount === 0 && reservedCount === 0)">Borrar dibujo</ion-button>
       <ion-button class="editor-button" size="small" (click)="addTable.emit()" [disabled]="!canEditGeometry">+ Mesa</ion-button>
       <ion-button class="editor-button reserved-button" size="small" (click)="addReserved.emit()" [disabled]="!canEditGeometry">+ Reservado</ion-button>
       <ion-button class="editor-button icon-button" size="small" (click)="undo.emit()" [disabled]="historyIndex < 1">↶</ion-button>
@@ -37,7 +37,14 @@
 
     @if (showTextSizeControl) {
       <div class="text-size-control">
-        <span>Tamaño texto</span>
+        <span>Texto</span>
+        <ion-button
+          class="editor-button icon-button"
+          size="small"
+          (click)="textFontSizeNudge.emit(-textFontSizeStep)"
+          aria-label="Reducir tamaño de letra"
+          >A−</ion-button
+        >
         <input
           type="number"
           min="8"
@@ -45,8 +52,38 @@
           step="1"
           [value]="selectedTextFontSize"
           (change)="textFontSizeChange.emit($any($event.target).value)"
-          aria-label="Tamaño de letra del texto seleccionado">
+          aria-label="Tamaño de letra del texto seleccionado" />
         <span>px</span>
+        <ion-button
+          class="editor-button icon-button"
+          size="small"
+          (click)="textFontSizeNudge.emit(textFontSizeStep)"
+          aria-label="Aumentar tamaño de letra"
+          >A+</ion-button
+        >
+        <ion-button
+          class="editor-button icon-button"
+          size="small"
+          (click)="textRotationNudge.emit(-textRotationStepDeg)"
+          aria-label="Girar texto a la izquierda"
+          >↺</ion-button
+        >
+        <input
+          type="number"
+          min="0"
+          max="359"
+          step="1"
+          [value]="selectedTextRotation"
+          (change)="textRotationChange.emit($any($event.target).value)"
+          aria-label="Rotación del texto en grados" />
+        <span>°</span>
+        <ion-button
+          class="editor-button icon-button"
+          size="small"
+          (click)="textRotationNudge.emit(textRotationStepDeg)"
+          aria-label="Girar texto a la derecha"
+          >↻</ion-button
+        >
       </div>
     }
   } @else {

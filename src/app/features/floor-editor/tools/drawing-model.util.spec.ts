@@ -4,7 +4,9 @@ import {
   buildWallElementsFromSegments,
   buildZoneShapeElement,
   normalizeTextFontSize,
+  normalizeTextRotation,
   shouldUpdateTextFontSize,
+  shouldUpdateTextRotation,
 } from './drawing-model.util';
 
 describe('drawing-model.util (PlanEditor characterization)', () => {
@@ -105,5 +107,19 @@ describe('drawing-model.util (PlanEditor characterization)', () => {
   it('shouldUpdateTextFontSize treats null current as 22', () => {
     expect(shouldUpdateTextFontSize(null, 22)).toBe(false);
     expect(shouldUpdateTextFontSize(22, 24)).toBe(true);
+  });
+
+  it('normalizeTextRotation wraps into 0..359', () => {
+    expect(normalizeTextRotation('abc')).toBeNull();
+    expect(normalizeTextRotation(0)).toBe(0);
+    expect(normalizeTextRotation(90)).toBe(90);
+    expect(normalizeTextRotation(360)).toBe(0);
+    expect(normalizeTextRotation(-15)).toBe(345);
+  });
+
+  it('shouldUpdateTextRotation compares normalized angles', () => {
+    expect(shouldUpdateTextRotation(0, 0)).toBe(false);
+    expect(shouldUpdateTextRotation(360, 0)).toBe(false);
+    expect(shouldUpdateTextRotation(0, 15)).toBe(true);
   });
 });

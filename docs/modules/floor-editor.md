@@ -74,11 +74,15 @@ floor-editor/
 
 Beside freehand walls (`draw`), toolbar exposes **Rectángulo** and **Óvalo**: click-drag on the canvas creates a `floor_plan_elements` row with `kind: 'zone'` and `label: 'rect' | 'ellipse'`. In **Seleccionar**, corner handles resize width/height. No schema change.
 
+## Text (size + rotation)
+
+With a text element selected in **Seleccionar**: toolbar **A− / A+** (and px input) change `font_size` (8–120); **↺ / ↻** (and ° input) change `rotation`. A canvas rotate handle above the text also sets the angle. Persisted via snapshot (`font_size`, `rotation`).
+
 ## Freehand walls + «Borrar dibujo»
 
 While **Dibujar**, a stroke stays as a dashed draft after pointer-up until the next stroke, leaving the draw tool, or **Guardar diseño**.
 
-**Borrar dibujo** asks for confirm, then clears **all** geometry (`elements` + draft): walls, zones, text. Mesas/reservados are kept. Undo works until save.
+**Borrar dibujo** asks for confirm, then clears **all** geometry (`elements` + draft): walls, zones, text, **and** mesas/reservados. Undo works until save; persists on next «Guardar diseño».
 
 ## Delete selection
 

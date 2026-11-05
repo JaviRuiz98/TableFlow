@@ -2,6 +2,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { AuthService } from '../../../core/auth/auth.service';
+import { SupabaseService } from '../../../core/infrastructure';
 import { GeometryService } from '../geometry';
 import { TableDeletionService } from '../../tables';
 import type { ClubTable, FloorPlan, FloorPlanElement, FloorSnapshot } from '../../../core/models/models';
@@ -47,8 +48,23 @@ const table = (partial: Partial<ClubTable> & Pick<ClubTable, 'id' | 'number' | '
 describe('PlanEditorComponent history/permissions (characterization)', () => {
   let cmp: PlanEditorComponent;
   let renderSpy: ReturnType<typeof vi.spyOn>;
-  const auth = { hasRole: vi.fn().mockReturnValue(true) };
+  const auth = {
+    hasRole: vi.fn().mockReturnValue(true),
+    profile: vi.fn().mockReturnValue({ company_id: 'company-1' }),
+  };
   const floors = { saveSnapshot: vi.fn().mockResolvedValue(undefined) };
+  const db = {
+    configured: true,
+    client: {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({ data: { name: 'Club Test' }, error: null }),
+          }),
+        }),
+      }),
+    },
+  };
   const orders = {
     forTable: vi.fn().mockResolvedValue({ items: [] }),
     subscribe: vi.fn().mockReturnValue({ unsubscribe: vi.fn() }),
@@ -76,6 +92,7 @@ describe('PlanEditorComponent history/permissions (characterization)', () => {
         { provide: GeometryService, useValue: {} },
         { provide: AuthService, useValue: auth },
         { provide: OrderService, useValue: orders },
+        { provide: SupabaseService, useValue: db },
         { provide: TableDeletionService, useValue: {} },
         { provide: ChangeDetectorRef, useValue: { detectChanges: vi.fn() } },
       ],
@@ -129,6 +146,52 @@ describe('PlanEditorComponent history/permissions (characterization)', () => {
     cmp.undo();
     cmp.redo();
     expect(cmp.tables.map((t) => t.id)).toEqual(['a', 'b']);
+    expect(renderSpy).toHaveBeenCalled();
+  });
+
+  it('nudgeSelectedTextFontSize and rotation update selected text', () => {
+    cmp.elements = [
+      {
+        id: 'txt-1',
+        floor_plan_id: 'plan-1',
+        kind: 'text',
+        x: 10,
+        y: 10,
+        width: 0,
+        height: 0,
+        rotation: 0,
+        points: null,
+        label: 'Hola',
+        font_size: 22,
+        z_index: 0,
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    cmp.selectedElementId = 'txt-1';
+    cmp.nudgeSelectedTextFontSize(2);
+    expect(cmp.selectedTextFontSize).toBe(24);
+    cmp.nudgeSelectedTextRotation(15);
+    expect(cmp.selectedTextRotation).toBe(15);
+    expect(renderSpy).toHaveBeenCalled();
+  });
+
+  it('confirmClearDrawing clears geometry, tables and reserved', () => {
+    cmp.elements = [{ id: 'e1', kind: 'wall' } as FloorPlanElement];
+    cmp.tables = [table({ id: 't1', number: 1, type: 'TABLE' })];
+    cmp.reserved = [table({ id: 'r1', number: 1, type: 'RESERVED' })];
+    cmp.selectedTable = cmp.tables[0];
+    cmp.selectedReserved = cmp.reserved[0];
+    cmp.selectedElementId = 'e1';
+
+    cmp.confirmClearDrawing();
+
+    expect(cmp.elements).toEqual([]);
+    expect(cmp.tables).toEqual([]);
+    expect(cmp.reserved).toEqual([]);
+    expect(cmp.selectedTable).toBeNull();
+    expect(cmp.selectedReserved).toBeNull();
+    expect(cmp.selectedElementId).toBeNull();
     expect(renderSpy).toHaveBeenCalled();
   });
 

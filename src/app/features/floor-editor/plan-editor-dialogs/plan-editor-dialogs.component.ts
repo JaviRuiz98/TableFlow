@@ -21,6 +21,8 @@ export class PlanEditorDialogsComponent {
   @Input() showServedDeleteWarning = false;
   @Input() showTextDialog = false;
   @Input() showSaveDialog = false;
+  /** Commercial name for save-success eyebrow (never hardcode a tenant). */
+  @Input() companyName = 'TableFlow';
   @Input() newText = '';
   @Input() deletePassword = '';
   @Input() deleteError = '';
